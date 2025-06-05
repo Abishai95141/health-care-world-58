@@ -1,1123 +1,319 @@
 import { useState, useEffect } from 'react';
-import { Search, ShoppingCart, ChevronDown, ChevronLeft, ChevronRight, Star, X, Plus, Minus, Clock, Shield, Truck, MessageCircle, CreditCard, RotateCcw } from 'lucide-react';
+import { Search, ShoppingCart, Filter, Star, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
-  const {
-    visibleProducts,
-    cart,
-    selectedProduct,
-    searchQuery,
-    currentCategory,
-    currentSort,
-    currentPage,
-    rowsPerPage,
-    filters,
-    setSearchQuery,
-    filterByCategory,
-    sortProducts,
-    applyAllFilters,
-    addToCart,
-    setSelectedProduct,
-    changePage,
-    setRowsPerPage,
-    navigateTo,
-    showToast
-  } = useApp();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [sortBy, setSortBy] = useState('name');
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [quantity, setQuantity] = useState(1);
 
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const { cart, addToCart, navigateTo } = useApp();
+  const { user, isLoggedIn } = useAuth();
 
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
-  const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
-  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
-  const [isPriceDropdownOpen, setIsPriceDropdownOpen] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [productQuantity, setProductQuantity] = useState(1);
-  const [tempFilters, setTempFilters] = useState(filters);
-  const [tempPriceRange, setTempPriceRange] = useState({ min: 0, max: 2000 });
-  const [isSlideTransitioning, setIsSlideTransitioning] = useState(false);
+  const products = [
+    { id: 1, name: 'Paracetamol 500mg Tablets', category: 'Pain Relief', price: 25, rating: 4.5, reviews: 128, stock: 50, image: '/placeholder.svg', description: 'Effective pain relief for headaches, fever, and mild to moderate pain.' },
+    { id: 2, name: 'Vitamin D3 Supplements', category: 'Vitamins', price: 180, rating: 4.3, reviews: 89, stock: 30, image: '/placeholder.svg', description: 'Essential vitamin D3 for bone health and immune system support.' },
+    { id: 3, name: 'Cough Syrup', category: 'Cold & Flu', price: 85, rating: 4.2, reviews: 156, stock: 25, image: '/placeholder.svg', description: 'Soothing cough syrup for dry and productive coughs.' },
+    { id: 4, name: 'Hand Sanitizer 250ml', category: 'Health & Hygiene', price: 45, rating: 4.6, reviews: 203, stock: 100, image: '/placeholder.svg', description: 'Alcohol-based hand sanitizer with 70% alcohol content.' },
+    { id: 5, name: 'Multivitamin Tablets', category: 'Vitamins', price: 220, rating: 4.4, reviews: 167, stock: 40, image: '/placeholder.svg', description: 'Complete multivitamin formula for daily nutritional support.' },
+    { id: 6, name: 'Antiseptic Cream', category: 'First Aid', price: 65, rating: 4.1, reviews: 94, stock: 35, image: '/placeholder.svg', description: 'Antiseptic cream for minor cuts, wounds, and skin infections.' }
+  ];
 
-  // Auto-rotate carousel with fade animation
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsSlideTransitioning(true);
-      setTimeout(() => {
-        setCurrentSlide(prev => (prev + 1) % 3);
-        setIsSlideTransitioning(false);
-      }, 150);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  const categories = ['All', 'Pain Relief', 'Vitamins', 'Cold & Flu', 'Health & Hygiene', 'First Aid'];
 
-  // Search functionality
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = (e.target as HTMLFormElement).search.value;
-    setSearchQuery(query);
-    if (query) {
-      document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
-    }
+  const filteredProducts = products
+    .filter(product => 
+      (selectedCategory === 'All' || product.category === selectedCategory) &&
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortBy === 'price') return a.price - b.price;
+      if (sortBy === 'rating') return b.rating - a.rating;
+      return a.name.localeCompare(b.name);
+    });
+
+  const handleProductClick = (product) => {
+    setSelectedProduct(product);
+    setQuantity(1);
   };
 
-  // Cart functionality
-  const cartItemCount = user ? cart.reduce((sum, item) => sum + item.quantity, 0) : 0;
+  const handleAddToCart = () => {
+    if (!isLoggedIn) {
+      // Store the product to add after login
+      localStorage.setItem('pendingCartItem', JSON.stringify({
+        product: selectedProduct,
+        quantity: quantity
+      }));
+      navigateTo('/auth');
+      return;
+    }
+
+    addToCart({
+      id: selectedProduct.id,
+      name: selectedProduct.name,
+      unitPrice: selectedProduct.price,
+      quantity: quantity,
+      stock: selectedProduct.stock
+    });
+    
+    setSelectedProduct(null);
+  };
 
   const handleCartClick = () => {
-    if (!user) {
-      navigate('/auth', { state: { from: '/cart' } });
+    if (!isLoggedIn) {
+      navigateTo('/auth');
     } else {
       navigateTo('/cart');
     }
   };
 
-  const handleLoginClick = () => {
-    navigate('/auth');
+  const handleProfileClick = () => {
+    if (!isLoggedIn) {
+      navigateTo('/auth');
+    } else {
+      navigateTo('/profile');
+    }
   };
 
-  // Category dropdown
-  const categories = ['Prescription', 'OTC & Wellness', 'Vitamins & Supplements', 'Medical Devices'];
-
-  // Product grid pagination
-  const totalPages = Math.ceil(visibleProducts.length / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const paginatedProducts = visibleProducts.slice(startIndex, startIndex + rowsPerPage);
-
-  // Modal handlers
-  const openProductModal = (product: any) => {
-    setSelectedProduct(product);
-    setProductQuantity(1);
-    setSelectedImageIndex(0);
-    setIsProductModalOpen(true);
-  };
-
-  const closeProductModal = () => {
-    setIsProductModalOpen(false);
-    setSelectedProduct(null);
-  };
-
-  // Filter modal handlers
-  const openFilterModal = () => {
-    setTempFilters(filters);
-    setIsFilterModalOpen(true);
-  };
-
-  const applyFilters = () => {
-    applyAllFilters(tempFilters);
-    setIsFilterModalOpen(false);
-  };
-
-  const clearAllFilters = () => {
-    const clearedFilters = {
-      categories: {
-        prescription: false,
-        otc: false,
-        vitamins: false,
-        devices: false
-      },
-      price: { min: 0, max: 2000 },
-      brands: {
-        'Acme Pharma': false,
-        'BioHealth': false,
-        'CapsuleCare': false,
-        'OmniMeds': false
-      },
-      special: {
-        inStock: false,
-        expiresSoon: false,
-        autoRefill: false,
-        requiresPrescription: false
+  // Check for pending cart item after login
+  useEffect(() => {
+    if (isLoggedIn) {
+      const pendingItem = localStorage.getItem('pendingCartItem');
+      if (pendingItem) {
+        const { product, quantity } = JSON.parse(pendingItem);
+        addToCart({
+          id: product.id,
+          name: product.name,
+          unitPrice: product.price,
+          quantity: quantity,
+          stock: product.stock
+        });
+        localStorage.removeItem('pendingCartItem');
       }
-    };
-    setTempFilters(clearedFilters);
-  };
-
-  // Product modal handlers
-  const handleAddToCart = () => {
-    if (!user) {
-      navigate('/auth', { 
-        state: { 
-          from: '/',
-          action: 'addToCart',
-          productId: selectedProduct?.id,
-          quantity: productQuantity
-        }
-      });
-      return;
     }
+  }, [isLoggedIn, addToCart]);
 
-    if (selectedProduct && selectedProduct.stock > 0) {
-      addToCart(selectedProduct.id, productQuantity);
-    }
-  };
-
-  const handleBuyNow = () => {
-    if (!user) {
-      navigate('/auth', { 
-        state: { 
-          from: '/checkout',
-          action: 'buyNow',
-          productId: selectedProduct?.id,
-          quantity: productQuantity
-        }
-      });
-      return;
-    }
-
-    if (selectedProduct && selectedProduct.stock > 0) {
-      addToCart(selectedProduct.id, productQuantity);
-      navigateTo('/checkout');
-    }
-  };
-
-  // Feature card handlers with proper icons
-  const features = [
-    { 
-      title: 'Quick Refill', 
-      subtitle: 'Auto-refill on meds',
-      icon: RotateCcw,
-      message: 'Auto-refill setup coming soon!'
-    },
-    { 
-      title: 'Verified Pharma', 
-      subtitle: 'Genuine Brands',
-      icon: Shield,
-      message: 'All products are 100% genuine'
-    },
-    { 
-      title: 'Fast Delivery', 
-      subtitle: 'Within 48 Hours',
-      icon: Truck,
-      message: 'Free delivery on orders over ₹500'
-    },
-    { 
-      title: '24/7 Pharmacist Chat', 
-      subtitle: 'Expert Help Anytime',
-      icon: MessageCircle,
-      message: 'Chat support coming soon!'
-    },
-    { 
-      title: 'Secure Payment', 
-      subtitle: 'Encrypted & Safe',
-      icon: CreditCard,
-      message: 'Your payments are 100% secure'
-    },
-    { 
-      title: 'Easy Returns', 
-      subtitle: '14-Day Policy',
-      icon: Clock,
-      message: '14-day hassle-free returns'
-    }
-  ];
-
-  const handleFeatureClick = (message: string) => {
-    showToast(message, 'info');
-  };
-
-  const handleCheckboxChange = (checked: boolean | "indeterminate", key: string, category: string) => {
-    const isChecked = checked === true;
-    
-    if (category === 'categories') {
-      setTempFilters(prev => ({
-        ...prev,
-        categories: { ...prev.categories, [key]: isChecked }
-      }));
-    } else if (category === 'brands') {
-      setTempFilters(prev => ({
-        ...prev,
-        brands: { ...prev.brands, [key]: isChecked }
-      }));
-    } else if (category === 'special') {
-      setTempFilters(prev => ({
-        ...prev,
-        special: { ...prev.special, [key]: isChecked }
-      }));
-    }
-  };
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Sticky Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-green-600">Capsule Care</h1>
+            <div className="flex items-center space-x-8">
+              <h1 className="text-2xl font-bold text-blue-600">PharmaCare</h1>
+              <nav className="hidden md:flex space-x-6">
+                <a href="#" className="text-gray-700 hover:text-blue-600">Home</a>
+                <a href="#" className="text-gray-700 hover:text-blue-600">Categories</a>
+                <a href="#" className="text-gray-700 hover:text-blue-600">Prescriptions</a>
+                <a href="#" className="text-gray-700 hover:text-blue-600">About</a>
+              </nav>
             </div>
             
-            {/* Search Bar */}
-            <div className="flex-1 max-w-lg mx-8">
-              <form onSubmit={handleSearch} className="relative">
-                <Input 
-                  name="search"
-                  placeholder="Search for medicines, brands…" 
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            <div className="flex items-center space-x-4">
+              {/* Search */}
+              <div className="relative hidden sm:block">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search medicines..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-64"
                 />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              </form>
-            </div>
-            
-            {/* Cart and Account */}
-            <div className="flex items-center space-x-6">
-              <button 
-                onClick={handleCartClick}
-                aria-label="View cart"
-                className="relative p-2 text-gray-600 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded-lg transition-colors"
-              >
-                <ShoppingCart className="h-6 w-6" />
-                <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {cartItemCount}
-                </span>
-              </button>
-              <div className="flex space-x-4 text-sm">
-                {user ? (
-                  <span className="text-gray-600">
-                    Welcome, {user.email?.split('@')[0]}
-                  </span>
-                ) : (
-                  <button 
-                    onClick={handleLoginClick}
-                    className="text-gray-600 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
-                  >
-                    Log In / Sign Up
-                  </button>
-                )}
-                <button 
-                  onClick={() => setIsHelpModalOpen(true)}
-                  className="text-gray-600 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
-                >
-                  Help
-                </button>
               </div>
+              
+              {/* Profile Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleProfileClick}
+                className="relative p-2"
+              >
+                <User className="h-5 w-5" />
+                {isLoggedIn && (
+                  <span className="ml-1 hidden sm:inline">Profile</span>
+                )}
+              </Button>
+              
+              {/* Cart */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCartClick}
+                className="relative p-2"
+              >
+                <ShoppingCart className="h-5 w-5" />
+                {cartItemCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                    {cartItemCount}
+                  </Badge>
+                )}
+              </Button>
             </div>
           </div>
         </div>
-        
-        {/* Navigation Bar */}
-        <nav className="bg-gray-50 border-t border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center space-x-8 h-12">
-              <button 
-                onClick={() => filterByCategory('All')}
-                className="text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
-              >
-                Home
-              </button>
-              <button 
-                onClick={() => document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' })}
-                className="text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
-              >
-                Shop
-              </button>
-              <div className="relative">
-                <button 
-                  onClick={() => setIsCategoriesDropdownOpen(!isCategoriesDropdownOpen)}
-                  className="flex items-center text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
-                >
-                  Categories
-                  <ChevronDown className="ml-1 h-4 w-4 text-gray-500" />
-                </button>
-                {isCategoriesDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                    {categories.map((category) => (
-                      <button
-                        key={category}
-                        onClick={() => {
-                          filterByCategory(category);
-                          setIsCategoriesDropdownOpen(false);
-                          document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-green-600 focus:outline-none focus:bg-gray-100"
-                      >
-                        {category}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <button 
-                onClick={() => navigateTo('/about-us')}
-                className="text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
-              >
-                About Us
-              </button>
-              <button 
-                onClick={() => navigateTo('/contact-us')}
-                className="text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
-              >
-                Contact Us
-              </button>
-            </div>
-          </div>
-        </nav>
       </header>
 
+      {/* Mobile Search */}
+      <div className="bg-white border-b sm:hidden">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search medicines..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <main>
-        {/* Hero Carousel with fade animation */}
-        <section className="relative bg-gradient-to-r from-green-50 to-blue-50 overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-            <div className={`text-center transition-opacity duration-300 ${isSlideTransitioning ? 'opacity-0' : 'opacity-100'}`}>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                {currentSlide === 0 && 'Stay Healthy with Capsule Care'}
-                {currentSlide === 1 && 'Wellness Essentials Sale – Up to 25% Off'}
-                {currentSlide === 2 && 'Free Same-Day Delivery on Orders Over ₹1,000'}
-              </h2>
-              <div className="h-64 bg-gray-200 rounded-lg mb-8 flex items-center justify-center">
-                <span className="text-gray-500">Hero Image {currentSlide + 1}</span>
-              </div>
-              <Button 
-                onClick={() => {
-                  if (currentSlide === 0) {
-                    filterByCategory('Prescription');
-                  } else if (currentSlide === 1) {
-                    filterByCategory('OTC & Wellness');
-                  } else {
-                    showToast('Learn more about our services!', 'info');
-                  }
-                  document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg focus:ring-2 focus:ring-green-500 transition-colors"
-              >
-                {currentSlide === 0 && 'Shop Prescription Drugs'}
-                {currentSlide === 1 && 'Shop OTC & Wellness'}
-                {currentSlide === 2 && 'Learn More'}
-              </Button>
-            </div>
-          </div>
-          
-          {/* Carousel Controls */}
-          <button 
-            onClick={() => {
-              setIsSlideTransitioning(true);
-              setTimeout(() => {
-                setCurrentSlide(currentSlide === 0 ? 2 : currentSlide - 1);
-                setIsSlideTransitioning(false);
-              }, 150);
-            }}
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 p-2 bg-white rounded-full shadow-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
-            <ChevronLeft className="h-6 w-6 text-gray-600" />
-          </button>
-          <button 
-            onClick={() => {
-              setIsSlideTransitioning(true);
-              setTimeout(() => {
-                setCurrentSlide((currentSlide + 1) % 3);
-                setIsSlideTransitioning(false);
-              }, 150);
-            }}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 bg-white rounded-full shadow-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
-            <ChevronRight className="h-6 w-6 text-gray-600" />
-          </button>
-          
-          {/* Dot Indicators */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-            {[0, 1, 2].map((index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setIsSlideTransitioning(true);
-                  setTimeout(() => {
-                    setCurrentSlide(index);
-                    setIsSlideTransitioning(false);
-                  }, 150);
-                }}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  currentSlide === index ? 'bg-green-600' : 'bg-gray-300'
-                }`}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* Category Navigation */}
-        <section className="bg-white py-6">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-center space-x-4">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => {
-                    filterByCategory(category);
-                    document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className={`px-6 py-2 border rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                    currentCategory === category
-                      ? 'border-green-500 bg-green-50 text-green-700'
-                      : 'border-gray-300 text-gray-700 hover:bg-green-50 hover:border-green-300'
-                  }`}
-                >
-                  {category}
-                </button>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Filters and Sorting */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <div className="flex items-center space-x-4 flex-1">
+            <Filter className="h-5 w-5 text-gray-500" />
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {categories.map(category => (
+                <option key={category} value={category}>{category}</option>
               ))}
-            </div>
+            </select>
           </div>
-        </section>
-
-        {/* Feature Highlights with proper icons */}
-        <section className="bg-gray-50 py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
-              {features.map((feature, index) => {
-                const IconComponent = feature.icon;
-                return (
-                  <button
-                    key={index}
-                    onClick={() => handleFeatureClick(feature.message)}
-                    className="bg-white p-6 rounded-lg text-center hover:shadow-lg hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
-                  >
-                    <div className="w-12 h-12 bg-green-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                      <IconComponent className="w-6 h-6 text-green-600" />
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                    <p className="text-sm text-gray-600">{feature.subtitle}</p>
-                  </button>
-                );
-              })}
-            </div>
+          
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600">Sort by:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="name">Name</option>
+              <option value="price">Price</option>
+              <option value="rating">Rating</option>
+            </select>
           </div>
-        </section>
+        </div>
 
-        {/* Top Deals Banner */}
-        <section className="bg-orange-500 text-white py-4">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <span className="text-2xl mr-3">💊</span>
-                <span className="text-lg font-semibold">Summer Fever Essentials – Up to 20% Off Bongolife 500 Tablets!</span>
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => (
+            <div
+              key={product.id}
+              onClick={() => handleProductClick(product)}
+              className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer border border-gray-200"
+            >
+              <div className="aspect-square bg-gray-100 rounded-t-lg flex items-center justify-center">
+                <span className="text-gray-500">Product Image</span>
               </div>
-              <Button 
-                onClick={() => {
-                  document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="bg-white text-orange-500 hover:bg-gray-100 focus:ring-2 focus:ring-white px-6 py-2"
-              >
-                Shop Now
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* Action Bar */}
-        <section className="bg-gray-100 py-4">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center relative">
-                  <span className="text-gray-700 mr-2">Sort:</span>
-                  <button 
-                    onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                    className="flex items-center text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
-                  >
-                    {currentSort} <ChevronDown className="ml-1 h-4 w-4" />
-                  </button>
-                  {isSortDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                      {['Popular', 'New Arrivals', 'Price: Low→High', 'Price: High→Low', 'Top Rated'].map((option) => (
-                        <button
-                          key={option}
-                          onClick={() => {
-                            sortProducts(option);
-                            setIsSortDropdownOpen(false);
-                          }}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <button 
-                  onClick={openFilterModal}
-                  className="flex items-center text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
-                >
-                  Filter: All <ChevronDown className="ml-1 h-4 w-4" />
-                </button>
-                <div className="flex items-center relative">
-                  <span className="text-gray-700 mr-2">Price:</span>
-                  <button 
-                    onClick={() => setIsPriceDropdownOpen(!isPriceDropdownOpen)}
-                    className="flex items-center text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
-                  >
-                    ₹{tempPriceRange.min} – ₹{tempPriceRange.max} <ChevronDown className="ml-1 h-4 w-4" />
-                  </button>
-                  {isPriceDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10 p-4">
-                      <div className="space-y-3">
-                        <div className="flex space-x-2">
-                          <Input 
-                            type="number"
-                            placeholder="Min" 
-                            value={tempFilters.price.min}
-                            onChange={(e) => 
-                              setTempFilters(prev => ({
-                                ...prev,
-                                price: { ...prev.price, min: parseInt(e.target.value) || 0 }
-                              }))
-                            }
-                            className="flex-1" 
-                          />
-                          <Input 
-                            type="number"
-                            placeholder="Max" 
-                            value={tempFilters.price.max}
-                            onChange={(e) => 
-                              setTempFilters(prev => ({
-                                ...prev,
-                                price: { ...prev.price, max: parseInt(e.target.value) || 2000 }
-                              }))
-                            }
-                            className="flex-1" 
-                          />
-                        </div>
-                        <Button 
-                          onClick={() => {
-                            applyAllFilters({ ...filters, price: tempPriceRange });
-                            setIsPriceDropdownOpen(false);
-                          }}
-                          className="w-full bg-green-600 hover:bg-green-700"
-                        >
-                          Apply
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Product Grid */}
-        <section id="product-grid" className="py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {paginatedProducts.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {paginatedProducts.map((product) => (
-                    <button
-                      key={product.id}
-                      onClick={() => openProductModal(product)}
-                      className="bg-white p-4 rounded-lg hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 text-left"
-                    >
-                      <div className="aspect-square bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                        <span className="text-gray-500">Product Image</span>
-                      </div>
-                      <h3 className="font-semibold text-gray-900 mb-2">{product.name}</h3>
-                      <p className="text-lg font-bold text-green-600 mb-2">₹{product.price}</p>
-                      <div className="flex items-center">
-                        <div className="flex space-x-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          ))}
-                        </div>
-                        <span className="text-sm text-gray-600 ml-2">({product.reviewCount})</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Pagination */}
-                <div className="flex items-center justify-between mt-12">
-                  <div className="flex items-center space-x-2">
-                    <button 
-                      onClick={() => changePage(Math.max(1, currentPage - 1))}
-                      disabled={currentPage === 1}
-                      className="p-2 text-gray-500 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-50"
-                    >
-                      ‹
-                    </button>
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      const page = i + 1;
-                      return (
-                        <button
-                          key={page}
-                          onClick={() => changePage(page)}
-                          className={`px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                            page === currentPage
-                              ? 'bg-green-600 text-white'
-                              : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      );
-                    })}
-                    <button 
-                      onClick={() => changePage(Math.min(totalPages, currentPage + 1))}
-                      disabled={currentPage === totalPages}
-                      className="p-2 text-gray-500 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-50"
-                    >
-                      ›
-                    </button>
-                  </div>
+              <div className="p-4">
+                <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
+                <p className="text-sm text-gray-600 mb-2">{product.category}</p>
+                <div className="flex items-center mb-2">
                   <div className="flex items-center">
-                    <span className="text-gray-700 mr-2">Rows per page:</span>
-                    <select 
-                      value={rowsPerPage}
-                      onChange={(e) => setRowsPerPage(parseInt(e.target.value))}
-                      className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    >
-                      <option value={20}>20</option>
-                      <option value={40}>40</option>
-                      <option value={60}>60</option>
-                    </select>
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <span className="ml-1 text-sm text-gray-600">{product.rating}</span>
+                    <span className="ml-1 text-sm text-gray-500">({product.reviews})</span>
                   </div>
                 </div>
-              </>
-            ) : (
-              // Empty State
-              <div className="text-center py-16">
-                <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-gray-500">No Results</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-bold text-gray-900">₹{product.price}</span>
+                  <span className="text-sm text-gray-500">{product.stock} in stock</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No results found for your filters</h3>
-                <p className="text-gray-600">Try adjusting your search criteria</p>
               </div>
-            )}
+            </div>
+          ))}
+        </div>
+
+        {filteredProducts.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">No products found matching your criteria.</p>
           </div>
-        </section>
+        )}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Customer Service */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Customer Service</h3>
-              <ul className="space-y-2">
-                {['Contact Us', 'Returns', 'FAQs', 'Shipping Policy'].map((link) => (
-                  <li key={link}>
-                    <a href="#" className="text-gray-300 hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1">{link}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Information */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Information</h3>
-              <ul className="space-y-2">
-                {[
-                  { text: 'About Us', onClick: () => navigateTo('/about-us') },
-                  { text: 'Privacy Policy', onClick: () => {} },
-                  { text: 'Terms of Service', onClick: () => {} },
-                  { text: 'Careers', onClick: () => {} }
-                ].map((link) => (
-                  <li key={link.text}>
-                    <button 
-                      onClick={link.onClick}
-                      className="text-gray-300 hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
-                    >
-                      {link.text}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Connect */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Connect</h3>
-              <div className="flex space-x-4 mb-6">
-                {['Facebook', 'Twitter', 'Instagram', 'YouTube'].map((social) => (
-                  <button
-                    key={social}
-                    className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
-                  >
-                    <span className="sr-only">{social}</span>
-                    <div className="w-5 h-5 bg-gray-400 rounded"></div>
-                  </button>
-                ))}
-              </div>
-              <div className="flex space-x-4">
-                {['GMP Certified', 'ISO 9001', 'Verified Pharmacy'].map((seal) => (
-                  <div key={seal} className="text-xs text-gray-400 border border-gray-600 px-2 py-1 rounded">
-                    {seal}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Newsletter */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Newsletter</h3>
-              <div className="flex mb-4">
-                <Input 
-                  placeholder="Enter your email" 
-                  className="flex-1 mr-2 bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500"
-                />
-                <Button disabled className="bg-gray-600 text-gray-400 cursor-not-allowed">Subscribe</Button>
-              </div>
-              <div className="hidden text-green-400 text-sm">Thank you for subscribing!</div>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center">
-            <p className="text-gray-400 mb-2">© 2025 Capsule Care Pharma – All Rights Reserved.</p>
-            <a href="#" className="text-gray-500 hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1 text-sm">
-              Accessibility Statement
-            </a>
-          </div>
-        </div>
-      </footer>
-
-      {/* Help Modal */}
-      {isHelpModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold">Help & Support</h2>
-              <button 
-                onClick={() => setIsHelpModalOpen(false)}
-                className="p-1 hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            
-            <div className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold mb-2">Frequently Asked Questions</h3>
-                  <ul className="space-y-2 text-sm text-gray-600">
-                    <li>• How do I place an order?</li>
-                    <li>• What are your delivery options?</li>
-                    <li>• How can I track my order?</li>
-                    <li>• What is your return policy?</li>
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Contact Support</h3>
-                  <p className="text-sm text-gray-600">
-                    Email: support@capsulecare.com<br/>
-                    Phone: 1-800-CAPSULE<br/>
-                    Hours: 24/7
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Filter Modal */}
-      {isFilterModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold">Filter Products</h2>
-              <button 
-                onClick={() => setIsFilterModalOpen(false)}
-                className="p-1 hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-6">
-              {/* Categories */}
-              <div>
-                <h3 className="font-semibold mb-3">Categories</h3>
-                <div className="space-y-2">
-                  {[
-                    { key: 'prescription', label: 'Prescription' },
-                    { key: 'otc', label: 'OTC & Wellness' },
-                    { key: 'vitamins', label: 'Vitamins & Supplements' },
-                    { key: 'devices', label: 'Medical Devices' }
-                  ].map((category) => (
-                    <div key={category.key} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={category.key}
-                        checked={tempFilters.categories[category.key]}
-                        onCheckedChange={(checked) => handleCheckboxChange(checked, category.key, 'categories')}
-                      />
-                      <Label htmlFor={category.key} className="text-sm">{category.label}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Price Range */}
-              <div>
-                <h3 className="font-semibold mb-3">Price Range</h3>
-                <div className="space-y-3">
-                  <div className="flex space-x-2">
-                    <Input 
-                      type="number"
-                      placeholder="Min" 
-                      value={tempFilters.price.min}
-                      onChange={(e) => 
-                        setTempFilters(prev => ({
-                          ...prev,
-                          price: { ...prev.price, min: parseInt(e.target.value) || 0 }
-                        }))
-                      }
-                      className="flex-1" 
-                    />
-                    <Input 
-                      type="number"
-                      placeholder="Max" 
-                      value={tempFilters.price.max}
-                      onChange={(e) => 
-                        setTempFilters(prev => ({
-                          ...prev,
-                          price: { ...prev.price, max: parseInt(e.target.value) || 2000 }
-                        }))
-                      }
-                      className="flex-1" 
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Brand */}
-              <div>
-                <h3 className="font-semibold mb-3">Brand</h3>
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {Object.keys(tempFilters.brands).map((brand) => (
-                    <div key={brand} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={brand}
-                        checked={tempFilters.brands[brand]}
-                        onCheckedChange={(checked) => handleCheckboxChange(checked, brand, 'brands')}
-                      />
-                      <Label htmlFor={brand} className="text-sm">{brand}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Special Filters */}
-              <div>
-                <h3 className="font-semibold mb-3">Special Filters</h3>
-                <div className="space-y-2">
-                  {[
-                    { key: 'inStock', label: 'Only In-Stock' },
-                    { key: 'expiresSoon', label: 'Expires Soon (Next 30 Days)' },
-                    { key: 'autoRefill', label: 'Auto-Refill Eligible' },
-                    { key: 'requiresPrescription', label: 'Requires Prescription' }
-                  ].map((filter) => (
-                    <div key={filter.key} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={filter.key}
-                        checked={tempFilters.special[filter.key]}
-                        onCheckedChange={(checked) => handleCheckboxChange(checked, filter.key, 'special')}
-                      />
-                      <Label htmlFor={filter.key} className="text-sm">{filter.label}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between p-6 border-t">
-              <button 
-                onClick={clearAllFilters}
-                className="text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
-              >
-                Clear All
-              </button>
-              <Button 
-                onClick={applyFilters}
-                className="bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500"
-              >
-                Apply Filters
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Product Detail Modal */}
-      {isProductModalOpen && selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold">{selectedProduct.name}</h2>
-              <button 
-                onClick={closeProductModal}
-                className="p-1 hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            
-            <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left Column - Images */}
-              <div>
-                <div className="aspect-square bg-gray-200 rounded-lg mb-4 flex items-center justify-center relative">
-                  <span className="text-gray-500">Large Product Image {selectedImageIndex + 1}</span>
-                  <button 
-                    onClick={() => setSelectedImageIndex(Math.max(0, selectedImageIndex - 1))}
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 p-1 bg-white rounded-full shadow"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button 
-                    onClick={() => setSelectedImageIndex(Math.min(selectedProduct.images.length - 1, selectedImageIndex + 1))}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 bg-white rounded-full shadow"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="flex space-x-2">
-                  {selectedProduct.images.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedImageIndex(index)}
-                      className={`w-20 h-20 bg-gray-200 rounded flex items-center justify-center border-2 ${
-                        selectedImageIndex === index ? 'border-green-600' : 'border-gray-300'
-                      }`}
-                    >
-                      <span className="text-xs text-gray-500">Thumb {index + 1}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Right Column - Details */}
-              <div className="space-y-6">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">{selectedProduct.name}</h1>
-                  <div className="flex items-center mt-2">
-                    <span className="text-2xl font-bold text-green-600">₹{selectedProduct.price}</span>
-                    <span className="text-lg text-gray-500 line-through ml-2">₹{selectedProduct.mrp}</span>
-                  </div>
-                  <div className="flex items-center mt-2">
-                    <div className="flex space-x-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <button className="text-sm text-blue-600 hover:underline ml-2 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1">
-                      ({selectedProduct.reviewCount} reviews)
-                    </button>
-                  </div>
-                </div>
-
-                <p className="text-gray-600">{selectedProduct.description}</p>
-
-                {/* Stock Indicator */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">Stock Level</span>
-                    <span className="text-sm text-green-600">In Stock: {selectedProduct.stock} units</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-600 h-2 rounded-full" 
-                      style={{ width: `${Math.min(100, (selectedProduct.stock / 200) * 100)}%` }}
-                    ></div>
-                  </div>
-                  {selectedProduct.stock < 20 && (
-                    <p className="text-sm text-red-600 mt-1">Only {selectedProduct.stock} left!</p>
-                  )}
-                </div>
-
-                {/* Quantity Selector */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-                  <div className="flex items-center space-x-3">
-                    <button 
-                      onClick={() => setProductQuantity(Math.max(1, productQuantity - 1))}
-                      disabled={productQuantity <= 1}
-                      className="p-2 border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <span className="px-4 py-2 border border-gray-300 rounded bg-gray-50">{productQuantity}</span>
-                    <button 
-                      onClick={() => setProductQuantity(Math.min(selectedProduct.stock, productQuantity + 1))}
-                      disabled={productQuantity >= selectedProduct.stock}
-                      className="p-2 border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex space-x-4">
-                  <Button 
-                    onClick={handleAddToCart}
-                    disabled={selectedProduct.stock === 0}
-                    className="flex-1 bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    {selectedProduct.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                  </Button>
-                  <Button 
-                    onClick={handleBuyNow}
-                    disabled={selectedProduct.stock === 0}
-                    className="flex-1 bg-orange-500 hover:bg-orange-600 focus:ring-2 focus:ring-orange-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    {selectedProduct.stock === 0 ? 'Out of Stock' : 'Buy Now'}
-                  </Button>
-                </div>
-
-                {/* You Might Also Like */}
-                <div>
-                  <h3 className="font-semibold mb-3">You Might Also Like</h3>
-                  <div className="flex space-x-3 overflow-x-auto">
-                    {visibleProducts.filter(p => p.id !== selectedProduct.id).slice(0, 3).map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                          setSelectedProduct(item);
-                          setProductQuantity(1);
-                          setSelectedImageIndex(0);
-                        }}
-                        className="flex-shrink-0 w-24 text-center focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                      >
-                        <div className="w-20 h-20 bg-gray-200 rounded mb-2 mx-auto flex items-center justify-center">
-                          <span className="text-xs text-gray-500">IMG</span>
-                        </div>
-                        <p className="text-xs text-gray-700 mb-1">{item.name.slice(0, 15)}...</p>
-                        <p className="text-xs font-semibold text-green-600">₹{item.price}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Tab Navigation */}
-                <div className="border-t pt-6">
-                  <nav className="flex space-x-6">
-                    {['Details', 'Ingredients', 'Customer Reviews', 'Q&A'].map((tab) => (
-                      <button
-                        key={tab}
-                        className="text-sm font-medium text-gray-600 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1 py-1"
-                      >
-                        {tab}
-                      </button>
-                    ))}
-                  </nav>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 border-t">
-              <div className="flex items-center justify-between">
-                <button 
-                  onClick={closeProductModal}
-                  className="text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
+      {selectedProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-2xl font-bold text-gray-900">{selectedProduct.name}</h2>
+                <button
+                  onClick={() => setSelectedProduct(null)}
+                  className="text-gray-400 hover:text-gray-600"
                 >
-                  Close
+                  ×
                 </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                  <span className="text-gray-500">Product Image</span>
+                </div>
+                
+                <div>
+                  <div className="flex items-center mb-3">
+                    <div className="flex items-center">
+                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                      <span className="ml-1 text-lg">{selectedProduct.rating}</span>
+                      <span className="ml-2 text-gray-500">({selectedProduct.reviews} reviews)</span>
+                    </div>
+                  </div>
+                  
+                  <p className="text-3xl font-bold text-gray-900 mb-4">₹{selectedProduct.price}</p>
+                  
+                  <p className="text-gray-600 mb-6">{selectedProduct.description}</p>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Quantity
+                      </label>
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          className="w-8 h-8 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                        >
+                          -
+                        </button>
+                        <span className="w-12 text-center">{quantity}</span>
+                        <button
+                          onClick={() => setQuantity(Math.min(selectedProduct.stock, quantity + 1))}
+                          className="w-8 h-8 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600">
+                      {selectedProduct.stock} units available
+                    </div>
+                    
+                    <Button
+                      onClick={handleAddToCart}
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      disabled={selectedProduct.stock === 0}
+                    >
+                      {selectedProduct.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

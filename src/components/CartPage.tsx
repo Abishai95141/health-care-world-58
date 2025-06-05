@@ -32,11 +32,7 @@ const CartPage = () => {
   };
 
   const handleProceedToCheckout = () => {
-    if (!isLoggedIn) {
-      navigateTo('/login');
-    } else {
-      navigateTo('/checkout');
-    }
+    navigateTo('/checkout');
   };
 
   if (cart.length === 0 || showEmptyState) {
