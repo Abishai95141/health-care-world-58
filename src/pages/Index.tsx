@@ -1,996 +1,1021 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, ShoppingCart, ChevronDown, ChevronLeft, ChevronRight, Star, Filter, X, Minus, Plus, Menu, Heart } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, ShoppingCart, ChevronDown, ChevronLeft, ChevronRight, Star, X, Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import { useApp } from '@/contexts/AppContext';
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  unitPrice: number;
-  category: string;
-  stock: number;
-  rating: number;
-  reviews: number;
-  brand: string;
-  tags: string[];
-  prescription: boolean;
-}
-
-// Mock data
-const mockProducts: Product[] = [
-  {
-    id: "p1",
-    name: "Paracetamol 500mg",
-    description: "Fever and pain relief medication",
-    unitPrice: 50,
-    category: "OTC & Wellness",
-    stock: 100,
-    rating: 4.5,
-    reviews: 120,
-    brand: "HealthCare",
-    tags: ["fever", "pain relief", "headache"],
-    prescription: false
-  },
-  {
-    id: "p2",
-    name: "Amoxicillin 250mg",
-    description: "Antibiotic for bacterial infections",
-    unitPrice: 120,
-    category: "Prescription",
-    stock: 50,
-    rating: 4.2,
-    reviews: 85,
-    brand: "MediPharm",
-    tags: ["antibiotic", "infection"],
-    prescription: true
-  },
-  {
-    id: "p3",
-    name: "Vitamin D3 1000IU",
-    description: "Supports bone health and immunity",
-    unitPrice: 350,
-    category: "Vitamins & Supplements",
-    stock: 200,
-    rating: 4.8,
-    reviews: 210,
-    brand: "NutriLife",
-    tags: ["vitamin", "immunity", "bone health"],
-    prescription: false
-  },
-  {
-    id: "p4",
-    name: "Blood Glucose Monitor",
-    description: "Digital device for monitoring blood sugar levels",
-    unitPrice: 1200,
-    category: "Medical Devices",
-    stock: 30,
-    rating: 4.6,
-    reviews: 95,
-    brand: "DigiHealth",
-    tags: ["diabetes", "monitor", "device"],
-    prescription: false
-  },
-  {
-    id: "p5",
-    name: "Omeprazole 20mg",
-    description: "For acid reflux and heartburn",
-    unitPrice: 85,
-    category: "OTC & Wellness",
-    stock: 75,
-    rating: 4.3,
-    reviews: 110,
-    brand: "GastroHelp",
-    tags: ["heartburn", "acid reflux", "stomach"],
-    prescription: false
-  },
-  {
-    id: "p6",
-    name: "Insulin Pen",
-    description: "For diabetes management",
-    unitPrice: 950,
-    category: "Prescription",
-    stock: 25,
-    rating: 4.7,
-    reviews: 65,
-    brand: "DiabeCare",
-    tags: ["diabetes", "insulin", "injection"],
-    prescription: true
-  },
-  {
-    id: "p7",
-    name: "First Aid Kit",
-    description: "Complete emergency medical kit",
-    unitPrice: 450,
-    category: "Medical Supplies",
-    stock: 40,
-    rating: 4.4,
-    reviews: 88,
-    brand: "SafetyFirst",
-    tags: ["emergency", "first aid", "bandage"],
-    prescription: false
-  },
-  {
-    id: "p8",
-    name: "Multivitamin Tablets",
-    description: "Daily essential vitamins and minerals",
-    unitPrice: 280,
-    category: "Vitamins & Supplements",
-    stock: 150,
-    rating: 4.5,
-    reviews: 175,
-    brand: "NutriLife",
-    tags: ["vitamin", "daily", "supplement"],
-    prescription: false
-  }
-];
-
-const categories = [
-  { key: 'all', label: 'All Categories' },
-  { key: 'otc', label: 'OTC & Wellness' },
-  { key: 'prescription', label: 'Prescription' },
-  { key: 'vitamins', label: 'Vitamins & Supplements' },
-  { key: 'devices', label: 'Medical Devices' },
-  { key: 'supplies', label: 'Medical Supplies' }
-];
-
-const featureMessages = [
-  "Free delivery on orders over ₹1,000",
-  "24/7 pharmacist consultation available",
-  "100% genuine medicines guaranteed",
-  "Easy returns within 30 days"
-];
-
 const Index = () => {
-  const { 
-    cart, 
-    addToCart, 
-    removeFromCart, 
-    updateCartQuantity, 
-    clearCart, 
-    navigateTo, 
-    showToast,
-    isLoggedIn 
+  const {
+    visibleProducts,
+    cart,
+    selectedProduct,
+    searchQuery,
+    currentCategory,
+    currentSort,
+    currentPage,
+    rowsPerPage,
+    filters,
+    setSearchQuery,
+    filterByCategory,
+    sortProducts,
+    applyAllFilters,
+    addToCart,
+    setSelectedProduct,
+    changePage,
+    setRowsPerPage,
+    navigateTo,
+    showToast
   } = useApp();
 
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [fadeClass, setFadeClass] = useState('opacity-100');
-  const autoPlayRef = useRef<NodeJS.Timeout>();
-
-  const [products, setProducts] = useState<Product[]>(mockProducts);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(mockProducts);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All Categories');
-  const [priceRange, setPriceRange] = useState([0, 1500]);
-  const [sortOption, setSortOption] = useState('popularity');
-  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
-  const [quantity, setQuantity] = useState(1);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const [isPriceDropdownOpen, setIsPriceDropdownOpen] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [productQuantity, setProductQuantity] = useState(1);
+  const [tempFilters, setTempFilters] = useState(filters);
+  const [tempPriceRange, setTempPriceRange] = useState({ min: 0, max: 2000 });
 
-  const carouselSlides = [
-    {
-      title: "Stay Healthy with Capsule Care",
-      buttonText: "Shop Prescription Drugs",
-      action: () => filterByCategory('Prescription')
-    },
-    {
-      title: "Wellness Essentials Sale – Up to 25% Off",
-      buttonText: "Shop OTC & Wellness", 
-      action: () => filterByCategory('OTC & Wellness')
-    },
-    {
-      title: "Free Same-Day Delivery on Orders Over ₹1,000",
-      buttonText: "Learn More",
-      action: () => scrollToSection('about')
-    }
-  ];
-
-  // Carousel auto-play effect
+  // Auto-rotate carousel
   useEffect(() => {
-    if (isAutoPlaying) {
-      autoPlayRef.current = setInterval(() => {
-        nextSlide();
-      }, 5000);
-    }
-    
-    return () => {
-      if (autoPlayRef.current) {
-        clearInterval(autoPlayRef.current);
-      }
-    };
-  }, [isAutoPlaying, currentSlide]);
-
-  const nextSlide = () => {
-    setFadeClass('opacity-0');
-    setTimeout(() => {
-      setCurrentSlide(prev => (prev + 1) % carouselSlides.length);
-      setFadeClass('opacity-100');
-    }, 300);
-  };
-
-  const prevSlide = () => {
-    setFadeClass('opacity-0');
-    setTimeout(() => {
-      setCurrentSlide(prev => prev === 0 ? carouselSlides.length - 1 : prev - 1);
-      setFadeClass('opacity-100');
-    }, 300);
-  };
-
-  const goToSlide = (index: number) => {
-    if (index !== currentSlide) {
-      pauseAutoPlay();
-      setFadeClass('opacity-0');
-      setTimeout(() => {
-        setCurrentSlide(index);
-        setFadeClass('opacity-100');
-      }, 300);
-    }
-  };
-
-  const pauseAutoPlay = () => {
-    setIsAutoPlaying(false);
-    if (autoPlayRef.current) {
-      clearInterval(autoPlayRef.current);
-    }
-    setTimeout(() => setIsAutoPlaying(true), 10000);
-  };
-
-  const handleCartClick = () => {
-    if (!isLoggedIn) {
-      navigateTo('/login');
-    } else {
-      navigateTo('/cart');
-    }
-  };
-
-  const handleHelpClick = () => {
-    setIsHelpModalOpen(true);
-  };
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      console.log(`Navigate to ${sectionId} section`);
-    }
-  };
-
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsCategoriesOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    const interval = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % 3);
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  const searchProducts = (query: string) => {
-    if (!query.trim()) {
-      setFilteredProducts(products);
-      return;
-    }
-
-    const lowercaseQuery = query.toLowerCase();
-    const results = products.filter(product => 
-      product.name.toLowerCase().includes(lowercaseQuery) || 
-      product.description.toLowerCase().includes(lowercaseQuery) ||
-      product.tags.some(tag => tag.toLowerCase().includes(lowercaseQuery))
-    );
-    
-    setFilteredProducts(results);
-    setSelectedCategory('All Categories');
-  };
-
-  const filterByCategory = (category: string) => {
-    setSelectedCategory(category);
-    
-    if (category === 'All Categories') {
-      setFilteredProducts(products);
-    } else {
-      const filtered = products.filter(product => product.category === category);
-      setFilteredProducts(filtered);
+  // Search functionality
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = (e.target as HTMLFormElement).search.value;
+    setSearchQuery(query);
+    if (query) {
+      document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  const filterByPrice = (range: number[]) => {
-    setPriceRange(range);
-    
-    const filtered = products.filter(product => 
-      product.unitPrice >= range[0] && product.unitPrice <= range[1]
-    );
-    
-    setFilteredProducts(filtered);
+  // Cart functionality
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const handleCartClick = () => {
+    navigateTo('/cart');
   };
 
-  const sortProducts = (option: string) => {
-    setSortOption(option);
-    let sorted = [...filteredProducts];
-    
-    switch (option) {
-      case 'price-low':
-        sorted.sort((a, b) => a.unitPrice - b.unitPrice);
-        break;
-      case 'price-high':
-        sorted.sort((a, b) => b.unitPrice - a.unitPrice);
-        break;
-      case 'rating':
-        sorted.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'popularity':
-      default:
-        sorted.sort((a, b) => b.reviews - a.reviews);
-        break;
-    }
-    
-    setFilteredProducts(sorted);
-  };
+  // Category dropdown
+  const categories = ['Prescription', 'OTC & Wellness', 'Vitamins & Supplements', 'Medical Devices'];
 
-  const openQuickView = (product: Product) => {
+  // Product grid pagination
+  const totalPages = Math.ceil(visibleProducts.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const paginatedProducts = visibleProducts.slice(startIndex, startIndex + rowsPerPage);
+
+  // Modal handlers
+  const openProductModal = (product: any) => {
     setSelectedProduct(product);
-    setIsQuickViewOpen(true);
-    setQuantity(1);
+    setProductQuantity(1);
+    setSelectedImageIndex(0);
+    setIsProductModalOpen(true);
   };
 
-  const closeQuickView = () => {
-    setIsQuickViewOpen(false);
+  const closeProductModal = () => {
+    setIsProductModalOpen(false);
     setSelectedProduct(null);
   };
 
-  const handleAddToCart = (product: Product, qty: number = 1) => {
-    if (product.prescription && !isLoggedIn) {
-      showToast('Please log in to purchase prescription medications', 'error');
-      return;
-    }
-    
-    addToCart({
-      id: product.id,
-      name: product.name,
-      unitPrice: product.unitPrice,
-      quantity: qty,
-      stock: product.stock
-    });
-    
-    showToast(`${product.name} added to cart`, 'success');
+  // Filter modal handlers
+  const openFilterModal = () => {
+    setTempFilters(filters);
+    setIsFilterModalOpen(true);
   };
 
-  const incrementQuantity = () => {
-    if (selectedProduct && quantity < selectedProduct.stock) {
-      setQuantity(prev => prev + 1);
+  const applyFilters = () => {
+    applyAllFilters(tempFilters);
+    setIsFilterModalOpen(false);
+  };
+
+  const clearAllFilters = () => {
+    const clearedFilters = {
+      categories: {
+        prescription: false,
+        otc: false,
+        vitamins: false,
+        devices: false
+      },
+      price: { min: 0, max: 2000 },
+      brands: {
+        'Acme Pharma': false,
+        'BioHealth': false,
+        'CapsuleCare': false,
+        'OmniMeds': false
+      },
+      special: {
+        inStock: false,
+        expiresSoon: false,
+        autoRefill: false,
+        requiresPrescription: false
+      }
+    };
+    setTempFilters(clearedFilters);
+  };
+
+  // Product modal handlers
+  const handleAddToCart = () => {
+    if (selectedProduct && selectedProduct.stock > 0) {
+      addToCart(selectedProduct.id, productQuantity);
     }
   };
 
-  const decrementQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(prev => prev - 1);
+  const handleBuyNow = () => {
+    if (selectedProduct && selectedProduct.stock > 0) {
+      addToCart(selectedProduct.id, productQuantity);
+      navigateTo('/checkout');
+    }
+  };
+
+  // Feature card handlers
+  const featureMessages = {
+    'Quick Refill': 'Auto-refill setup coming soon!',
+    'Verified Pharma': 'All products are 100% genuine',
+    'Fast Delivery': 'Free delivery on orders over ₹500',
+    '24/7 Pharmacist Chat': 'Chat support coming soon!',
+    'Secure Payment': 'Your payments are 100% secure',
+    'Easy Returns': '14-day hassle-free returns'
+  };
+
+  const handleFeatureClick = (featureTitle: string) => {
+    showToast(featureMessages[featureTitle] || 'Feature coming soon!');
+  };
+
+  const handleCheckboxChange = (checked: boolean | "indeterminate", key: string, category: string) => {
+    const isChecked = checked === true;
+    
+    if (category === 'categories') {
+      setTempFilters(prev => ({
+        ...prev,
+        categories: { ...prev.categories, [key]: isChecked }
+      }));
+    } else if (category === 'brands') {
+      setTempFilters(prev => ({
+        ...prev,
+        brands: { ...prev.brands, [key]: isChecked }
+      }));
+    } else if (category === 'special') {
+      setTempFilters(prev => ({
+        ...prev,
+        special: { ...prev.special, [key]: isChecked }
+      }));
     }
   };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white shadow-sm">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-green-600 cursor-pointer" onClick={() => navigateTo('/')}>
-                Capsule Care
-              </h1>
+              <h1 className="text-2xl font-bold text-green-600">Capsule Care</h1>
             </div>
-
+            
             {/* Search Bar */}
             <div className="flex-1 max-w-lg mx-8">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <Input
-                  type="text"
-                  placeholder="Search for medicines, brands…"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      searchProducts(searchQuery);
-                    }
-                  }}
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              <form onSubmit={handleSearch} className="relative">
+                <Input 
+                  name="search"
+                  placeholder="Search for medicines, brands…" 
+                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 />
-              </div>
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              </form>
             </div>
-
-            {/* Cart and Account Links */}
+            
+            {/* Cart and Account */}
             <div className="flex items-center space-x-6">
               <button 
                 onClick={handleCartClick}
-                className="relative p-2 text-gray-600 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
                 aria-label="View cart"
+                className="relative p-2 text-gray-600 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded-lg transition-colors"
               >
                 <ShoppingCart className="h-6 w-6" />
-                {cart.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cart.reduce((total, item) => total + item.quantity, 0)}
-                  </span>
-                )}
+                <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartItemCount}
+                </span>
               </button>
-              <button 
-                onClick={() => navigateTo('/login')}
-                className="text-gray-600 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
-              >
-                Log In / Sign Up
-              </button>
-              <button 
-                onClick={handleHelpClick}
-                className="text-gray-600 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
-              >
-                Help
-              </button>
+              <div className="flex space-x-4 text-sm">
+                <button 
+                  onClick={() => navigateTo('/login')}
+                  className="text-gray-600 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
+                >
+                  Log In / Sign Up
+                </button>
+                <button 
+                  onClick={() => setIsHelpModalOpen(true)}
+                  className="text-gray-600 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
+                >
+                  Help
+                </button>
+              </div>
             </div>
           </div>
-
-          {/* Navigation Bar */}
-          <nav className="border-t border-gray-200 py-4">
-            <div className="flex items-center space-x-8">
+        </div>
+        
+        {/* Navigation Bar */}
+        <nav className="bg-gray-50 border-t border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center space-x-8 h-12">
               <button 
-                onClick={() => navigateTo('/')}
-                className="text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
+                onClick={() => filterByCategory('All')}
+                className="text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
               >
                 Home
               </button>
               <button 
-                onClick={() => navigateTo('/shop')}
-                className="text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
+                onClick={() => document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' })}
+                className="text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
               >
                 Shop
               </button>
-              <div className="relative" ref={dropdownRef}>
+              <div className="relative">
                 <button 
-                  onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
-                  className="flex items-center space-x-1 text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
+                  onClick={() => setIsCategoriesDropdownOpen(!isCategoriesDropdownOpen)}
+                  className="flex items-center text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
                 >
-                  <span>Categories</span>
-                  <ChevronDown className="h-4 w-4" />
+                  Categories
+                  <ChevronDown className="ml-1 h-4 w-4 text-gray-500" />
                 </button>
-                {isCategoriesOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                {isCategoriesDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                     {categories.map((category) => (
                       <button
-                        key={category.key}
+                        key={category}
                         onClick={() => {
-                          filterByCategory(category.label);
-                          setIsCategoriesOpen(false);
+                          filterByCategory(category);
+                          setIsCategoriesDropdownOpen(false);
+                          document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
                         }}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-green-600 focus:outline-none focus:bg-gray-100"
                       >
-                        {category.label}
+                        {category}
                       </button>
                     ))}
                   </div>
                 )}
               </div>
-              <button 
-                onClick={() => navigateTo('/about-us')}
-                className="text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
-              >
+              <button className="text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1">
                 About Us
               </button>
-              <button 
-                onClick={() => navigateTo('/contact-us')}
-                className="text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
-              >
+              <button className="text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1">
                 Contact Us
               </button>
             </div>
-          </nav>
-        </div>
+          </div>
+        </nav>
       </header>
 
-      {/* Hero Carousel */}
-      <section className="relative h-96 bg-gradient-to-r from-green-50 to-blue-50 overflow-hidden">
-        <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-600 ${fadeClass}`}>
-          <div className="text-center px-4">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              {carouselSlides[currentSlide].title}
-            </h2>
-            <Button 
-              onClick={() => {
-                pauseAutoPlay();
-                carouselSlides[currentSlide].action();
-              }}
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
-            >
-              {carouselSlides[currentSlide].buttonText}
-            </Button>
-          </div>
-        </div>
-
-        {/* Carousel Controls */}
-        <button 
-          onClick={() => { pauseAutoPlay(); prevSlide(); }}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-          aria-label="Previous slide"
-        >
-          <ChevronLeft className="h-6 w-6 text-gray-700" />
-        </button>
-        <button 
-          onClick={() => { pauseAutoPlay(); nextSlide(); }}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-          aria-label="Next slide"
-        >
-          <ChevronRight className="h-6 w-6 text-gray-700" />
-        </button>
-
-        {/* Dot Indicators */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-          {carouselSlides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                index === currentSlide ? 'bg-green-600' : 'bg-white bg-opacity-60'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Feature Messages */}
-      <section className="bg-gray-50 py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {featureMessages.map((message, index) => (
-              <div key={index} className="flex items-center justify-center text-center p-2">
-                <span className="text-sm text-gray-600">{message}</span>
+      {/* Main Content */}
+      <main>
+        {/* Hero Carousel */}
+        <section className="relative bg-gradient-to-r from-green-50 to-blue-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+            <div className="text-center">
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                {currentSlide === 0 && 'Stay Healthy with Capsule Care'}
+                {currentSlide === 1 && 'Wellness Essentials Sale – Up to 25% Off'}
+                {currentSlide === 2 && 'Free Same-Day Delivery on Orders Over ₹1,000'}
+              </h2>
+              <div className="h-64 bg-gray-200 rounded-lg mb-8 flex items-center justify-center">
+                <span className="text-gray-500">Hero Image {currentSlide + 1}</span>
               </div>
+              <Button 
+                onClick={() => {
+                  if (currentSlide === 0) {
+                    filterByCategory('Prescription');
+                  } else if (currentSlide === 1) {
+                    filterByCategory('OTC & Wellness');
+                  } else {
+                    console.log('Learn More clicked');
+                  }
+                  document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg focus:ring-2 focus:ring-green-500 transition-colors"
+              >
+                {currentSlide === 0 && 'Shop Prescription Drugs'}
+                {currentSlide === 1 && 'Shop OTC & Wellness'}
+                {currentSlide === 2 && 'Learn More'}
+              </Button>
+            </div>
+          </div>
+          
+          {/* Carousel Controls */}
+          <button 
+            onClick={() => setCurrentSlide(currentSlide === 0 ? 2 : currentSlide - 1)}
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 p-2 bg-white rounded-full shadow-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            <ChevronLeft className="h-6 w-6 text-gray-600" />
+          </button>
+          <button 
+            onClick={() => setCurrentSlide((currentSlide + 1) % 3)}
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 bg-white rounded-full shadow-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            <ChevronRight className="h-6 w-6 text-gray-600" />
+          </button>
+          
+          {/* Dot Indicators */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+            {[0, 1, 2].map((index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentSlide(index)}
+                className={`w-3 h-3 rounded-full ${
+                  currentSlide === index ? 'bg-green-600' : 'bg-gray-300'
+                }`}
+              />
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filter and Sort Controls */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
-          <div className="flex items-center">
-            <h2 className="text-xl font-semibold text-gray-900 mr-2">
-              {selectedCategory === 'All Categories' ? 'All Products' : selectedCategory}
-            </h2>
-            <span className="text-sm text-gray-500">
-              ({filteredProducts.length} items)
-            </span>
+        {/* Category Navigation */}
+        <section className="bg-white py-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-center space-x-4">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => {
+                    filterByCategory(category);
+                    document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className={`px-6 py-2 border rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                    currentCategory === category
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-gray-300 text-gray-700 hover:bg-green-50 hover:border-green-300'
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
           </div>
+        </section>
 
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full md:w-auto">
-            <div className="relative">
-              <select
-                value={sortOption}
-                onChange={(e) => sortProducts(e.target.value)}
-                className="appearance-none bg-white border border-gray-300 rounded-md py-2 pl-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        {/* Feature Highlights */}
+        <section className="bg-gray-50 py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+              {[
+                { title: 'Quick Refill', subtitle: 'Auto-refill on meds' },
+                { title: 'Verified Pharma', subtitle: 'Genuine Brands' },
+                { title: 'Fast Delivery', subtitle: 'Within 48 Hours' },
+                { title: '24/7 Pharmacist Chat', subtitle: 'Expert Help Anytime' },
+                { title: 'Secure Payment', subtitle: 'Encrypted & Safe' },
+                { title: 'Easy Returns', subtitle: '14-Day Policy' }
+              ].map((feature, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleFeatureClick(feature.title)}
+                  className="bg-white p-6 rounded-lg text-center hover:shadow-lg hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                >
+                  <div className="w-12 h-12 bg-green-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                    <div className="w-6 h-6 bg-green-600 rounded"></div>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                  <p className="text-sm text-gray-600">{feature.subtitle}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Top Deals Banner */}
+        <section className="bg-orange-500 text-white py-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <span className="text-2xl mr-3">💊</span>
+                <span className="text-lg font-semibold">Summer Fever Essentials – Up to 20% Off Bongolife 500 Tablets!</span>
+              </div>
+              <Button 
+                onClick={() => {
+                  // TODO: Filter by SummerFever tag
+                  document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="bg-white text-orange-500 hover:bg-gray-100 focus:ring-2 focus:ring-white px-6 py-2"
               >
-                <option value="popularity">Sort by: Popularity</option>
-                <option value="rating">Sort by: Rating</option>
-                <option value="price-low">Sort by: Price (Low to High)</option>
-                <option value="price-high">Sort by: Price (High to Low)</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
+                Shop Now
+              </Button>
             </div>
-
-            <button
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="flex items-center space-x-1 bg-white border border-gray-300 rounded-md py-2 px-4 text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              <Filter className="h-4 w-4" />
-              <span>Filter</span>
-            </button>
           </div>
-        </div>
+        </section>
 
-        {/* Filter Panel */}
-        {isFilterOpen && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Category Filter */}
-              <div>
-                <h3 className="font-medium text-gray-900 mb-3">Categories</h3>
-                <div className="space-y-2">
-                  {categories.map((category) => (
-                    <div key={category.key} className="flex items-center">
-                      <Checkbox
-                        id={`category-${category.key}`}
-                        checked={selectedCategory === category.label}
-                        onCheckedChange={() => filterByCategory(category.label)}
-                      />
-                      <Label
-                        htmlFor={`category-${category.key}`}
-                        className="ml-2 text-sm text-gray-600"
-                      >
-                        {category.label}
-                      </Label>
+        {/* Action Bar */}
+        <section className="bg-gray-100 py-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-6">
+                <div className="flex items-center relative">
+                  <span className="text-gray-700 mr-2">Sort:</span>
+                  <button 
+                    onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                    className="flex items-center text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
+                  >
+                    {currentSort} <ChevronDown className="ml-1 h-4 w-4" />
+                  </button>
+                  {isSortDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                      {['Popular', 'New Arrivals', 'Price: Low→High', 'Price: High→Low', 'Top Rated'].map((option) => (
+                        <button
+                          key={option}
+                          onClick={() => {
+                            sortProducts(option);
+                            setIsSortDropdownOpen(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+                        >
+                          {option}
+                        </button>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              </div>
-
-              {/* Price Range Filter */}
-              <div>
-                <h3 className="font-medium text-gray-900 mb-3">Price Range</h3>
-                <div className="px-2">
-                  <Slider
-                    defaultValue={[0, 1500]}
-                    max={1500}
-                    step={50}
-                    value={priceRange}
-                    onValueChange={(value) => filterByPrice(value)}
-                  />
-                  <div className="flex justify-between mt-2 text-sm text-gray-600">
-                    <span>₹{priceRange[0]}</span>
-                    <span>₹{priceRange[1]}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Prescription Filter */}
-              <div>
-                <h3 className="font-medium text-gray-900 mb-3">Prescription</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <Checkbox id="rx-required" />
-                    <Label
-                      htmlFor="rx-required"
-                      className="ml-2 text-sm text-gray-600"
-                    >
-                      Prescription Required
-                    </Label>
-                  </div>
-                  <div className="flex items-center">
-                    <Checkbox id="rx-not-required" />
-                    <Label
-                      htmlFor="rx-not-required"
-                      className="ml-2 text-sm text-gray-600"
-                    >
-                      No Prescription Needed
-                    </Label>
-                  </div>
+                <button 
+                  onClick={openFilterModal}
+                  className="flex items-center text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
+                >
+                  Filter: All <ChevronDown className="ml-1 h-4 w-4" />
+                </button>
+                <div className="flex items-center relative">
+                  <span className="text-gray-700 mr-2">Price:</span>
+                  <button 
+                    onClick={() => setIsPriceDropdownOpen(!isPriceDropdownOpen)}
+                    className="flex items-center text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
+                  >
+                    ₹{tempPriceRange.min} – ₹{tempPriceRange.max} <ChevronDown className="ml-1 h-4 w-4" />
+                  </button>
+                  {isPriceDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10 p-4">
+                      <div className="space-y-3">
+                        <div className="flex space-x-2">
+                          <Input 
+                            type="number"
+                            placeholder="Min" 
+                            value={tempFilters.price.min}
+                            onChange={(e) => 
+                              setTempFilters(prev => ({
+                                ...prev,
+                                price: { ...prev.price, min: parseInt(e.target.value) || 0 }
+                              }))
+                            }
+                            className="flex-1" 
+                          />
+                          <Input 
+                            type="number"
+                            placeholder="Max" 
+                            value={tempFilters.price.max}
+                            onChange={(e) => 
+                              setTempFilters(prev => ({
+                                ...prev,
+                                price: { ...prev.price, max: parseInt(e.target.value) || 2000 }
+                              }))
+                            }
+                            className="flex-1" 
+                          />
+                        </div>
+                        <Button 
+                          onClick={() => {
+                            applyAllFilters({ ...filters, price: tempPriceRange });
+                            setIsPriceDropdownOpen(false);
+                          }}
+                          className="w-full bg-green-600 hover:bg-green-700"
+                        >
+                          Apply
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-        )}
+        </section>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
-            <div key={product.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-300">
-              {/* Product Image */}
-              <div className="h-48 bg-gray-100 flex items-center justify-center relative">
-                <span className="text-gray-400 text-sm">Product Image</span>
-                <button
-                  onClick={() => openQuickView(product)}
-                  className="absolute bottom-2 right-2 bg-white bg-opacity-90 rounded-full p-2 hover:bg-opacity-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  aria-label="Quick view"
-                >
-                  <Search className="h-4 w-4" />
-                </button>
-                {product.prescription && (
-                  <div className="absolute top-2 left-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                    Rx
-                  </div>
-                )}
-              </div>
+        <section id="product-grid" className="py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {paginatedProducts.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {paginatedProducts.map((product) => (
+                    <button
+                      key={product.id}
+                      onClick={() => openProductModal(product)}
+                      className="bg-white p-4 rounded-lg hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 text-left"
+                    >
+                      <div className="aspect-square bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
+                        <span className="text-gray-500">Product Image</span>
+                      </div>
+                      <h3 className="font-semibold text-gray-900 mb-2">{product.name}</h3>
+                      <p className="text-lg font-bold text-green-600 mb-2">₹{product.price}</p>
+                      <div className="flex items-center">
+                        <div className="flex space-x-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          ))}
+                        </div>
+                        <span className="text-sm text-gray-600 ml-2">({product.reviewCount})</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
 
-              {/* Product Info */}
-              <div className="p-4">
-                <h3 className="font-medium text-gray-900 mb-1">{product.name}</h3>
-                <p className="text-sm text-gray-600 mb-2">{product.description}</p>
-                
-                <div className="flex items-center mb-2">
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                    <span className="text-sm text-gray-700 ml-1">{product.rating}</span>
+                {/* Pagination */}
+                <div className="flex items-center justify-between mt-12">
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      onClick={() => changePage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      className="p-2 text-gray-500 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-50"
+                    >
+                      ‹
+                    </button>
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      const page = i + 1;
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => changePage(page)}
+                          className={`px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                            page === currentPage
+                              ? 'bg-green-600 text-white'
+                              : 'text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    })}
+                    <button 
+                      onClick={() => changePage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                      className="p-2 text-gray-500 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-50"
+                    >
+                      ›
+                    </button>
                   </div>
-                  <span className="text-xs text-gray-500 ml-2">({product.reviews} reviews)</span>
+                  <div className="flex items-center">
+                    <span className="text-gray-700 mr-2">Rows per page:</span>
+                    <select 
+                      value={rowsPerPage}
+                      onChange={(e) => setRowsPerPage(parseInt(e.target.value))}
+                      className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value={20}>20</option>
+                      <option value={40}>40</option>
+                      <option value={60}>60</option>
+                    </select>
+                  </div>
                 </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-gray-900">₹{product.unitPrice}</span>
-                  <Button
-                    onClick={() => handleAddToCart(product)}
-                    size="sm"
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    Add to Cart
-                  </Button>
+              </>
+            ) : (
+              // Empty State
+              <div className="text-center py-16">
+                <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-gray-500">No Results</span>
                 </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No results found for your filters</h3>
+                <p className="text-gray-600">Try adjusting your search criteria</p>
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </div>
+        </section>
       </main>
 
-      {/* Quick View Modal */}
-      {isQuickViewOpen && selectedProduct && (
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Customer Service */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Customer Service</h3>
+              <ul className="space-y-2">
+                {['Contact Us', 'Returns', 'FAQs', 'Shipping Policy'].map((link) => (
+                  <li key={link}>
+                    <a href="#" className="text-gray-300 hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1">{link}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Information */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Information</h3>
+              <ul className="space-y-2">
+                {['About Us', 'Privacy Policy', 'Terms of Service', 'Careers'].map((link) => (
+                  <li key={link}>
+                    <a href="#" className="text-gray-300 hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1">{link}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Connect */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Connect</h3>
+              <div className="flex space-x-4 mb-6">
+                {['Facebook', 'Twitter', 'Instagram', 'YouTube'].map((social) => (
+                  <button
+                    key={social}
+                    className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
+                  >
+                    <span className="sr-only">{social}</span>
+                    <div className="w-5 h-5 bg-gray-400 rounded"></div>
+                  </button>
+                ))}
+              </div>
+              <div className="flex space-x-4">
+                {['GMP Certified', 'ISO 9001', 'Verified Pharmacy'].map((seal) => (
+                  <div key={seal} className="text-xs text-gray-400 border border-gray-600 px-2 py-1 rounded">
+                    {seal}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Newsletter */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Newsletter</h3>
+              <div className="flex mb-4">
+                <Input 
+                  placeholder="Enter your email" 
+                  className="flex-1 mr-2 bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500"
+                />
+                <Button disabled className="bg-gray-600 text-gray-400 cursor-not-allowed">Subscribe</Button>
+              </div>
+              <div className="hidden text-green-400 text-sm">Thank you for subscribing!</div>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center">
+            <p className="text-gray-400 mb-2">© 2025 Capsule Care Pharma – All Rights Reserved.</p>
+            <a href="#" className="text-gray-500 hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1 text-sm">
+              Accessibility Statement
+            </a>
+          </div>
+        </div>
+      </footer>
+
+      {/* Help Modal */}
+      {isHelpModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-end p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-xl font-semibold">Help & Support</h2>
               <button 
-                onClick={closeQuickView}
-                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                onClick={() => setIsHelpModalOpen(false)}
+                className="p-1 hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
-              {/* Product Image */}
-              <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                <span className="text-gray-400">Product Image</span>
-              </div>
-              
-              {/* Product Details */}
-              <div>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">{selectedProduct.name}</h2>
-                <p className="text-gray-600 mb-4">{selectedProduct.description}</p>
-                
-                <div className="flex items-center mb-4">
-                  <div className="flex items-center">
-                    <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                    <span className="text-gray-700 ml-1">{selectedProduct.rating}</span>
-                  </div>
-                  <span className="text-gray-500 ml-2">({selectedProduct.reviews} reviews)</span>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold mb-2">Frequently Asked Questions</h3>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li>• How do I place an order?</li>
+                    <li>• What are your delivery options?</li>
+                    <li>• How can I track my order?</li>
+                    <li>• What is your return policy?</li>
+                  </ul>
                 </div>
-                
-                <div className="mb-4">
-                  <span className="text-2xl font-bold text-gray-900">₹{selectedProduct.unitPrice}</span>
-                </div>
-                
-                <div className="mb-6">
-                  <p className="text-sm text-gray-600 mb-1">Brand: {selectedProduct.brand}</p>
-                  <p className="text-sm text-gray-600 mb-1">Category: {selectedProduct.category}</p>
-                  <p className="text-sm text-gray-600 mb-1">
-                    Availability: 
-                    <span className={selectedProduct.stock > 0 ? "text-green-600" : "text-red-600"}>
-                      {selectedProduct.stock > 0 ? " In Stock" : " Out of Stock"}
-                    </span>
+                <div>
+                  <h3 className="font-semibold mb-2">Contact Support</h3>
+                  <p className="text-sm text-gray-600">
+                    Email: support@capsulecare.com<br/>
+                    Phone: 1-800-CAPSULE<br/>
+                    Hours: 24/7
                   </p>
-                  
-                  {selectedProduct.prescription && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-3">
-                      <p className="text-sm text-blue-800">
-                        This medication requires a valid prescription.
-                      </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filter Modal */}
+      {isFilterModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-xl font-semibold">Filter Products</h2>
+              <button 
+                onClick={() => setIsFilterModalOpen(false)}
+                className="p-1 hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Categories */}
+              <div>
+                <h3 className="font-semibold mb-3">Categories</h3>
+                <div className="space-y-2">
+                  {[
+                    { key: 'prescription', label: 'Prescription' },
+                    { key: 'otc', label: 'OTC & Wellness' },
+                    { key: 'vitamins', label: 'Vitamins & Supplements' },
+                    { key: 'devices', label: 'Medical Devices' }
+                  ].map((category) => (
+                    <div key={category.key} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={category.key}
+                        checked={tempFilters.categories[category.key]}
+                        onCheckedChange={(checked) => handleCheckboxChange(checked, category.key, 'categories')}
+                      />
+                      <Label htmlFor={category.key} className="text-sm">{category.label}</Label>
                     </div>
-                  )}
+                  ))}
                 </div>
-                
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="flex items-center border border-gray-300 rounded-md">
-                    <button 
-                      onClick={decrementQuantity}
-                      disabled={quantity <= 1}
-                      className="px-3 py-1 border-r border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <span className="px-4 py-1">{quantity}</span>
-                    <button 
-                      onClick={incrementQuantity}
-                      disabled={quantity >= selectedProduct.stock}
-                      className="px-3 py-1 border-l border-gray-300 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
+              </div>
+
+              {/* Price Range */}
+              <div>
+                <h3 className="font-semibold mb-3">Price Range</h3>
+                <div className="space-y-3">
+                  <div className="flex space-x-2">
+                    <Input 
+                      type="number"
+                      placeholder="Min" 
+                      value={tempFilters.price.min}
+                      onChange={(e) => 
+                        setTempFilters(prev => ({
+                          ...prev,
+                          price: { ...prev.price, min: parseInt(e.target.value) || 0 }
+                        }))
+                      }
+                      className="flex-1" 
+                    />
+                    <Input 
+                      type="number"
+                      placeholder="Max" 
+                      value={tempFilters.price.max}
+                      onChange={(e) => 
+                        setTempFilters(prev => ({
+                          ...prev,
+                          price: { ...prev.price, max: parseInt(e.target.value) || 2000 }
+                        }))
+                      }
+                      className="flex-1" 
+                    />
                   </div>
-                  
-                  <Button
-                    onClick={() => {
-                      handleAddToCart(selectedProduct, quantity);
-                      closeQuickView();
-                    }}
-                    disabled={selectedProduct.stock <= 0}
-                    className="bg-green-600 hover:bg-green-700 text-white flex-1"
-                  >
-                    Add to Cart
-                  </Button>
                 </div>
-                
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {selectedProduct.tags.map((tag, index) => (
-                    <span 
-                      key={index}
-                      className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded"
-                    >
-                      {tag}
-                    </span>
+              </div>
+
+              {/* Brand */}
+              <div>
+                <h3 className="font-semibold mb-3">Brand</h3>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {Object.keys(tempFilters.brands).map((brand) => (
+                    <div key={brand} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={brand}
+                        checked={tempFilters.brands[brand]}
+                        onCheckedChange={(checked) => handleCheckboxChange(checked, brand, 'brands')}
+                      />
+                      <Label htmlFor={brand} className="text-sm">{brand}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Special Filters */}
+              <div>
+                <h3 className="font-semibold mb-3">Special Filters</h3>
+                <div className="space-y-2">
+                  {[
+                    { key: 'inStock', label: 'Only In-Stock' },
+                    { key: 'expiresSoon', label: 'Expires Soon (Next 30 Days)' },
+                    { key: 'autoRefill', label: 'Auto-Refill Eligible' },
+                    { key: 'requiresPrescription', label: 'Requires Prescription' }
+                  ].map((filter) => (
+                    <div key={filter.key} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={filter.key}
+                        checked={tempFilters.special[filter.key]}
+                        onCheckedChange={(checked) => handleCheckboxChange(checked, filter.key, 'special')}
+                      />
+                      <Label htmlFor={filter.key} className="text-sm">{filter.label}</Label>
+                    </div>
                   ))}
                 </div>
               </div>
             </div>
+
+            <div className="flex items-center justify-between p-6 border-t">
+              <button 
+                onClick={clearAllFilters}
+                className="text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
+              >
+                Clear All
+              </button>
+              <Button 
+                onClick={applyFilters}
+                className="bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500"
+              >
+                Apply Filters
+              </Button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Help Modal */}
-      {isHelpModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Help & FAQ</h3>
+      {/* Product Detail Modal */}
+      {isProductModalOpen && selectedProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-xl font-semibold">{selectedProduct.name}</h2>
               <button 
-                onClick={() => setIsHelpModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                onClick={closeProductModal}
+                className="p-1 hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
               >
-                <X className="h-5 w-5" />
+                <X className="h-6 w-6" />
               </button>
             </div>
-            <div className="space-y-4">
+            
+            <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Column - Images */}
               <div>
-                <h4 className="font-medium text-gray-900">How do I place an order?</h4>
-                <p className="text-gray-600 text-sm">Simply browse our products, add items to your cart, and proceed to checkout.</p>
+                <div className="aspect-square bg-gray-200 rounded-lg mb-4 flex items-center justify-center relative">
+                  <span className="text-gray-500">Large Product Image {selectedImageIndex + 1}</span>
+                  <button 
+                    onClick={() => setSelectedImageIndex(Math.max(0, selectedImageIndex - 1))}
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 p-1 bg-white rounded-full shadow"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button 
+                    onClick={() => setSelectedImageIndex(Math.min(selectedProduct.images.length - 1, selectedImageIndex + 1))}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 bg-white rounded-full shadow"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="flex space-x-2">
+                  {selectedProduct.images.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImageIndex(index)}
+                      className={`w-20 h-20 bg-gray-200 rounded flex items-center justify-center border-2 ${
+                        selectedImageIndex === index ? 'border-green-600' : 'border-gray-300'
+                      }`}
+                    >
+                      <span className="text-xs text-gray-500">Thumb {index + 1}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div>
-                <h4 className="font-medium text-gray-900">What are your delivery charges?</h4>
-                <p className="text-gray-600 text-sm">Standard delivery is ₹50. Free delivery on orders above ₹1,000.</p>
+
+              {/* Right Column - Details */}
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">{selectedProduct.name}</h1>
+                  <div className="flex items-center mt-2">
+                    <span className="text-2xl font-bold text-green-600">₹{selectedProduct.price}</span>
+                    <span className="text-lg text-gray-500 line-through ml-2">₹{selectedProduct.mrp}</span>
+                  </div>
+                  <div className="flex items-center mt-2">
+                    <div className="flex space-x-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                    <button className="text-sm text-blue-600 hover:underline ml-2 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1">
+                      ({selectedProduct.reviewCount} reviews)
+                    </button>
+                  </div>
+                </div>
+
+                <p className="text-gray-600">{selectedProduct.description}</p>
+
+                {/* Stock Indicator */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">Stock Level</span>
+                    <span className="text-sm text-green-600">In Stock: {selectedProduct.stock} units</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-green-600 h-2 rounded-full" 
+                      style={{ width: `${Math.min(100, (selectedProduct.stock / 200) * 100)}%` }}
+                    ></div>
+                  </div>
+                  {selectedProduct.stock < 20 && (
+                    <p className="text-sm text-red-600 mt-1">Only {selectedProduct.stock} left!</p>
+                  )}
+                </div>
+
+                {/* Quantity Selector */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                  <div className="flex items-center space-x-3">
+                    <button 
+                      onClick={() => setProductQuantity(Math.max(1, productQuantity - 1))}
+                      disabled={productQuantity <= 1}
+                      className="p-2 border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="px-4 py-2 border border-gray-300 rounded bg-gray-50">{productQuantity}</span>
+                    <button 
+                      onClick={() => setProductQuantity(Math.min(selectedProduct.stock, productQuantity + 1))}
+                      disabled={productQuantity >= selectedProduct.stock}
+                      className="p-2 border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex space-x-4">
+                  <Button 
+                    onClick={handleAddToCart}
+                    disabled={selectedProduct.stock === 0}
+                    className="flex-1 bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    {selectedProduct.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                  </Button>
+                  <Button 
+                    onClick={handleBuyNow}
+                    disabled={selectedProduct.stock === 0}
+                    className="flex-1 bg-orange-500 hover:bg-orange-600 focus:ring-2 focus:ring-orange-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    {selectedProduct.stock === 0 ? 'Out of Stock' : 'Buy Now'}
+                  </Button>
+                </div>
+
+                {/* You Might Also Like */}
+                <div>
+                  <h3 className="font-semibold mb-3">You Might Also Like</h3>
+                  <div className="flex space-x-3 overflow-x-auto">
+                    {visibleProducts.filter(p => p.id !== selectedProduct.id).slice(0, 3).map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setSelectedProduct(item);
+                          setProductQuantity(1);
+                          setSelectedImageIndex(0);
+                        }}
+                        className="flex-shrink-0 w-24 text-center focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                      >
+                        <div className="w-20 h-20 bg-gray-200 rounded mb-2 mx-auto flex items-center justify-center">
+                          <span className="text-xs text-gray-500">IMG</span>
+                        </div>
+                        <p className="text-xs text-gray-700 mb-1">{item.name.slice(0, 15)}...</p>
+                        <p className="text-xs font-semibold text-green-600">₹{item.price}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tab Navigation */}
+                <div className="border-t pt-6">
+                  <nav className="flex space-x-6">
+                    {['Details', 'Ingredients', 'Customer Reviews', 'Q&A'].map((tab) => (
+                      <button
+                        key={tab}
+                        className="text-sm font-medium text-gray-600 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1 py-1"
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                  </nav>
+                </div>
               </div>
-              <div>
-                <h4 className="font-medium text-gray-900">How can I contact customer support?</h4>
-                <p className="text-gray-600 text-sm">Call us at +91 22 1234 5678 or use our 24/7 chat support.</p>
+            </div>
+
+            <div className="p-6 border-t">
+              <div className="flex items-center justify-between">
+                <button 
+                  onClick={closeProductModal}
+                  className="text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white pt-12 pb-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-            {/* Company Info */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Capsule Care</h3>
-              <p className="text-gray-400 text-sm mb-4">
-                Your trusted online pharmacy for all your healthcare needs.
-              </p>
-              <div className="flex space-x-4">
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <span className="sr-only">Facebook</span>
-                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
-                  </svg>
-                </a>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <span className="sr-only">Instagram</span>
-                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.045-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clipRule="evenodd" />
-                  </svg>
-                </a>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <span className="sr-only">Twitter</span>
-                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                <li>
-                  <button 
-                    onClick={() => navigateTo('/about-us')}
-                    className="text-gray-400 hover:text-white text-sm"
-                  >
-                    About Us
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => navigateTo('/contact-us')}
-                    className="text-gray-400 hover:text-white text-sm"
-                  >
-                    Contact Us
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => showToast('Coming Soon', 'info')}
-                    className="text-gray-400 hover:text-white text-sm"
-                  >
-                    FAQs
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => showToast('Coming Soon', 'info')}
-                    className="text-gray-400 hover:text-white text-sm"
-                  >
-                    Blog
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            {/* Policies */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Policies</h3>
-              <ul className="space-y-2">
-                <li>
-                  <button 
-                    onClick={() => showToast('Coming Soon', 'info')}
-                    className="text-gray-400 hover:text-white text-sm"
-                  >
-                    Privacy Policy
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => showToast('Coming Soon', 'info')}
-                    className="text-gray-400 hover:text-white text-sm"
-                  >
-                    Terms of Service
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => showToast('Coming Soon', 'info')}
-                    className="text-gray-400 hover:text-white text-sm"
-                  >
-                    Returns Policy
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => showToast('Coming Soon', 'info')}
-                    className="text-gray-400 hover:text-white text-sm"
-                  >
-                    Shipping Policy
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Contact</h3>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <span className="text-gray-400 text-sm">123 Green Pharmacy Road, Mumbai, Maharashtra 400001</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-gray-400 text-sm">+91 22 1234 5678</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-gray-400 text-sm">support@capsulecare.com</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-gray-400 text-sm">Mon–Sat: 8 AM – 8 PM</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-700 pt-6">
-            <p className="text-gray-400 text-sm text-center">
-              © {new Date().getFullYear()} Capsule Care. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
