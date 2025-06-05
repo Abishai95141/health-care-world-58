@@ -1,13 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Eye, EyeOff } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -19,7 +19,17 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  const { signIn, signUp, signInWithGoogle, user } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      const redirectTo = location.state?.from || '/';
+      navigate(redirectTo, { replace: true });
+    }
+  }, [user, navigate, location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,20 +37,17 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+        const { error } = await signIn(email, password);
         
         if (error) throw error;
         
-        if (data.user) {
-          toast({
-            title: "Welcome back!",
-            description: "You've successfully logged in.",
-          });
-          navigate('/');
-        }
+        toast({
+          title: "Welcome back!",
+          description: "You've successfully logged in.",
+        });
+        
+        const redirectTo = location.state?.from || '/';
+        navigate(redirectTo, { replace: true });
       } else {
         if (password !== confirmPassword) {
           toast({
@@ -51,15 +58,7 @@ const Auth = () => {
           return;
         }
 
-        const redirectUrl = `${window.location.origin}/`;
-        
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: redirectUrl
-          }
-        });
+        const { error } = await signUp(email, password);
         
         if (error) throw error;
         
@@ -81,12 +80,7 @@ const Auth = () => {
 
   const handleGoogleAuth = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`
-        }
-      });
+      const { error } = await signInWithGoogle();
       
       if (error) throw error;
     } catch (error: any) {
@@ -97,6 +91,9 @@ const Auth = () => {
       });
     }
   };
+
+  // Show message if user was redirected here
+  const showRedirectMessage = location.state?.from;
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
@@ -125,6 +122,15 @@ const Auth = () => {
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-[#27AE60] mb-2">Capsule Care</h2>
             </div>
+            
+            {showRedirectMessage && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  You must be logged in to add items to your cart or complete checkout.
+                </p>
+              </div>
+            )}
+            
             <h3 className="text-2xl font-bold text-[#0B1F45] mb-2">
               {isLogin ? 'Log In' : 'Sign Up'}
             </h3>
