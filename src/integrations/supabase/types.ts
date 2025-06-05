@@ -9,6 +9,113 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      product_import_logs: {
+        Row: {
+          error_message: string | null
+          failed_rows: number | null
+          id: string
+          imported_at: string
+          staff_id: string
+          status: string
+          successful_rows: number | null
+          total_rows: number | null
+        }
+        Insert: {
+          error_message?: string | null
+          failed_rows?: number | null
+          id?: string
+          imported_at?: string
+          staff_id: string
+          status?: string
+          successful_rows?: number | null
+          total_rows?: number | null
+        }
+        Update: {
+          error_message?: string | null
+          failed_rows?: number | null
+          id?: string
+          imported_at?: string
+          staff_id?: string
+          status?: string
+          successful_rows?: number | null
+          total_rows?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_import_logs_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          brand: string | null
+          category: string
+          created_at: string
+          description: string
+          expiration_date: string | null
+          id: string
+          image_urls: string[] | null
+          is_active: boolean
+          manufacturer: string | null
+          mrp: number | null
+          name: string
+          price: number
+          requires_prescription: boolean
+          slug: string
+          stock: number
+          tags: string[] | null
+          unit: string
+          updated_at: string
+          weight_volume: string | null
+        }
+        Insert: {
+          brand?: string | null
+          category: string
+          created_at?: string
+          description: string
+          expiration_date?: string | null
+          id?: string
+          image_urls?: string[] | null
+          is_active?: boolean
+          manufacturer?: string | null
+          mrp?: number | null
+          name: string
+          price: number
+          requires_prescription?: boolean
+          slug: string
+          stock?: number
+          tags?: string[] | null
+          unit: string
+          updated_at?: string
+          weight_volume?: string | null
+        }
+        Update: {
+          brand?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          expiration_date?: string | null
+          id?: string
+          image_urls?: string[] | null
+          is_active?: boolean
+          manufacturer?: string | null
+          mrp?: number | null
+          name?: string
+          price?: number
+          requires_prescription?: boolean
+          slug?: string
+          stock?: number
+          tags?: string[] | null
+          unit?: string
+          updated_at?: string
+          weight_volume?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -30,12 +137,39 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          password_hash: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          password_hash: string
+          role?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          password_hash?: string
+          role?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_slug: {
+        Args: { name: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
