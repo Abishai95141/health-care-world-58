@@ -19,6 +19,11 @@ import CartPage from "./components/CartPage";
 import CheckoutPage from "./components/CheckoutPage";
 import StaffLogin from "./pages/staff/StaffLogin";
 import StaffDashboard from "./pages/staff/StaffDashboard";
+import AddProduct from "./pages/staff/AddProduct";
+import ManageProducts from "./pages/staff/ManageProducts";
+import EditProduct from "./pages/staff/EditProduct";
+import BulkImport from "./pages/staff/BulkImport";
+import InventoryAlerts from "./pages/staff/InventoryAlerts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -71,6 +76,56 @@ const App = () => (
                     <StaffProtectedRoute>
                       <StaffLayout>
                         <StaffDashboard />
+                      </StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/products/new" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout>
+                        <AddProduct />
+                      </StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/products" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout>
+                        <ManageProducts />
+                      </StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/products/edit/:id" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout>
+                        <EditProduct />
+                      </StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/products/import" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout>
+                        <BulkImport />
+                      </StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/inventory" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout>
+                        <InventoryAlerts />
                       </StaffLayout>
                     </StaffProtectedRoute>
                   } 
