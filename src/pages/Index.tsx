@@ -152,6 +152,27 @@ const Index = () => {
     showToast(featureMessages[featureTitle] || 'Feature coming soon!');
   };
 
+  const handleCheckboxChange = (checked: boolean | "indeterminate", key: string, category: string) => {
+    const isChecked = checked === true;
+    
+    if (category === 'categories') {
+      setTempFilters(prev => ({
+        ...prev,
+        categories: { ...prev.categories, [key]: isChecked }
+      }));
+    } else if (category === 'brands') {
+      setTempFilters(prev => ({
+        ...prev,
+        brands: { ...prev.brands, [key]: isChecked }
+      }));
+    } else if (category === 'special') {
+      setTempFilters(prev => ({
+        ...prev,
+        special: { ...prev.special, [key]: isChecked }
+      }));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Sticky Header */}
@@ -717,12 +738,7 @@ const Index = () => {
                       <Checkbox 
                         id={category.key}
                         checked={tempFilters.categories[category.key]}
-                        onCheckedChange={(checked) => 
-                          setTempFilters(prev => ({
-                            ...prev,
-                            categories: { ...prev.categories, [category.key]: checked }
-                          }))
-                        }
+                        onCheckedChange={(checked) => handleCheckboxChange(checked, category.key, 'categories')}
                       />
                       <Label htmlFor={category.key} className="text-sm">{category.label}</Label>
                     </div>
@@ -772,12 +788,7 @@ const Index = () => {
                       <Checkbox 
                         id={brand}
                         checked={tempFilters.brands[brand]}
-                        onCheckedChange={(checked) => 
-                          setTempFilters(prev => ({
-                            ...prev,
-                            brands: { ...prev.brands, [brand]: checked }
-                          }))
-                        }
+                        onCheckedChange={(checked) => handleCheckboxChange(checked, brand, 'brands')}
                       />
                       <Label htmlFor={brand} className="text-sm">{brand}</Label>
                     </div>
@@ -799,12 +810,7 @@ const Index = () => {
                       <Checkbox 
                         id={filter.key}
                         checked={tempFilters.special[filter.key]}
-                        onCheckedChange={(checked) => 
-                          setTempFilters(prev => ({
-                            ...prev,
-                            special: { ...prev.special, [filter.key]: checked }
-                          }))
-                        }
+                        onCheckedChange={(checked) => handleCheckboxChange(checked, filter.key, 'special')}
                       />
                       <Label htmlFor={filter.key} className="text-sm">{filter.label}</Label>
                     </div>

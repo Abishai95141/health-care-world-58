@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -83,6 +82,10 @@ const CheckoutPage = () => {
     // TODO: Save new address
     showToast('Address saved successfully', 'success');
     setIsAddressModalOpen(false);
+  };
+
+  const handleBillingCheckboxChange = (checked: boolean | "indeterminate") => {
+    setBillingSameAsShipping(checked === true);
   };
 
   return (
@@ -210,7 +213,7 @@ const CheckoutPage = () => {
                 <Checkbox 
                   id="billing-same" 
                   checked={billingSameAsShipping}
-                  onCheckedChange={setBillingSameAsShipping}
+                  onCheckedChange={handleBillingCheckboxChange}
                 />
                 <Label htmlFor="billing-same" className="text-sm">Billing address same as shipping</Label>
               </div>
