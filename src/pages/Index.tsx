@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Search, ShoppingCart, ChevronDown, ChevronLeft, ChevronRight, Star, X, Plus, Minus, Clock, Shield, Truck, MessageCircle, CreditCard, RotateCcw, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,26 +8,16 @@ import { Label } from '@/components/ui/label';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import FeaturedProducts from '@/components/FeaturedProducts';
 
 const Index = () => {
   const {
-    visibleProducts,
     cart,
     selectedProduct,
     searchQuery,
-    currentCategory,
-    currentSort,
-    currentPage,
-    rowsPerPage,
-    filters,
     setSearchQuery,
-    filterByCategory,
-    sortProducts,
-    applyAllFilters,
     addToCart,
     setSelectedProduct,
-    changePage,
-    setRowsPerPage,
     navigateTo,
     showToast
   } = useApp();
@@ -36,17 +25,9 @@ const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
-  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
-  const [isPriceDropdownOpen, setIsPriceDropdownOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [productQuantity, setProductQuantity] = useState(1);
-  const [tempFilters, setTempFilters] = useState(filters);
-  const [tempPriceRange, setTempPriceRange] = useState({ min: 0, max: 2000 });
   const [isSlideTransitioning, setIsSlideTransitioning] = useState(false);
 
   // Auto-rotate carousel with fade animation
@@ -67,7 +48,7 @@ const Index = () => {
     const query = (e.target as HTMLFormElement).search.value;
     setSearchQuery(query);
     if (query) {
-      document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
+      navigate('/shop');
     }
   };
 
@@ -96,98 +77,6 @@ const Index = () => {
 
   // Category dropdown
   const categories = ['Prescription', 'OTC & Wellness', 'Vitamins & Supplements', 'Medical Devices'];
-
-  // Product grid pagination
-  const totalPages = Math.ceil(visibleProducts.length / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const paginatedProducts = visibleProducts.slice(startIndex, startIndex + rowsPerPage);
-
-  // Modal handlers
-  const openProductModal = (product: any) => {
-    setSelectedProduct(product);
-    setProductQuantity(1);
-    setSelectedImageIndex(0);
-    setIsProductModalOpen(true);
-  };
-
-  const closeProductModal = () => {
-    setIsProductModalOpen(false);
-    setSelectedProduct(null);
-  };
-
-  // Filter modal handlers
-  const openFilterModal = () => {
-    setTempFilters(filters);
-    setIsFilterModalOpen(true);
-  };
-
-  const applyFilters = () => {
-    applyAllFilters(tempFilters);
-    setIsFilterModalOpen(false);
-  };
-
-  const clearAllFilters = () => {
-    const clearedFilters = {
-      categories: {
-        prescription: false,
-        otc: false,
-        vitamins: false,
-        devices: false
-      },
-      price: { min: 0, max: 2000 },
-      brands: {
-        'Acme Pharma': false,
-        'BioHealth': false,
-        'CapsuleCare': false,
-        'OmniMeds': false
-      },
-      special: {
-        inStock: false,
-        expiresSoon: false,
-        autoRefill: false,
-        requiresPrescription: false
-      }
-    };
-    setTempFilters(clearedFilters);
-  };
-
-  // Product modal handlers
-  const handleAddToCart = () => {
-    if (!user) {
-      navigate('/auth', { 
-        state: { 
-          from: '/',
-          action: 'addToCart',
-          productId: selectedProduct?.id,
-          quantity: productQuantity
-        }
-      });
-      return;
-    }
-
-    if (selectedProduct && selectedProduct.stock > 0) {
-      addToCart(selectedProduct.id, productQuantity);
-    }
-  };
-
-  const handleBuyNow = () => {
-    if (!user) {
-      navigate('/auth', { 
-        state: { 
-          from: '/checkout',
-          action: 'buyNow',
-          productId: selectedProduct?.id,
-          quantity: productQuantity
-        }
-      });
-      return;
-    }
-
-    if (selectedProduct && selectedProduct.stock > 0) {
-      addToCart(selectedProduct.id, productQuantity);
-      navigateTo('/checkout');
-    }
-  };
 
   // Feature card handlers with proper icons
   const features = [
@@ -231,27 +120,6 @@ const Index = () => {
 
   const handleFeatureClick = (message: string) => {
     showToast(message, 'info');
-  };
-
-  const handleCheckboxChange = (checked: boolean | "indeterminate", key: string, category: string) => {
-    const isChecked = checked === true;
-    
-    if (category === 'categories') {
-      setTempFilters(prev => ({
-        ...prev,
-        categories: { ...prev.categories, [key]: isChecked }
-      }));
-    } else if (category === 'brands') {
-      setTempFilters(prev => ({
-        ...prev,
-        brands: { ...prev.brands, [key]: isChecked }
-      }));
-    } else if (category === 'special') {
-      setTempFilters(prev => ({
-        ...prev,
-        special: { ...prev.special, [key]: isChecked }
-      }));
-    }
   };
 
   return (
@@ -327,13 +195,13 @@ const Index = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center space-x-8 h-12">
               <button 
-                onClick={() => filterByCategory('All')}
+                onClick={() => navigate('/')}
                 className="text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
               >
                 Home
               </button>
               <button 
-                onClick={() => document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => navigate('/shop')}
                 className="text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
               >
                 Shop
@@ -352,9 +220,8 @@ const Index = () => {
                       <button
                         key={category}
                         onClick={() => {
-                          filterByCategory(category);
+                          navigate('/shop');
                           setIsCategoriesDropdownOpen(false);
-                          document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
                         }}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-green-600 focus:outline-none focus:bg-gray-100"
                       >
@@ -397,19 +264,12 @@ const Index = () => {
               </div>
               <Button 
                 onClick={() => {
-                  if (currentSlide === 0) {
-                    filterByCategory('Prescription');
-                  } else if (currentSlide === 1) {
-                    filterByCategory('OTC & Wellness');
-                  } else {
-                    showToast('Learn more about our services!', 'info');
-                  }
-                  document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
+                  navigate('/shop');
                 }}
                 className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg focus:ring-2 focus:ring-green-500 transition-colors"
               >
-                {currentSlide === 0 && 'Shop Prescription Drugs'}
-                {currentSlide === 1 && 'Shop OTC & Wellness'}
+                {currentSlide === 0 && 'Shop Now'}
+                {currentSlide === 1 && 'Shop Sale Items'}
                 {currentSlide === 2 && 'Learn More'}
               </Button>
             </div>
@@ -469,14 +329,9 @@ const Index = () => {
                 <button
                   key={category}
                   onClick={() => {
-                    filterByCategory(category);
-                    document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
+                    navigate('/shop');
                   }}
-                  className={`px-6 py-2 border rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                    currentCategory === category
-                      ? 'border-green-500 bg-green-50 text-green-700'
-                      : 'border-gray-300 text-gray-700 hover:bg-green-50 hover:border-green-300'
-                  }`}
+                  className="px-6 py-2 border rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 border-gray-300 text-gray-700 hover:bg-green-50 hover:border-green-300"
                 >
                   {category}
                 </button>
@@ -484,6 +339,9 @@ const Index = () => {
             </div>
           </div>
         </section>
+
+        {/* Featured Products Section */}
+        <FeaturedProducts />
 
         {/* Feature Highlights with proper icons */}
         <section className="bg-gray-50 py-16">
@@ -515,198 +373,15 @@ const Index = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <span className="text-2xl mr-3">💊</span>
-                <span className="text-lg font-semibold">Summer Fever Essentials – Up to 20% Off Bongolife 500 Tablets!</span>
+                <span className="text-lg font-semibold">Summer Fever Essentials – Up to 20% Off!</span>
               </div>
               <Button 
-                onClick={() => {
-                  document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
-                }}
+                onClick={() => navigate('/shop')}
                 className="bg-white text-orange-500 hover:bg-gray-100 focus:ring-2 focus:ring-white px-6 py-2"
               >
                 Shop Now
               </Button>
             </div>
-          </div>
-        </section>
-
-        {/* Action Bar */}
-        <section className="bg-gray-100 py-4">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center relative">
-                  <span className="text-gray-700 mr-2">Sort:</span>
-                  <button 
-                    onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                    className="flex items-center text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
-                  >
-                    {currentSort} <ChevronDown className="ml-1 h-4 w-4" />
-                  </button>
-                  {isSortDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                      {['Popular', 'New Arrivals', 'Price: Low→High', 'Price: High→Low', 'Top Rated'].map((option) => (
-                        <button
-                          key={option}
-                          onClick={() => {
-                            sortProducts(option);
-                            setIsSortDropdownOpen(false);
-                          }}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <button 
-                  onClick={openFilterModal}
-                  className="flex items-center text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
-                >
-                  Filter: All <ChevronDown className="ml-1 h-4 w-4" />
-                </button>
-                <div className="flex items-center relative">
-                  <span className="text-gray-700 mr-2">Price:</span>
-                  <button 
-                    onClick={() => setIsPriceDropdownOpen(!isPriceDropdownOpen)}
-                    className="flex items-center text-gray-700 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
-                  >
-                    ₹{tempPriceRange.min} – ₹{tempPriceRange.max} <ChevronDown className="ml-1 h-4 w-4" />
-                  </button>
-                  {isPriceDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10 p-4">
-                      <div className="space-y-3">
-                        <div className="flex space-x-2">
-                          <Input 
-                            type="number"
-                            placeholder="Min" 
-                            value={tempFilters.price.min}
-                            onChange={(e) => 
-                              setTempFilters(prev => ({
-                                ...prev,
-                                price: { ...prev.price, min: parseInt(e.target.value) || 0 }
-                              }))
-                            }
-                            className="flex-1" 
-                          />
-                          <Input 
-                            type="number"
-                            placeholder="Max" 
-                            value={tempFilters.price.max}
-                            onChange={(e) => 
-                              setTempFilters(prev => ({
-                                ...prev,
-                                price: { ...prev.price, max: parseInt(e.target.value) || 2000 }
-                              }))
-                            }
-                            className="flex-1" 
-                          />
-                        </div>
-                        <Button 
-                          onClick={() => {
-                            applyAllFilters({ ...filters, price: tempPriceRange });
-                            setIsPriceDropdownOpen(false);
-                          }}
-                          className="w-full bg-green-600 hover:bg-green-700"
-                        >
-                          Apply
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Product Grid */}
-        <section id="product-grid" className="py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {paginatedProducts.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {paginatedProducts.map((product) => (
-                    <button
-                      key={product.id}
-                      onClick={() => openProductModal(product)}
-                      className="bg-white p-4 rounded-lg hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 text-left"
-                    >
-                      <div className="aspect-square bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                        <span className="text-gray-500">Product Image</span>
-                      </div>
-                      <h3 className="font-semibold text-gray-900 mb-2">{product.name}</h3>
-                      <p className="text-lg font-bold text-green-600 mb-2">₹{product.price}</p>
-                      <div className="flex items-center">
-                        <div className="flex space-x-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          ))}
-                        </div>
-                        <span className="text-sm text-gray-600 ml-2">({product.reviewCount})</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Pagination */}
-                <div className="flex items-center justify-between mt-12">
-                  <div className="flex items-center space-x-2">
-                    <button 
-                      onClick={() => changePage(Math.max(1, currentPage - 1))}
-                      disabled={currentPage === 1}
-                      className="p-2 text-gray-500 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-50"
-                    >
-                      ‹
-                    </button>
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      const page = i + 1;
-                      return (
-                        <button
-                          key={page}
-                          onClick={() => changePage(page)}
-                          className={`px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                            page === currentPage
-                              ? 'bg-green-600 text-white'
-                              : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      );
-                    })}
-                    <button 
-                      onClick={() => changePage(Math.min(totalPages, currentPage + 1))}
-                      disabled={currentPage === totalPages}
-                      className="p-2 text-gray-500 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded disabled:opacity-50"
-                    >
-                      ›
-                    </button>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-gray-700 mr-2">Rows per page:</span>
-                    <select 
-                      value={rowsPerPage}
-                      onChange={(e) => setRowsPerPage(parseInt(e.target.value))}
-                      className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    >
-                      <option value={20}>20</option>
-                      <option value={40}>40</option>
-                      <option value={60}>60</option>
-                    </select>
-                  </div>
-                </div>
-              </>
-            ) : (
-              // Empty State
-              <div className="text-center py-16">
-                <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-gray-500">No Results</span>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No results found for your filters</h3>
-                <p className="text-gray-600">Try adjusting your search criteria</p>
-              </div>
-            )}
           </div>
         </section>
       </main>
@@ -828,314 +503,6 @@ const Index = () => {
                     Hours: 24/7
                   </p>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Filter Modal */}
-      {isFilterModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold">Filter Products</h2>
-              <button 
-                onClick={() => setIsFilterModalOpen(false)}
-                className="p-1 hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-6">
-              {/* Categories */}
-              <div>
-                <h3 className="font-semibold mb-3">Categories</h3>
-                <div className="space-y-2">
-                  {[
-                    { key: 'prescription', label: 'Prescription' },
-                    { key: 'otc', label: 'OTC & Wellness' },
-                    { key: 'vitamins', label: 'Vitamins & Supplements' },
-                    { key: 'devices', label: 'Medical Devices' }
-                  ].map((category) => (
-                    <div key={category.key} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={category.key}
-                        checked={tempFilters.categories[category.key]}
-                        onCheckedChange={(checked) => handleCheckboxChange(checked, category.key, 'categories')}
-                      />
-                      <Label htmlFor={category.key} className="text-sm">{category.label}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Price Range */}
-              <div>
-                <h3 className="font-semibold mb-3">Price Range</h3>
-                <div className="space-y-3">
-                  <div className="flex space-x-2">
-                    <Input 
-                      type="number"
-                      placeholder="Min" 
-                      value={tempFilters.price.min}
-                      onChange={(e) => 
-                        setTempFilters(prev => ({
-                          ...prev,
-                          price: { ...prev.price, min: parseInt(e.target.value) || 0 }
-                        }))
-                      }
-                      className="flex-1" 
-                    />
-                    <Input 
-                      type="number"
-                      placeholder="Max" 
-                      value={tempFilters.price.max}
-                      onChange={(e) => 
-                        setTempFilters(prev => ({
-                          ...prev,
-                          price: { ...prev.price, max: parseInt(e.target.value) || 2000 }
-                        }))
-                      }
-                      className="flex-1" 
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Brand */}
-              <div>
-                <h3 className="font-semibold mb-3">Brand</h3>
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {Object.keys(tempFilters.brands).map((brand) => (
-                    <div key={brand} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={brand}
-                        checked={tempFilters.brands[brand]}
-                        onCheckedChange={(checked) => handleCheckboxChange(checked, brand, 'brands')}
-                      />
-                      <Label htmlFor={brand} className="text-sm">{brand}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Special Filters */}
-              <div>
-                <h3 className="font-semibold mb-3">Special Filters</h3>
-                <div className="space-y-2">
-                  {[
-                    { key: 'inStock', label: 'Only In-Stock' },
-                    { key: 'expiresSoon', label: 'Expires Soon (Next 30 Days)' },
-                    { key: 'autoRefill', label: 'Auto-Refill Eligible' },
-                    { key: 'requiresPrescription', label: 'Requires Prescription' }
-                  ].map((filter) => (
-                    <div key={filter.key} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={filter.key}
-                        checked={tempFilters.special[filter.key]}
-                        onCheckedChange={(checked) => handleCheckboxChange(checked, filter.key, 'special')}
-                      />
-                      <Label htmlFor={filter.key} className="text-sm">{filter.label}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between p-6 border-t">
-              <button 
-                onClick={clearAllFilters}
-                className="text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
-              >
-                Clear All
-              </button>
-              <Button 
-                onClick={applyFilters}
-                className="bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500"
-              >
-                Apply Filters
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Product Detail Modal */}
-      {isProductModalOpen && selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold">{selectedProduct.name}</h2>
-              <button 
-                onClick={closeProductModal}
-                className="p-1 hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            
-            <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left Column - Images */}
-              <div>
-                <div className="aspect-square bg-gray-200 rounded-lg mb-4 flex items-center justify-center relative">
-                  <span className="text-gray-500">Large Product Image {selectedImageIndex + 1}</span>
-                  <button 
-                    onClick={() => setSelectedImageIndex(Math.max(0, selectedImageIndex - 1))}
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 p-1 bg-white rounded-full shadow"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button 
-                    onClick={() => setSelectedImageIndex(Math.min(selectedProduct.images.length - 1, selectedImageIndex + 1))}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 bg-white rounded-full shadow"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="flex space-x-2">
-                  {selectedProduct.images.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedImageIndex(index)}
-                      className={`w-20 h-20 bg-gray-200 rounded flex items-center justify-center border-2 ${
-                        selectedImageIndex === index ? 'border-green-600' : 'border-gray-300'
-                      }`}
-                    >
-                      <span className="text-xs text-gray-500">Thumb {index + 1}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Right Column - Details */}
-              <div className="space-y-6">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">{selectedProduct.name}</h1>
-                  <div className="flex items-center mt-2">
-                    <span className="text-2xl font-bold text-green-600">₹{selectedProduct.price}</span>
-                    <span className="text-lg text-gray-500 line-through ml-2">₹{selectedProduct.mrp}</span>
-                  </div>
-                  <div className="flex items-center mt-2">
-                    <div className="flex space-x-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <button className="text-sm text-blue-600 hover:underline ml-2 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1">
-                      ({selectedProduct.reviewCount} reviews)
-                    </button>
-                  </div>
-                </div>
-
-                <p className="text-gray-600">{selectedProduct.description}</p>
-
-                {/* Stock Indicator */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">Stock Level</span>
-                    <span className="text-sm text-green-600">In Stock: {selectedProduct.stock} units</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-600 h-2 rounded-full" 
-                      style={{ width: `${Math.min(100, (selectedProduct.stock / 200) * 100)}%` }}
-                    ></div>
-                  </div>
-                  {selectedProduct.stock < 20 && (
-                    <p className="text-sm text-red-600 mt-1">Only {selectedProduct.stock} left!</p>
-                  )}
-                </div>
-
-                {/* Quantity Selector */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-                  <div className="flex items-center space-x-3">
-                    <button 
-                      onClick={() => setProductQuantity(Math.max(1, productQuantity - 1))}
-                      disabled={productQuantity <= 1}
-                      className="p-2 border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <span className="px-4 py-2 border border-gray-300 rounded bg-gray-50">{productQuantity}</span>
-                    <button 
-                      onClick={() => setProductQuantity(Math.min(selectedProduct.stock, productQuantity + 1))}
-                      disabled={productQuantity >= selectedProduct.stock}
-                      className="p-2 border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex space-x-4">
-                  <Button 
-                    onClick={handleAddToCart}
-                    disabled={selectedProduct.stock === 0}
-                    className="flex-1 bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    {selectedProduct.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                  </Button>
-                  <Button 
-                    onClick={handleBuyNow}
-                    disabled={selectedProduct.stock === 0}
-                    className="flex-1 bg-orange-500 hover:bg-orange-600 focus:ring-2 focus:ring-orange-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    {selectedProduct.stock === 0 ? 'Out of Stock' : 'Buy Now'}
-                  </Button>
-                </div>
-
-                {/* You Might Also Like */}
-                <div>
-                  <h3 className="font-semibold mb-3">You Might Also Like</h3>
-                  <div className="flex space-x-3 overflow-x-auto">
-                    {visibleProducts.filter(p => p.id !== selectedProduct.id).slice(0, 3).map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                          setSelectedProduct(item);
-                          setProductQuantity(1);
-                          setSelectedImageIndex(0);
-                        }}
-                        className="flex-shrink-0 w-24 text-center focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
-                      >
-                        <div className="w-20 h-20 bg-gray-200 rounded mb-2 mx-auto flex items-center justify-center">
-                          <span className="text-xs text-gray-500">IMG</span>
-                        </div>
-                        <p className="text-xs text-gray-700 mb-1">{item.name.slice(0, 15)}...</p>
-                        <p className="text-xs font-semibold text-green-600">₹{item.price}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Tab Navigation */}
-                <div className="border-t pt-6">
-                  <nav className="flex space-x-6">
-                    {['Details', 'Ingredients', 'Customer Reviews', 'Q&A'].map((tab) => (
-                      <button
-                        key={tab}
-                        className="text-sm font-medium text-gray-600 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1 py-1"
-                      >
-                        {tab}
-                      </button>
-                    ))}
-                  </nav>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 border-t">
-              <div className="flex items-center justify-between">
-                <button 
-                  onClick={closeProductModal}
-                  className="text-gray-600 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
-                >
-                  Close
-                </button>
               </div>
             </div>
           </div>
