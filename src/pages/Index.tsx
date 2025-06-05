@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, ShoppingCart, ChevronDown, ChevronLeft, ChevronRight, Star, X, Plus, Minus } from 'lucide-react';
+import { Search, ShoppingCart, ChevronDown, ChevronLeft, ChevronRight, Star, X, Plus, Minus, Clock, Shield, Truck, MessageCircle, CreditCard, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -41,11 +41,16 @@ const Index = () => {
   const [productQuantity, setProductQuantity] = useState(1);
   const [tempFilters, setTempFilters] = useState(filters);
   const [tempPriceRange, setTempPriceRange] = useState({ min: 0, max: 2000 });
+  const [isSlideTransitioning, setIsSlideTransitioning] = useState(false);
 
-  // Auto-rotate carousel
+  // Auto-rotate carousel with fade animation
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % 3);
+      setIsSlideTransitioning(true);
+      setTimeout(() => {
+        setCurrentSlide(prev => (prev + 1) % 3);
+        setIsSlideTransitioning(false);
+      }, 150);
     }, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -138,18 +143,48 @@ const Index = () => {
     }
   };
 
-  // Feature card handlers
-  const featureMessages = {
-    'Quick Refill': 'Auto-refill setup coming soon!',
-    'Verified Pharma': 'All products are 100% genuine',
-    'Fast Delivery': 'Free delivery on orders over ₹500',
-    '24/7 Pharmacist Chat': 'Chat support coming soon!',
-    'Secure Payment': 'Your payments are 100% secure',
-    'Easy Returns': '14-day hassle-free returns'
-  };
+  // Feature card handlers with proper icons
+  const features = [
+    { 
+      title: 'Quick Refill', 
+      subtitle: 'Auto-refill on meds',
+      icon: RotateCcw,
+      message: 'Auto-refill setup coming soon!'
+    },
+    { 
+      title: 'Verified Pharma', 
+      subtitle: 'Genuine Brands',
+      icon: Shield,
+      message: 'All products are 100% genuine'
+    },
+    { 
+      title: 'Fast Delivery', 
+      subtitle: 'Within 48 Hours',
+      icon: Truck,
+      message: 'Free delivery on orders over ₹500'
+    },
+    { 
+      title: '24/7 Pharmacist Chat', 
+      subtitle: 'Expert Help Anytime',
+      icon: MessageCircle,
+      message: 'Chat support coming soon!'
+    },
+    { 
+      title: 'Secure Payment', 
+      subtitle: 'Encrypted & Safe',
+      icon: CreditCard,
+      message: 'Your payments are 100% secure'
+    },
+    { 
+      title: 'Easy Returns', 
+      subtitle: '14-Day Policy',
+      icon: Clock,
+      message: '14-day hassle-free returns'
+    }
+  ];
 
-  const handleFeatureClick = (featureTitle: string) => {
-    showToast(featureMessages[featureTitle] || 'Feature coming soon!');
+  const handleFeatureClick = (message: string) => {
+    showToast(message, 'info');
   };
 
   const handleCheckboxChange = (checked: boolean | "indeterminate", key: string, category: string) => {
@@ -268,10 +303,16 @@ const Index = () => {
                   </div>
                 )}
               </div>
-              <button className="text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1">
+              <button 
+                onClick={() => navigateTo('/about-us')}
+                className="text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
+              >
                 About Us
               </button>
-              <button className="text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1">
+              <button 
+                onClick={() => navigateTo('/contact-us')}
+                className="text-gray-700 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
+              >
                 Contact Us
               </button>
             </div>
@@ -281,10 +322,10 @@ const Index = () => {
 
       {/* Main Content */}
       <main>
-        {/* Hero Carousel */}
-        <section className="relative bg-gradient-to-r from-green-50 to-blue-50">
+        {/* Hero Carousel with fade animation */}
+        <section className="relative bg-gradient-to-r from-green-50 to-blue-50 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-            <div className="text-center">
+            <div className={`text-center transition-opacity duration-300 ${isSlideTransitioning ? 'opacity-0' : 'opacity-100'}`}>
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
                 {currentSlide === 0 && 'Stay Healthy with Capsule Care'}
                 {currentSlide === 1 && 'Wellness Essentials Sale – Up to 25% Off'}
@@ -300,7 +341,7 @@ const Index = () => {
                   } else if (currentSlide === 1) {
                     filterByCategory('OTC & Wellness');
                   } else {
-                    console.log('Learn More clicked');
+                    showToast('Learn more about our services!', 'info');
                   }
                   document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
                 }}
@@ -315,13 +356,25 @@ const Index = () => {
           
           {/* Carousel Controls */}
           <button 
-            onClick={() => setCurrentSlide(currentSlide === 0 ? 2 : currentSlide - 1)}
+            onClick={() => {
+              setIsSlideTransitioning(true);
+              setTimeout(() => {
+                setCurrentSlide(currentSlide === 0 ? 2 : currentSlide - 1);
+                setIsSlideTransitioning(false);
+              }, 150);
+            }}
             className="absolute left-4 top-1/2 transform -translate-y-1/2 p-2 bg-white rounded-full shadow-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500"
           >
             <ChevronLeft className="h-6 w-6 text-gray-600" />
           </button>
           <button 
-            onClick={() => setCurrentSlide((currentSlide + 1) % 3)}
+            onClick={() => {
+              setIsSlideTransitioning(true);
+              setTimeout(() => {
+                setCurrentSlide((currentSlide + 1) % 3);
+                setIsSlideTransitioning(false);
+              }, 150);
+            }}
             className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 bg-white rounded-full shadow-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500"
           >
             <ChevronRight className="h-6 w-6 text-gray-600" />
@@ -332,8 +385,14 @@ const Index = () => {
             {[0, 1, 2].map((index) => (
               <button
                 key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`w-3 h-3 rounded-full ${
+                onClick={() => {
+                  setIsSlideTransitioning(true);
+                  setTimeout(() => {
+                    setCurrentSlide(index);
+                    setIsSlideTransitioning(false);
+                  }, 150);
+                }}
+                className={`w-3 h-3 rounded-full transition-colors ${
                   currentSlide === index ? 'bg-green-600' : 'bg-gray-300'
                 }`}
               />
@@ -365,30 +424,26 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Feature Highlights */}
+        {/* Feature Highlights with proper icons */}
         <section className="bg-gray-50 py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
-              {[
-                { title: 'Quick Refill', subtitle: 'Auto-refill on meds' },
-                { title: 'Verified Pharma', subtitle: 'Genuine Brands' },
-                { title: 'Fast Delivery', subtitle: 'Within 48 Hours' },
-                { title: '24/7 Pharmacist Chat', subtitle: 'Expert Help Anytime' },
-                { title: 'Secure Payment', subtitle: 'Encrypted & Safe' },
-                { title: 'Easy Returns', subtitle: '14-Day Policy' }
-              ].map((feature, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleFeatureClick(feature.title)}
-                  className="bg-white p-6 rounded-lg text-center hover:shadow-lg hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
-                >
-                  <div className="w-12 h-12 bg-green-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                    <div className="w-6 h-6 bg-green-600 rounded"></div>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                  <p className="text-sm text-gray-600">{feature.subtitle}</p>
-                </button>
-              ))}
+              {features.map((feature, index) => {
+                const IconComponent = feature.icon;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleFeatureClick(feature.message)}
+                    className="bg-white p-6 rounded-lg text-center hover:shadow-lg hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                  >
+                    <div className="w-12 h-12 bg-green-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                      <IconComponent className="w-6 h-6 text-green-600" />
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                    <p className="text-sm text-gray-600">{feature.subtitle}</p>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -616,9 +671,19 @@ const Index = () => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Information</h3>
               <ul className="space-y-2">
-                {['About Us', 'Privacy Policy', 'Terms of Service', 'Careers'].map((link) => (
-                  <li key={link}>
-                    <a href="#" className="text-gray-300 hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1">{link}</a>
+                {[
+                  { text: 'About Us', onClick: () => navigateTo('/about-us') },
+                  { text: 'Privacy Policy', onClick: () => {} },
+                  { text: 'Terms of Service', onClick: () => {} },
+                  { text: 'Careers', onClick: () => {} }
+                ].map((link) => (
+                  <li key={link.text}>
+                    <button 
+                      onClick={link.onClick}
+                      className="text-gray-300 hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
+                    >
+                      {link.text}
+                    </button>
                   </li>
                 ))}
               </ul>

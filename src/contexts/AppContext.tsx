@@ -1,5 +1,5 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface Product {
   id: string;
@@ -100,6 +100,7 @@ const sampleProducts: Product[] = Array.from({ length: 100 }, (_, i) => ({
 }));
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const navigate = useNavigate();
   const [products] = useState<Product[]>(sampleProducts);
   const [visibleProducts, setVisibleProducts] = useState<Product[]>(sampleProducts);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -286,8 +287,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const navigateTo = (path: string) => {
-    console.log(`Navigate to: ${path}`);
-    // TODO: Implement actual navigation
+    navigate(path);
   };
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
