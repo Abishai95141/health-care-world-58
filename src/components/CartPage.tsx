@@ -1,4 +1,3 @@
-
 import { ChevronLeft, Minus, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/contexts/AppContext';
@@ -32,11 +31,7 @@ const CartPage = () => {
   };
 
   const handleProceedToCheckout = () => {
-    if (!isLoggedIn) {
-      navigateTo('/login');
-    } else {
-      navigateTo('/checkout');
-    }
+    navigateTo('/checkout');
   };
 
   if (cart.length === 0 || showEmptyState) {

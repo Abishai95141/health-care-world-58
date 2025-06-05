@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { Search, ShoppingCart, ChevronDown, ChevronLeft, ChevronRight, Star, X, Plus, Minus, Clock, Shield, Truck, MessageCircle, CreditCard, RotateCcw } from 'lucide-react';
+import { Search, ShoppingCart, ChevronDown, ChevronLeft, ChevronRight, Star, X, Plus, Minus, Clock, Shield, Truck, MessageCircle, CreditCard, RotateCcw, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -78,6 +79,14 @@ const Index = () => {
       navigate('/auth', { state: { from: '/cart' } });
     } else {
       navigateTo('/cart');
+    }
+  };
+
+  const handleProfileClick = () => {
+    if (!user) {
+      navigate('/auth', { state: { from: '/profile' } });
+    } else {
+      navigateTo('/profile');
     }
   };
 
@@ -268,8 +277,8 @@ const Index = () => {
               </form>
             </div>
             
-            {/* Cart and Account */}
-            <div className="flex items-center space-x-6">
+            {/* Cart, Profile and Account */}
+            <div className="flex items-center space-x-4">
               <button 
                 onClick={handleCartClick}
                 aria-label="View cart"
@@ -280,6 +289,15 @@ const Index = () => {
                   {cartItemCount}
                 </span>
               </button>
+              
+              <button 
+                onClick={handleProfileClick}
+                aria-label="View profile"
+                className="p-2 text-gray-600 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded-lg transition-colors"
+              >
+                <User className="h-6 w-6" />
+              </button>
+              
               <div className="flex space-x-4 text-sm">
                 {user ? (
                   <span className="text-gray-600">
