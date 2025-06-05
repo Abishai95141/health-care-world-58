@@ -12,6 +12,7 @@ import { useApp } from '@/contexts/AppContext';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -75,7 +76,16 @@ const Auth = () => {
           return;
         }
 
-        const { error } = await signUp(email, password);
+        if (!name.trim()) {
+          toast({
+            title: "Name required",
+            description: "Please enter your full name.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const { error } = await signUp(email, password, name);
         
         if (error) throw error;
         
@@ -158,6 +168,23 @@ const Auth = () => {
           
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-4">
+              {!isLogin && (
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-[#0B1F45] mb-2">
+                    Full Name
+                  </label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required={!isLogin}
+                    className="h-11 rounded-lg border-gray-300 focus:border-[#27AE60] focus:ring-[#27AE60]"
+                  />
+                </div>
+              )}
+
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-[#0B1F45] mb-2">
                   Email

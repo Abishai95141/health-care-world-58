@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
 import CartPage from "./components/CartPage";
 import CheckoutPage from "./components/CheckoutPage";
 import NotFound from "./pages/NotFound";
@@ -31,6 +32,14 @@ const App = () => (
               <Route path="/contact-us" element={<ContactUs />} />
               <Route path="/login" element={<Auth />} />
               <Route path="/auth" element={<Auth />} />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } 
+              />
               <Route 
                 path="/cart" 
                 element={
