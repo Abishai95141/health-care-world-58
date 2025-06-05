@@ -166,6 +166,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      authenticate_staff: {
+        Args: { email_input: string; password_input: string }
+        Returns: {
+          user_id: string
+          email: string
+          role: string
+        }[]
+      }
+      create_staff_user: {
+        Args: {
+          email_input: string
+          password_input: string
+          role_input?: string
+        }
+        Returns: string
+      }
       generate_slug: {
         Args: { name: string }
         Returns: string
