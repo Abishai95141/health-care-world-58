@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -8,7 +8,6 @@ import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -21,23 +20,6 @@ const Auth = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, loading } = useAuth();
-
-  // Redirect if already logged in
-  useEffect(() => {
-    if (!loading && user) {
-      navigate('/');
-    }
-  }, [user, loading, navigate]);
-
-  // Clean up auth state before attempting login/signup
-  const cleanupAuthState = () => {
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        localStorage.removeItem(key);
-      }
-    });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,9 +27,6 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        // Clean up existing state before login
-        cleanupAuthState();
-        
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -60,8 +39,7 @@ const Auth = () => {
             title: "Welcome back!",
             description: "You've successfully logged in.",
           });
-          // Force page reload for clean state
-          window.location.href = '/';
+          navigate('/');
         }
       } else {
         if (password !== confirmPassword) {
@@ -72,9 +50,6 @@ const Auth = () => {
           });
           return;
         }
-
-        // Clean up existing state before signup
-        cleanupAuthState();
 
         const redirectUrl = `${window.location.origin}/`;
         
@@ -94,7 +69,6 @@ const Auth = () => {
         });
       }
     } catch (error: any) {
-      console.error('Auth error:', error);
       toast({
         title: "Error",
         description: error.message || "An error occurred during authentication.",
@@ -107,8 +81,6 @@ const Auth = () => {
 
   const handleGoogleAuth = async () => {
     try {
-      cleanupAuthState();
-      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -118,7 +90,6 @@ const Auth = () => {
       
       if (error) throw error;
     } catch (error: any) {
-      console.error('Google auth error:', error);
       toast({
         title: "Error",
         description: error.message || "An error occurred with Google authentication.",
@@ -126,18 +97,6 @@ const Auth = () => {
       });
     }
   };
-
-  // Show loading while checking auth state
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#27AE60] mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
