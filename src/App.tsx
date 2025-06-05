@@ -8,6 +8,7 @@ import { AppProvider } from "./contexts/AppContext";
 import Index from "./pages/Index";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
+import Auth from "./pages/Auth";
 import CartPage from "./components/CartPage";
 import CheckoutPage from "./components/CheckoutPage";
 import NotFound from "./pages/NotFound";
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/about-us" element={<AboutUs />} />
             <Route path="/contact-us" element={<ContactUs />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
