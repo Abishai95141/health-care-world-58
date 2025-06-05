@@ -6,6 +6,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const {
@@ -29,6 +31,9 @@ const Index = () => {
     navigateTo,
     showToast
   } = useApp();
+
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -66,10 +71,18 @@ const Index = () => {
   };
 
   // Cart functionality
-  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartItemCount = user ? cart.reduce((sum, item) => sum + item.quantity, 0) : 0;
 
   const handleCartClick = () => {
-    navigateTo('/cart');
+    if (!user) {
+      navigate('/auth', { state: { from: '/cart' } });
+    } else {
+      navigateTo('/cart');
+    }
+  };
+
+  const handleLoginClick = () => {
+    navigate('/auth');
   };
 
   // Category dropdown
@@ -131,12 +144,36 @@ const Index = () => {
 
   // Product modal handlers
   const handleAddToCart = () => {
+    if (!user) {
+      navigate('/auth', { 
+        state: { 
+          from: '/',
+          action: 'addToCart',
+          productId: selectedProduct?.id,
+          quantity: productQuantity
+        }
+      });
+      return;
+    }
+
     if (selectedProduct && selectedProduct.stock > 0) {
       addToCart(selectedProduct.id, productQuantity);
     }
   };
 
   const handleBuyNow = () => {
+    if (!user) {
+      navigate('/auth', { 
+        state: { 
+          from: '/checkout',
+          action: 'buyNow',
+          productId: selectedProduct?.id,
+          quantity: productQuantity
+        }
+      });
+      return;
+    }
+
     if (selectedProduct && selectedProduct.stock > 0) {
       addToCart(selectedProduct.id, productQuantity);
       navigateTo('/checkout');
@@ -244,12 +281,18 @@ const Index = () => {
                 </span>
               </button>
               <div className="flex space-x-4 text-sm">
-                <button 
-                  onClick={() => navigateTo('/login')}
-                  className="text-gray-600 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
-                >
-                  Log In / Sign Up
-                </button>
+                {user ? (
+                  <span className="text-gray-600">
+                    Welcome, {user.email?.split('@')[0]}
+                  </span>
+                ) : (
+                  <button 
+                    onClick={handleLoginClick}
+                    className="text-gray-600 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
+                  >
+                    Log In / Sign Up
+                  </button>
+                )}
                 <button 
                   onClick={() => setIsHelpModalOpen(true)}
                   className="text-gray-600 hover:text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1"
@@ -458,7 +501,6 @@ const Index = () => {
               </div>
               <Button 
                 onClick={() => {
-                  // TODO: Filter by SummerFever tag
                   document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth' });
                 }}
                 className="bg-white text-orange-500 hover:bg-gray-100 focus:ring-2 focus:ring-white px-6 py-2"

@@ -8,6 +8,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useApp } from '@/contexts/AppContext';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -22,14 +23,31 @@ const Auth = () => {
   const location = useLocation();
   const { toast } = useToast();
   const { signIn, signUp, signInWithGoogle, user } = useAuth();
+  const { addToCart } = useApp();
 
-  // Redirect if already logged in
+  // Redirect if already logged in and complete pending actions
   useEffect(() => {
-    if (user) {
+    if (user && location.state) {
+      const { from, action, productId, quantity } = location.state;
+      
+      // Complete the intended action after login
+      if (action === 'addToCart' && productId) {
+        addToCart(productId, quantity || 1);
+        toast({
+          title: "Item added to cart!",
+          description: "You can now view your cart or continue shopping.",
+        });
+      }
+      
+      // Navigate to the intended destination
+      const redirectTo = from || '/';
+      navigate(redirectTo, { replace: true });
+    } else if (user) {
+      // Simple redirect if no specific action needed
       const redirectTo = location.state?.from || '/';
       navigate(redirectTo, { replace: true });
     }
-  }, [user, navigate, location]);
+  }, [user, navigate, location, addToCart, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,8 +64,7 @@ const Auth = () => {
           description: "You've successfully logged in.",
         });
         
-        const redirectTo = location.state?.from || '/';
-        navigate(redirectTo, { replace: true });
+        // The useEffect above will handle the redirect and action completion
       } else {
         if (password !== confirmPassword) {
           toast({
