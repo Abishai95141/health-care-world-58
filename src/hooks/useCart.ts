@@ -193,36 +193,53 @@ export const useCart = () => {
 
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
 
-  // Combined effect for fetching cart and setting up real-time subscription
+  // Effect for fetching cart when user changes
   useEffect(() => {
     if (!user) {
       setCartItems([]);
       return;
     }
 
-    // Fetch initial cart data
     fetchCart();
+  }, [user?.id]);
 
-    // Set up real-time subscription with a unique channel name
-    const channelName = `cart-changes-${user.id}-${Date.now()}`;
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'cart_items',
-          filter: `user_id=eq.${user.id}`
-        },
-        () => {
-          fetchCart();
-        }
-      )
-      .subscribe();
+  // Separate effect for real-time subscription with better cleanup
+  useEffect(() => {
+    if (!user) return;
+
+    let channel: any = null;
+
+    const setupSubscription = () => {
+      // Create a unique channel name to avoid conflicts
+      const channelName = `cart-changes-${user.id}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      channel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'cart_items',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            console.log('Cart change detected, refetching...');
+            fetchCart();
+          }
+        )
+        .subscribe((status) => {
+          console.log('Subscription status:', status);
+        });
+    };
+
+    setupSubscription();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        console.log('Unsubscribing from cart changes');
+        supabase.removeChannel(channel);
+      }
     };
   }, [user?.id]);
 
