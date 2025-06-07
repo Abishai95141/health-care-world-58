@@ -193,17 +193,20 @@ export const useCart = () => {
 
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
 
-  // Fetch cart when user changes
+  // Combined effect for fetching cart and setting up real-time subscription
   useEffect(() => {
+    if (!user) {
+      setCartItems([]);
+      return;
+    }
+
+    // Fetch initial cart data
     fetchCart();
-  }, [user?.id]);
 
-  // Set up real-time subscription
-  useEffect(() => {
-    if (!user) return;
-
+    // Set up real-time subscription with a unique channel name
+    const channelName = `cart-changes-${user.id}-${Date.now()}`;
     const channel = supabase
-      .channel('cart-changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
