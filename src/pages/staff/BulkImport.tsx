@@ -173,11 +173,11 @@ const BulkImport = () => {
       }
 
       // Validate is_active - accept both lowercase and uppercase
-      if (row.is_active && !['true', 'false', 'TRUE', 'FALSE'].includes(row.is_active)) {
+      if (row.is_active && !['true', 'false'].includes(row.is_active.toLowerCase().trim())) {
         errors.push({
           row: rowNumber,
           field: 'is_active',
-          message: 'is_active must be "true", "false", "TRUE", or "FALSE"'
+          message: 'is_active must be "true" or "false"'
         });
       }
 
