@@ -3,6 +3,9 @@ import React from 'react';
 import { Star, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useCart } from '@/hooks/useCart';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface Product {
   id: string;
@@ -18,14 +21,36 @@ interface Product {
 interface ProductCardProps {
   product: Product;
   onProductClick: (product: Product) => void;
-  onAddToCart?: (product: Product) => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAddToCart }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) => {
+  const { addToCart } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
   const hasDiscount = product.mrp && product.mrp > product.price;
   const discountPercent = hasDiscount ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
   const isOutOfStock = product.stock === 0;
   const isLowStock = product.stock > 0 && product.stock <= 10;
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!user) {
+      navigate('/auth', { 
+        state: { 
+          from: window.location.pathname,
+          action: 'addToCart',
+          productId: product.id
+        }
+      });
+      return;
+    }
+
+    if (product.stock > 0) {
+      await addToCart(product.id, 1);
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200 overflow-hidden">
@@ -104,29 +129,24 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAd
           </div>
           
           {/* Add to Cart Button */}
-          {onAddToCart && (
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddToCart(product);
-              }}
-              disabled={isOutOfStock}
-              className={`w-full text-sm ${
-                isOutOfStock 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-green-600 hover:bg-green-700'
-              }`}
-            >
-              {isOutOfStock ? (
-                'Out of Stock'
-              ) : (
-                <>
-                  <ShoppingCart className="w-4 h-4 mr-2" />
-                  Add to Cart
-                </>
-              )}
-            </Button>
-          )}
+          <Button
+            onClick={handleAddToCart}
+            disabled={isOutOfStock}
+            className={`w-full text-sm ${
+              isOutOfStock 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-green-600 hover:bg-green-700'
+            }`}
+          >
+            {isOutOfStock ? (
+              'Out of Stock'
+            ) : (
+              <>
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                Add to Cart
+              </>
+            )}
+          </Button>
         </div>
       </div>
     </div>

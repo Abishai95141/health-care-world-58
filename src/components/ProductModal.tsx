@@ -4,7 +4,7 @@ import { X, Minus, Plus, Star, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { useApp } from '@/contexts/AppContext';
+import { useCart } from '@/hooks/useCart';
 import { useNavigate } from 'react-router-dom';
 
 interface Product {
@@ -30,7 +30,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('details');
   const { user } = useAuth();
-  const { addToCart, showToast } = useApp();
+  const { addToCart } = useCart();
   const navigate = useNavigate();
 
   if (!isOpen) return null;
@@ -44,11 +44,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
     ? product.image_urls 
     : ['/placeholder.svg'];
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!user) {
       navigate('/auth', { 
         state: { 
-          from: '/shop',
+          from: window.location.pathname,
           action: 'addToCart',
           productId: product.id,
           quantity
@@ -58,12 +58,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
     }
 
     if (product.stock >= quantity) {
-      addToCart(product.id, quantity);
-      showToast(`${quantity} item(s) added to cart`, 'success');
+      await addToCart(product.id, quantity);
     }
   };
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     if (!user) {
       navigate('/auth', { 
         state: { 
@@ -76,8 +75,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
       return;
     }
 
-    addToCart(product.id, quantity);
-    navigate('/checkout');
+    const success = await addToCart(product.id, quantity);
+    if (success) {
+      navigate('/checkout');
+    }
   };
 
   const stockPercentage = (product.stock / 100) * 100; // Assuming max stock of 100 for display

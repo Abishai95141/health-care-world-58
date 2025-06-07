@@ -4,15 +4,13 @@ import { ShoppingCart, User, Search, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useApp } from '@/contexts/AppContext';
+import { useCart } from '@/hooks/useCart';
 
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { cart } = useApp();
-
-  const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const { totalItems } = useCart();
 
   const handleSignOut = async () => {
     await signOut();
@@ -79,9 +77,9 @@ const Navigation = () => {
               className="relative p-2 text-gray-700 hover:text-green-600"
             >
               <ShoppingCart className="h-6 w-6" />
-              {cartItemCount > 0 && (
+              {totalItems > 0 && (
                 <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {cartItemCount}
+                  {totalItems}
                 </span>
               )}
             </button>

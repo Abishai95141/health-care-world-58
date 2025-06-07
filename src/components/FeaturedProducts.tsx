@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useProducts } from '@/hooks/useProducts';
-import { useApp } from '@/contexts/AppContext';
+import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import ProductCard from './ProductCard';
@@ -10,7 +10,6 @@ import { Card, CardContent } from '@/components/ui/card';
 
 const FeaturedProducts = () => {
   const navigate = useNavigate();
-  const { addToCart, setSelectedProduct, showToast } = useApp();
   const { user } = useAuth();
   const [selectedProduct, setSelectedProductLocal] = useState<any>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -24,24 +23,6 @@ const FeaturedProducts = () => {
   const handleProductClick = (product: any) => {
     setSelectedProductLocal(product);
     setIsProductModalOpen(true);
-  };
-
-  const handleAddToCart = (product: any) => {
-    if (!user) {
-      navigate('/auth', { 
-        state: { 
-          from: '/',
-          action: 'addToCart',
-          productId: product.id
-        }
-      });
-      return;
-    }
-
-    if (product.stock > 0) {
-      addToCart(product.id, 1);
-      showToast(`${product.name} added to cart`, 'success');
-    }
   };
 
   if (loading) {
@@ -84,7 +65,6 @@ const FeaturedProducts = () => {
                   key={product.id}
                   product={product}
                   onProductClick={handleProductClick}
-                  onAddToCart={handleAddToCart}
                 />
               ))}
             </div>

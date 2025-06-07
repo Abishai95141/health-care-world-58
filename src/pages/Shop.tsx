@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, ChevronDown, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useProducts } from '@/hooks/useProducts';
-import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import ProductCard from '@/components/ProductCard';
@@ -13,7 +13,6 @@ import Layout from '@/components/Layout';
 
 const Shop = () => {
   const navigate = useNavigate();
-  const { addToCart, setSelectedProduct, showToast } = useApp();
   const { user } = useAuth();
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,24 +81,6 @@ const Shop = () => {
   const handleProductClick = (product: any) => {
     setSelectedProductLocal(product);
     setIsProductModalOpen(true);
-  };
-
-  const handleAddToCart = (product: any) => {
-    if (!user) {
-      navigate('/auth', { 
-        state: { 
-          from: '/shop',
-          action: 'addToCart',
-          productId: product.id
-        }
-      });
-      return;
-    }
-
-    if (product.stock > 0) {
-      addToCart(product.id, 1);
-      showToast(`${product.name} added to cart`, 'success');
-    }
   };
 
   // Generate page numbers for pagination
@@ -218,7 +199,6 @@ const Shop = () => {
                     key={product.id}
                     product={product}
                     onProductClick={handleProductClick}
-                    onAddToCart={handleAddToCart}
                   />
                 ))}
               </div>
