@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useStaffAuth } from '@/contexts/StaffAuthContext';
-import { Upload, Download, CheckCircle, XCircle } from 'lucide-react';
+import { Upload, Download, CheckCircle, XCircle, X } from 'lucide-react';
 
 interface CSVRow {
   [key: string]: string;
@@ -25,6 +25,7 @@ const BulkImport = () => {
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [isImporting, setIsImporting] = useState(false);
+  const [fileName, setFileName] = useState<string>('');
   const [importResults, setImportResults] = useState<{
     successful: number;
     failed: number;
@@ -72,12 +73,12 @@ const BulkImport = () => {
 
     const headers = lines[0].split(',').map(header => header.trim().toLowerCase());
     const data = lines.slice(1).map((line, index) => {
-      const values = line.split(',').map(value => value.trim());
+      const values = line.split(',').map(value => value.trim().replace(/^"|"$/g, ''));
       const row: CSVRow = {};
       headers.forEach((header, i) => {
         row[header] = values[i] || '';
       });
-      row._rowIndex = (index + 2).toString(); // +2 because we start from line 2 (after header)
+      row._rowIndex = (index + 2).toString();
       return row;
     });
 
@@ -96,7 +97,7 @@ const BulkImport = () => {
           errors.push({
             row: rowNumber,
             field,
-            message: `${field} is required`
+            message: `${field.replace('_', ' ')} is required`
           });
         }
       });
@@ -120,35 +121,76 @@ const BulkImport = () => {
       }
 
       // Validate price
-      const price = parseFloat(row.price);
-      if (row.price && (isNaN(price) || price < 1)) {
-        errors.push({
-          row: rowNumber,
-          field: 'price',
-          message: 'Price must be ≥ 1'
-        });
+      if (row.price) {
+        const price = parseFloat(row.price);
+        if (isNaN(price) || price < 1) {
+          errors.push({
+            row: rowNumber,
+            field: 'price',
+            message: 'Price must be a valid number ≥ 1'
+          });
+        }
       }
 
       // Validate MRP
       if (row.mrp) {
         const mrp = parseFloat(row.mrp);
-        if (isNaN(mrp) || mrp < price) {
+        const price = parseFloat(row.price);
+        if (isNaN(mrp) || mrp < 0) {
           errors.push({
             row: rowNumber,
             field: 'mrp',
-            message: 'MRP must be ≥ Price'
+            message: 'MRP must be a valid number ≥ 0'
+          });
+        } else if (!isNaN(price) && mrp < price) {
+          errors.push({
+            row: rowNumber,
+            field: 'mrp',
+            message: 'MRP must be greater than or equal to Price'
           });
         }
       }
 
       // Validate stock
-      const stock = parseInt(row.stock);
-      if (row.stock && (isNaN(stock) || stock < 0)) {
+      if (row.stock) {
+        const stock = parseInt(row.stock);
+        if (isNaN(stock) || stock < 0) {
+          errors.push({
+            row: rowNumber,
+            field: 'stock',
+            message: 'Stock must be a valid number ≥ 0'
+          });
+        }
+      }
+
+      // Validate requires_prescription
+      if (row.requires_prescription && !['true', 'false'].includes(row.requires_prescription.toLowerCase())) {
         errors.push({
           row: rowNumber,
-          field: 'stock',
-          message: 'Stock must be ≥ 0'
+          field: 'requires_prescription',
+          message: 'requires_prescription must be "true" or "false"'
         });
+      }
+
+      // Validate is_active
+      if (row.is_active && !['true', 'false'].includes(row.is_active.toLowerCase())) {
+        errors.push({
+          row: rowNumber,
+          field: 'is_active',
+          message: 'is_active must be "true" or "false"'
+        });
+      }
+
+      // Validate expiration_date format if provided
+      if (row.expiration_date && row.expiration_date.trim() !== '') {
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(row.expiration_date)) {
+          errors.push({
+            row: rowNumber,
+            field: 'expiration_date',
+            message: 'expiration_date must be in YYYY-MM-DD format'
+          });
+        }
       }
     });
 
@@ -168,6 +210,7 @@ const BulkImport = () => {
       return;
     }
 
+    setFileName(file.name);
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
@@ -181,6 +224,19 @@ const BulkImport = () => {
       setImportResults(null);
     };
     reader.readAsText(file);
+  };
+
+  const clearCSVData = () => {
+    setCsvData([]);
+    setCsvHeaders([]);
+    setValidationErrors([]);
+    setImportResults(null);
+    setFileName('');
+    // Reset file input
+    const fileInput = document.getElementById('csv-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
   };
 
   const generateSlug = (name: string) => {
@@ -293,6 +349,17 @@ const BulkImport = () => {
     return validationErrors.filter(error => error.row === rowIndex);
   };
 
+  const getUniqueErrors = () => {
+    const uniqueErrors = new Map<string, ValidationError>();
+    validationErrors.forEach(error => {
+      const key = `${error.field}-${error.message}`;
+      if (!uniqueErrors.has(key)) {
+        uniqueErrors.set(key, error);
+      }
+    });
+    return Array.from(uniqueErrors.values());
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -339,24 +406,60 @@ const BulkImport = () => {
                 <span>Choose File</span>
               </Button>
             </label>
+            
+            {/* Show uploaded file name with remove option */}
+            {fileName && (
+              <div className="mt-4 flex items-center justify-center space-x-2">
+                <span className="text-sm text-gray-700">Uploaded: {fileName}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearCSVData}
+                  className="text-red-600 border-red-600 hover:bg-red-600 hover:text-white"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Remove
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Validation Summary */}
           {csvData.length > 0 && (
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-sm">
-                  {csvData.length - validationErrors.filter(e => requiredFields.includes(e.field)).length} valid rows
-                </span>
-              </div>
-              {validationErrors.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <XCircle className="w-5 h-5 text-red-600" />
-                  <span className="text-sm text-red-600">
-                    {validationErrors.length} validation errors
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-sm">
+                    {csvData.length - validationErrors.filter(e => requiredFields.includes(e.field)).length} valid rows
                   </span>
                 </div>
+                {validationErrors.length > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <XCircle className="w-5 h-5 text-red-600" />
+                    <span className="text-sm text-red-600">
+                      {validationErrors.length} validation errors
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Detailed Error Messages */}
+              {validationErrors.length > 0 && (
+                <Card className="bg-red-50 border-red-200">
+                  <CardHeader>
+                    <CardTitle className="text-red-800 text-lg">Validation Errors</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {getUniqueErrors().map((error, index) => (
+                        <div key={index} className="text-sm text-red-700">
+                          <strong>Row {error.row}</strong> - {error.field}: {error.message}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
           )}
@@ -377,7 +480,7 @@ const BulkImport = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {csvData.slice(0, 5).map((row, index) => {
+                  {csvData.slice(0, 10).map((row, index) => {
                     const rowErrors = getRowError(index + 1);
                     const hasErrors = rowErrors.length > 0;
                     
@@ -392,7 +495,8 @@ const BulkImport = () => {
                         <TableCell>
                           {hasErrors ? (
                             <div className="text-red-600 text-xs">
-                              {rowErrors.map(error => error.message).join(', ')}
+                              {rowErrors.slice(0, 2).map(error => error.message).join(', ')}
+                              {rowErrors.length > 2 && '...'}
                             </div>
                           ) : (
                             <CheckCircle className="w-4 h-4 text-green-600" />
