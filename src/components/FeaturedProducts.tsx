@@ -1,16 +1,19 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useProducts } from '@/hooks/useProducts';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import ProductCard from './ProductCard';
+import ProductModal from './ProductModal';
 import { Card, CardContent } from '@/components/ui/card';
 
 const FeaturedProducts = () => {
   const navigate = useNavigate();
   const { addToCart, setSelectedProduct, showToast } = useApp();
   const { user } = useAuth();
+  const [selectedProduct, setSelectedProductLocal] = useState<any>(null);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   
   const { products, loading } = useProducts({
     limit: 8,
@@ -19,9 +22,8 @@ const FeaturedProducts = () => {
   });
 
   const handleProductClick = (product: any) => {
-    setSelectedProduct(product);
-    // You can implement a product modal here or navigate to product detail page
-    showToast(`Clicked on ${product.name}`, 'info');
+    setSelectedProductLocal(product);
+    setIsProductModalOpen(true);
   };
 
   const handleAddToCart = (product: any) => {
@@ -95,6 +97,18 @@ const FeaturedProducts = () => {
                 View All Products
               </button>
             </div>
+
+            {/* Product Modal */}
+            {selectedProduct && (
+              <ProductModal
+                product={selectedProduct}
+                isOpen={isProductModalOpen}
+                onClose={() => {
+                  setIsProductModalOpen(false);
+                  setSelectedProductLocal(null);
+                }}
+              />
+            )}
           </>
         ) : (
           <div className="text-center py-12">

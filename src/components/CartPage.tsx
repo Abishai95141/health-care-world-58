@@ -1,7 +1,9 @@
+
+import React, { useState } from 'react';
 import { ChevronLeft, Minus, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/contexts/AppContext';
-import { useState } from 'react';
+import Layout from './Layout';
 
 const CartPage = () => {
   const { 
@@ -20,7 +22,7 @@ const CartPage = () => {
   const total = subtotal + shipping;
 
   const handleContinueShopping = () => {
-    navigateTo('/');
+    navigateTo('/shop');
   };
 
   const handleEmptyCart = () => {
@@ -36,7 +38,7 @@ const CartPage = () => {
 
   if (cart.length === 0 || showEmptyState) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <Layout>
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
@@ -45,19 +47,19 @@ const CartPage = () => {
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Your cart is empty</h3>
             <p className="text-gray-600 mb-6">Looks like you haven't added any items to your cart yet</p>
             <Button 
-              onClick={() => navigateTo('/')}
+              onClick={() => navigateTo('/shop')}
               className="bg-green-600 hover:bg-green-700"
             >
               Shop Now
             </Button>
           </div>
         </main>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <Layout>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Cart Items */}
@@ -181,7 +183,7 @@ const CartPage = () => {
           </div>
         </div>
       </main>
-    </div>
+    </Layout>
   );
 };
 

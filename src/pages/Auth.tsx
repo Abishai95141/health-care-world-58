@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -289,6 +288,17 @@ const Auth = () => {
               </svg>
               Continue with Google
             </Button>
+
+            <div className="text-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate('/shop')}
+                className="w-full h-11 border-gray-300 hover:bg-gray-50 rounded-lg"
+              >
+                View Store Without Signing In
+              </Button>
+            </div>
 
             <p className="text-center text-xs text-[#6C757D] mt-6">
               By continuing, you agree to our{' '}
