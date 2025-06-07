@@ -163,21 +163,21 @@ const BulkImport = () => {
         }
       }
 
-      // Validate requires_prescription
-      if (row.requires_prescription && !['true', 'false'].includes(row.requires_prescription.toLowerCase())) {
+      // Validate requires_prescription - accept both lowercase and uppercase
+      if (row.requires_prescription && !['true', 'false', 'TRUE', 'FALSE'].includes(row.requires_prescription)) {
         errors.push({
           row: rowNumber,
           field: 'requires_prescription',
-          message: 'requires_prescription must be "true" or "false"'
+          message: 'requires_prescription must be "true", "false", "TRUE", or "FALSE"'
         });
       }
 
-      // Validate is_active
-      if (row.is_active && !['true', 'false'].includes(row.is_active.toLowerCase())) {
+      // Validate is_active - accept both lowercase and uppercase
+      if (row.is_active && !['true', 'false', 'TRUE', 'FALSE'].includes(row.is_active)) {
         errors.push({
           row: rowNumber,
           field: 'is_active',
-          message: 'is_active must be "true" or "false"'
+          message: 'is_active must be "true", "false", "TRUE", or "FALSE"'
         });
       }
 
@@ -292,10 +292,10 @@ const BulkImport = () => {
             mrp: row.mrp ? parseFloat(row.mrp) : null,
             weight_volume: row.weight_volume,
             manufacturer: row.manufacturer,
-            requires_prescription: row.requires_prescription === 'true',
+            requires_prescription: row.requires_prescription?.toLowerCase() === 'true',
             stock: stock,
             expiration_date: row.expiration_date || null,
-            is_active: row.is_active !== 'false' && stock > 0,
+            is_active: row.is_active?.toLowerCase() !== 'false' && stock > 0,
             image_urls: null
           };
 
