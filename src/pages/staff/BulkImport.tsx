@@ -68,15 +68,58 @@ const BulkImport = () => {
     window.URL.revokeObjectURL(url);
   };
 
+  // Proper CSV parser that handles quoted fields
+  const parseCSVLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    let i = 0;
+
+    while (i < line.length) {
+      const char = line[i];
+      
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          // Escaped quote
+          current += '"';
+          i += 2;
+        } else {
+          // Toggle quote state
+          inQuotes = !inQuotes;
+          i++;
+        }
+      } else if (char === ',' && !inQuotes) {
+        // End of field
+        result.push(current.trim());
+        current = '';
+        i++;
+      } else {
+        current += char;
+        i++;
+      }
+    }
+    
+    // Add the last field
+    result.push(current.trim());
+    return result;
+  };
+
   const parseCSV = (text: string): { headers: string[], data: CSVRow[] } => {
     const lines = text.split('\n').filter(line => line.trim());
     if (lines.length === 0) return { headers: [], data: [] };
 
-    const headers = lines[0].split(',').map(header => header.trim().toLowerCase());
+    // Parse headers
+    const headers = parseCSVLine(lines[0]).map(header => 
+      header.replace(/^"|"$/g, '').trim().toLowerCase()
+    );
     console.log('Parsed CSV headers:', headers);
     
+    // Parse data rows
     const data = lines.slice(1).map((line, index) => {
-      const values = line.split(',').map(value => value.trim().replace(/^"|"$/g, ''));
+      const values = parseCSVLine(line).map(value => 
+        value.replace(/^"|"$/g, '').trim()
+      );
+      
       const row: CSVRow = {};
       headers.forEach((header, i) => {
         row[header] = values[i] || '';
@@ -89,7 +132,7 @@ const BulkImport = () => {
     return { headers, data };
   };
 
-  const validateCSVData = (data: CSVRow[]): ValidationError[] => {
+  const normalizeAndValidate = (data: CSVRow[]): ValidationError[] => {
     const errors: ValidationError[] = [];
     console.log('Starting validation for', data.length, 'rows');
 
@@ -100,7 +143,6 @@ const BulkImport = () => {
       // Check required fields
       requiredFields.forEach(field => {
         const value = row[field];
-        console.log(`Checking required field '${field}' in row ${rowNumber}:`, value);
         if (!value || value.trim() === '') {
           errors.push({
             row: rowNumber,
@@ -112,35 +154,28 @@ const BulkImport = () => {
       });
 
       // Validate category
-      if (row.category) {
-        console.log(`Validating category in row ${rowNumber}: '${row.category}'`);
-        if (!categories.includes(row.category)) {
-          errors.push({
-            row: rowNumber,
-            field: 'category',
-            message: `Category must be one of: ${categories.join(', ')}`,
-            actualValue: row.category
-          });
-        }
+      if (row.category && !categories.includes(row.category)) {
+        errors.push({
+          row: rowNumber,
+          field: 'category',
+          message: `Category must be one of: ${categories.join(', ')}`,
+          actualValue: row.category
+        });
       }
 
       // Validate unit
-      if (row.unit) {
-        console.log(`Validating unit in row ${rowNumber}: '${row.unit}'`);
-        if (!units.includes(row.unit)) {
-          errors.push({
-            row: rowNumber,
-            field: 'unit',
-            message: `Unit must be one of: ${units.join(', ')}`,
-            actualValue: row.unit
-          });
-        }
+      if (row.unit && !units.includes(row.unit)) {
+        errors.push({
+          row: rowNumber,
+          field: 'unit',
+          message: `Unit must be one of: ${units.join(', ')}`,
+          actualValue: row.unit
+        });
       }
 
       // Validate price
       if (row.price) {
         const price = parseFloat(row.price);
-        console.log(`Validating price in row ${rowNumber}: '${row.price}' -> ${price}`);
         if (isNaN(price) || price < 1) {
           errors.push({
             row: rowNumber,
@@ -155,7 +190,6 @@ const BulkImport = () => {
       if (row.mrp) {
         const mrp = parseFloat(row.mrp);
         const price = parseFloat(row.price);
-        console.log(`Validating MRP in row ${rowNumber}: '${row.mrp}' -> ${mrp}`);
         if (isNaN(mrp) || mrp < 0) {
           errors.push({
             row: rowNumber,
@@ -176,7 +210,6 @@ const BulkImport = () => {
       // Validate stock
       if (row.stock) {
         const stock = parseInt(row.stock);
-        console.log(`Validating stock in row ${rowNumber}: '${row.stock}' -> ${stock}`);
         if (isNaN(stock) || stock < 0) {
           errors.push({
             row: rowNumber,
@@ -187,51 +220,47 @@ const BulkImport = () => {
         }
       }
 
-      // Validate requires_prescription - accept both lowercase and uppercase
-      if (row.requires_prescription) {
-        console.log(`Validating requires_prescription in row ${rowNumber}: '${row.requires_prescription}'`);
-        const normalizedValue = row.requires_prescription.toLowerCase().trim();
-        if (!['true', 'false'].includes(normalizedValue)) {
-          errors.push({
-            row: rowNumber,
-            field: 'requires_prescription',
-            message: 'requires_prescription must be "true", "false", "TRUE", or "FALSE"',
-            actualValue: row.requires_prescription
-          });
+      // Validate boolean fields (requires_prescription, is_active)
+      ['requires_prescription', 'is_active'].forEach(field => {
+        if (row[field]) {
+          const normalizedValue = row[field].toLowerCase().trim();
+          if (!['true', 'false'].includes(normalizedValue)) {
+            errors.push({
+              row: rowNumber,
+              field,
+              message: 'Must be true or false (any casing)',
+              actualValue: row[field]
+            });
+          }
         }
-      }
-
-      // Validate is_active - accept both lowercase and uppercase
-      if (row.is_active) {
-        console.log(`Validating is_active in row ${rowNumber}: '${row.is_active}'`);
-        const normalizedValue = row.is_active.toLowerCase().trim();
-        if (!['true', 'false'].includes(normalizedValue)) {
-          errors.push({
-            row: rowNumber,
-            field: 'is_active',
-            message: 'is_active must be "true", "false", "TRUE", or "FALSE"',
-            actualValue: row.is_active
-          });
-        }
-      }
+      });
 
       // Validate expiration_date format if provided
       if (row.expiration_date && row.expiration_date.trim() !== '') {
-        console.log(`Validating expiration_date in row ${rowNumber}: '${row.expiration_date}'`);
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (!dateRegex.test(row.expiration_date)) {
           errors.push({
             row: rowNumber,
             field: 'expiration_date',
-            message: 'expiration_date must be in YYYY-MM-DD format',
+            message: 'Date must be in YYYY-MM-DD format',
             actualValue: row.expiration_date
           });
+        } else {
+          // Validate it's a real date
+          const date = new Date(row.expiration_date);
+          if (isNaN(date.getTime())) {
+            errors.push({
+              row: rowNumber,
+              field: 'expiration_date',
+              message: 'Invalid date',
+              actualValue: row.expiration_date
+            });
+          }
         }
       }
     });
 
     console.log('Validation completed. Total errors:', errors.length);
-    console.log('Validation errors:', errors);
     return errors;
   };
 
@@ -253,14 +282,14 @@ const BulkImport = () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
-      console.log('Raw CSV content:', text.substring(0, 500) + '...');
+      console.log('Raw CSV content (first 500 chars):', text.substring(0, 500));
       
       const { headers, data } = parseCSV(text);
       
       setCsvHeaders(headers);
       setCsvData(data);
       
-      const errors = validateCSVData(data);
+      const errors = normalizeAndValidate(data);
       setValidationErrors(errors);
       setImportResults(null);
     };
@@ -287,6 +316,34 @@ const BulkImport = () => {
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .trim() + '-' + Math.random().toString(36).substr(2, 6);
+  };
+
+  const processRowForImport = (row: CSVRow) => {
+    // Process tags array
+    const tagsArray = row.tags ? 
+      row.tags.split(',').map(tag => tag.trim()).filter(Boolean) : 
+      null;
+    
+    const stock = parseInt(row.stock) || 0;
+
+    return {
+      name: row.name,
+      slug: generateSlug(row.name),
+      description: row.description,
+      category: row.category,
+      brand: row.brand || null,
+      tags: tagsArray,
+      unit: row.unit,
+      price: parseFloat(row.price),
+      mrp: row.mrp ? parseFloat(row.mrp) : null,
+      weight_volume: row.weight_volume,
+      manufacturer: row.manufacturer,
+      requires_prescription: row.requires_prescription?.toLowerCase().trim() === 'true',
+      stock: stock,
+      expiration_date: row.expiration_date || null,
+      is_active: row.is_active?.toLowerCase().trim() === 'true',
+      image_urls: null
+    };
   };
 
   const handleImport = async () => {
@@ -320,27 +377,7 @@ const BulkImport = () => {
       for (let i = 0; i < csvData.length; i++) {
         try {
           const row = csvData[i];
-          const tagsArray = row.tags ? row.tags.split(',').map(tag => tag.trim()).filter(Boolean) : null;
-          const stock = parseInt(row.stock) || 0;
-
-          const productData = {
-            name: row.name,
-            slug: generateSlug(row.name),
-            description: row.description,
-            category: row.category,
-            brand: row.brand || null,
-            tags: tagsArray,
-            unit: row.unit,
-            price: parseFloat(row.price),
-            mrp: row.mrp ? parseFloat(row.mrp) : null,
-            weight_volume: row.weight_volume,
-            manufacturer: row.manufacturer,
-            requires_prescription: row.requires_prescription?.toLowerCase().trim() === 'true',
-            stock: stock,
-            expiration_date: row.expiration_date || null,
-            is_active: row.is_active?.toLowerCase().trim() !== 'false' && stock > 0,
-            image_urls: null
-          };
+          const productData = processRowForImport(row);
 
           console.log(`Importing row ${i + 1}:`, productData);
 
@@ -392,19 +429,12 @@ const BulkImport = () => {
     }
   };
 
-  const getRowError = (rowIndex: number) => {
-    return validationErrors.filter(error => error.row === rowIndex);
+  const getFieldError = (rowIndex: number, field: string) => {
+    return validationErrors.find(error => error.row === rowIndex && error.field === field);
   };
 
-  const getUniqueErrors = () => {
-    const uniqueErrors = new Map<string, ValidationError>();
-    validationErrors.forEach(error => {
-      const key = `${error.field}-${error.message}`;
-      if (!uniqueErrors.has(key)) {
-        uniqueErrors.set(key, error);
-      }
-    });
-    return Array.from(uniqueErrors.values());
+  const hasRowErrors = (rowIndex: number) => {
+    return validationErrors.some(error => error.row === rowIndex);
   };
 
   return (
@@ -478,89 +508,132 @@ const BulkImport = () => {
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="w-5 h-5 text-green-600" />
                   <span className="text-sm">
-                    {csvData.length - validationErrors.filter(e => requiredFields.includes(e.field)).length} valid rows
+                    {csvData.length - validationErrors.length} valid rows
                   </span>
                 </div>
                 {validationErrors.length > 0 && (
                   <div className="flex items-center space-x-2">
                     <XCircle className="w-5 h-5 text-red-600" />
                     <span className="text-sm text-red-600">
-                      {validationErrors.length} validation errors
+                      {validationErrors.length} validation errors found
                     </span>
                   </div>
                 )}
               </div>
 
-              {/* Detailed Error Messages */}
-              {validationErrors.length > 0 && (
-                <Card className="bg-red-50 border-red-200">
-                  <CardHeader>
-                    <CardTitle className="text-red-800 text-lg">Validation Errors</CardTitle>
-                    <p className="text-red-700 text-sm">Check the browser console for detailed debugging information.</p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {validationErrors.map((error, index) => (
-                        <div key={index} className="text-sm text-red-700 bg-white p-2 rounded border-l-4 border-red-500">
-                          <div className="font-semibold">Row {error.row} - {error.field}:</div>
-                          <div>{error.message}</div>
-                          {error.actualValue && (
-                            <div className="text-xs text-red-600 mt-1">
-                              Actual value: "{error.actualValue}"
+              {/* Preview Table */}
+              <div className="rounded-lg border max-h-96 overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Row</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Unit</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Stock</TableHead>
+                      <TableHead>Tags</TableHead>
+                      <TableHead>Active</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {csvData.slice(0, 10).map((row, index) => {
+                      const rowNumber = index + 1;
+                      const rowHasErrors = hasRowErrors(rowNumber);
+                      
+                      return (
+                        <TableRow key={index} className={rowHasErrors ? 'bg-red-50' : ''}>
+                          <TableCell className="font-medium">{rowNumber}</TableCell>
+                          <TableCell>
+                            <div className="max-w-32 truncate">
+                              {row.name}
+                              {getFieldError(rowNumber, 'name') && (
+                                <div className="text-xs text-red-600 mt-1">
+                                  {getFieldError(rowNumber, 'name')?.message}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
-
-          {/* Preview Table */}
-          {csvData.length > 0 && (
-            <div className="rounded-lg border max-h-96 overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Row</TableHead>
-                    {csvHeaders.slice(0, 6).map(header => (
-                      <TableHead key={header} className="capitalize">
-                        {header.replace('_', ' ')}
-                      </TableHead>
-                    ))}
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {csvData.slice(0, 10).map((row, index) => {
-                    const rowErrors = getRowError(index + 1);
-                    const hasErrors = rowErrors.length > 0;
-                    
-                    return (
-                      <TableRow key={index} className={hasErrors ? 'bg-red-50' : ''}>
-                        <TableCell>{index + 1}</TableCell>
-                        {csvHeaders.slice(0, 6).map(header => (
-                          <TableCell key={header} className="max-w-32 truncate">
-                            {row[header]}
                           </TableCell>
-                        ))}
-                        <TableCell>
-                          {hasErrors ? (
-                            <div className="text-red-600 text-xs">
-                              {rowErrors.slice(0, 2).map(error => error.message).join(', ')}
-                              {rowErrors.length > 2 && '...'}
+                          <TableCell>
+                            <div className="max-w-32 truncate">
+                              {row.category}
+                              {getFieldError(rowNumber, 'category') && (
+                                <div className="text-xs text-red-600 mt-1">
+                                  {getFieldError(rowNumber, 'category')?.message}
+                                </div>
+                              )}
                             </div>
-                          ) : (
-                            <CheckCircle className="w-4 h-4 text-green-600" />
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                          </TableCell>
+                          <TableCell>
+                            <div className="max-w-20 truncate">
+                              {row.unit}
+                              {getFieldError(rowNumber, 'unit') && (
+                                <div className="text-xs text-red-600 mt-1">
+                                  {getFieldError(rowNumber, 'unit')?.message}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="max-w-20 truncate">
+                              {row.price}
+                              {getFieldError(rowNumber, 'price') && (
+                                <div className="text-xs text-red-600 mt-1">
+                                  {getFieldError(rowNumber, 'price')?.message}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="max-w-20 truncate">
+                              {row.stock}
+                              {getFieldError(rowNumber, 'stock') && (
+                                <div className="text-xs text-red-600 mt-1">
+                                  {getFieldError(rowNumber, 'stock')?.message}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="max-w-32 truncate">
+                              {row.tags}
+                              {getFieldError(rowNumber, 'tags') && (
+                                <div className="text-xs text-red-600 mt-1">
+                                  {getFieldError(rowNumber, 'tags')?.message}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="max-w-20 truncate">
+                              {row.is_active}
+                              {getFieldError(rowNumber, 'is_active') && (
+                                <div className="text-xs text-red-600 mt-1">
+                                  {getFieldError(rowNumber, 'is_active')?.message}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {rowHasErrors ? (
+                              <XCircle className="w-4 h-4 text-red-600" />
+                            ) : (
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {csvData.length > 10 && (
+                <p className="text-sm text-gray-600">
+                  Showing first 10 rows. Total rows: {csvData.length}
+                </p>
+              )}
             </div>
           )}
 
