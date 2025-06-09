@@ -80,6 +80,14 @@ const App: React.FC = () => (
                     </ProtectedRoute>
                   } 
                 />
+                <Route 
+                  path="/order-confirmation/:orderId" 
+                  element={
+                    <ProtectedRoute>
+                      <OrderConfirmation />
+                    </ProtectedRoute>
+                  } 
+                />
                 
                 {/* Staff Routes */}
                 <Route path="/staff/login" element={<StaffLogin />} />

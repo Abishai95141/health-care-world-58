@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/hooks/useCart';
+import { useOrder } from '@/hooks/useOrder';
 import { useNavigate } from 'react-router-dom';
 
 interface Product {
@@ -31,6 +32,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
   const [activeTab, setActiveTab] = useState('details');
   const { user } = useAuth();
   const { addToCart } = useCart();
+  const { createSingleItemOrder, loading: orderLoading } = useOrder();
   const navigate = useNavigate();
 
   if (!isOpen) return null;
@@ -66,7 +68,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
     if (!user) {
       navigate('/auth', { 
         state: { 
-          from: '/checkout',
+          from: '/order-confirmation',
           action: 'buyNow',
           productId: product.id,
           quantity
@@ -75,9 +77,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
       return;
     }
 
-    const success = await addToCart(product.id, quantity);
-    if (success) {
-      navigate('/checkout');
+    if (product.stock >= quantity) {
+      await createSingleItemOrder(product, quantity);
+      // The createSingleItemOrder function will handle navigation to order confirmation
+      onClose(); // Close the modal
     }
   };
 
@@ -221,11 +224,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
                 </Button>
                 <Button
                   onClick={handleBuyNow}
-                  disabled={isOutOfStock}
+                  disabled={isOutOfStock || orderLoading}
                   variant="outline"
                   className="w-full"
                 >
-                  Buy Now
+                  {orderLoading ? 'Processing...' : 'Buy Now'}
                 </Button>
               </div>
             </div>

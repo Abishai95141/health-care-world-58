@@ -4,6 +4,7 @@ import { ChevronLeft, Minus, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOrder } from '@/hooks/useOrder';
 import { useNavigate } from 'react-router-dom';
 import Layout from './Layout';
 
@@ -18,6 +19,7 @@ const CartPage = () => {
     clearCart, 
     cartTotal 
   } = useCart();
+  const { createOrder, loading: orderLoading } = useOrder();
 
   const handleContinueShopping = () => {
     navigate('/shop');
@@ -29,8 +31,15 @@ const CartPage = () => {
     }
   };
 
-  const handleProceedToCheckout = () => {
-    navigate('/checkout');
+  const handlePlaceOrder = async () => {
+    console.log('Placing order with cart items:', cartItems);
+    const shipping = 50;
+    const success = await createOrder(cartItems, shipping);
+    
+    if (success) {
+      // The createOrder function will redirect to order confirmation
+      // No need to manually navigate here
+    }
   };
 
   const shipping = 50;
@@ -207,10 +216,11 @@ const CartPage = () => {
               </div>
 
               <Button 
-                onClick={handleProceedToCheckout}
+                onClick={handlePlaceOrder}
+                disabled={orderLoading}
                 className="w-full bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 mb-6"
               >
-                Proceed to Checkout
+                {orderLoading ? 'Placing Order...' : 'Place Order'}
               </Button>
 
               {/* Trust Badges */}

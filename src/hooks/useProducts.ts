@@ -55,6 +55,36 @@ export const useProducts = (params: UseProductsParams = {}) => {
     fetchProducts();
   }, [limit, sortBy, sortOrder, searchQuery, category, page, pageSize]);
 
+  // Subscribe to real-time updates for stock changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('products-stock-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'products'
+        },
+        (payload) => {
+          console.log('Product updated:', payload);
+          // Update the specific product in our local state
+          setProducts(prevProducts => 
+            prevProducts.map(product => 
+              product.id === payload.new.id 
+                ? { ...product, stock: payload.new.stock, updated_at: payload.new.updated_at }
+                : product
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const fetchProducts = async () => {
     try {
       setLoading(true);

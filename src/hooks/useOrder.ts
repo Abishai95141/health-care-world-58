@@ -16,9 +16,16 @@ interface CartItem {
   };
 }
 
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  stock: number;
+}
+
 export const useOrder = () => {
   const { user } = useAuth();
-  const { showToast } = useApp();
+  const { showToast, navigateTo } = useApp();
   const [loading, setLoading] = useState(false);
 
   const createOrder = async (cartItems: CartItem[], shippingCost: number, addressId?: string) => {
@@ -111,6 +118,10 @@ export const useOrder = () => {
       }
 
       showToast('Order placed successfully!', 'success');
+      
+      // Navigate to order confirmation page
+      navigateTo(`/order-confirmation/${orderData.id}`);
+      
       return true;
     } catch (error) {
       console.error('Error creating order:', error);
@@ -121,8 +132,92 @@ export const useOrder = () => {
     }
   };
 
+  const createSingleItemOrder = async (product: Product, quantity: number, shippingCost: number = 50, addressId?: string) => {
+    if (!user) {
+      showToast('Please sign in to place an order', 'error');
+      return false;
+    }
+
+    if (product.stock < quantity) {
+      showToast('Insufficient stock available', 'error');
+      return false;
+    }
+
+    setLoading(true);
+    try {
+      console.log('Creating single item order for product:', product.id);
+      
+      const totalAmount = (product.price * quantity) + shippingCost;
+
+      // Create the order
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user.id,
+          total_amount: totalAmount,
+          shipping_amount: shippingCost,
+          address_id: addressId,
+          status: 'confirmed',
+          payment_status: 'paid'
+        })
+        .select()
+        .single();
+
+      if (orderError) {
+        console.error('Error creating order:', orderError);
+        throw orderError;
+      }
+
+      console.log('Single item order created:', orderData);
+
+      // Create order item
+      const { error: itemError } = await supabase
+        .from('order_items')
+        .insert({
+          order_id: orderData.id,
+          product_id: product.id,
+          quantity: quantity,
+          unit_price: product.price,
+          total_price: product.price * quantity
+        });
+
+      if (itemError) {
+        console.error('Error creating order item:', itemError);
+        throw itemError;
+      }
+
+      // Update product stock
+      const newStock = product.stock - quantity;
+      const { error: stockError } = await supabase
+        .from('products')
+        .update({ stock: Math.max(0, newStock) })
+        .eq('id', product.id);
+
+      if (stockError) {
+        console.error('Error updating stock:', stockError);
+        throw stockError;
+      }
+
+      console.log(`Updated stock for product ${product.id}: ${product.stock} -> ${newStock}`);
+
+      showToast('Order placed successfully!', 'success');
+      
+      // Navigate to order confirmation page
+      navigateTo(`/order-confirmation/${orderData.id}`);
+      
+      return true;
+    } catch (error) {
+      console.error('Error creating single item order:', error);
+      showToast('Failed to place order. Please try again.', 'error');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     createOrder,
+    createSingleItemOrder,
     loading
   };
 };
