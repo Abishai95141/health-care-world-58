@@ -1,13 +1,18 @@
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useApp } from '@/contexts/AppContext';
+import { useCart } from '@/hooks/useCart';
+import { useOrder } from '@/hooks/useOrder';
 import { useState } from 'react';
 
 const CheckoutPage = () => {
-  const { cart, navigateTo, showToast } = useApp();
+  const { navigateTo, showToast } = useApp();
+  const { cartItems } = useCart();
+  const { createOrder, loading: orderLoading } = useOrder();
   
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const [selectedShippingMethod, setSelectedShippingMethod] = useState('');
@@ -40,7 +45,12 @@ const CheckoutPage = () => {
     { id: 'same-day', name: 'Same-Day Delivery', price: 200, time: 'Today' }
   ];
 
-  const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+  // Calculate totals from actual cart data
+  const subtotal = cartItems.reduce((sum, item) => {
+    const price = item.product?.price || 0;
+    return sum + (price * item.quantity);
+  }, 0);
+  
   const shippingCost = selectedShippingMethod ? 
     shippingMethods.find(m => m.id === selectedShippingMethod)?.price || 50 : 50;
   const total = subtotal + shippingCost;
@@ -55,7 +65,7 @@ const CheckoutPage = () => {
     setShippingError('');
   };
 
-  const handleContinueToPayment = () => {
+  const handleContinueToPayment = async () => {
     let hasError = false;
 
     if (!selectedAddressId) {
@@ -69,7 +79,11 @@ const CheckoutPage = () => {
     }
 
     if (!hasError) {
-      navigateTo('/checkout/payment');
+      // Create the order
+      const success = await createOrder(cartItems, shippingCost, selectedAddressId);
+      if (success) {
+        navigateTo('/order-confirmation');
+      }
     }
   };
 
@@ -241,16 +255,29 @@ const CheckoutPage = () => {
               
               {/* Cart Items */}
               <div className="space-y-4 mb-6">
-                {cart.map((item) => (
+                {cartItems.map((item) => (
                   <div key={item.id} className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                      <span className="text-xs text-gray-500">IMG</span>
+                    <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center overflow-hidden">
+                      {item.product?.image_urls && item.product.image_urls.length > 0 ? (
+                        <img 
+                          src={item.product.image_urls[0]} 
+                          alt={item.product.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <span className="text-xs text-gray-500 hidden">IMG</span>
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{item.name}</p>
+                      <p className="text-sm font-medium text-gray-900">{item.product?.name || 'Unknown Product'}</p>
                       <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
                     </div>
-                    <span className="text-sm font-semibold text-gray-900">₹{item.unitPrice * item.quantity}</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      ₹{item.product ? item.product.price * item.quantity : 0}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -274,13 +301,14 @@ const CheckoutPage = () => {
 
               <Button 
                 onClick={handleContinueToPayment}
+                disabled={orderLoading || !selectedAddressId || !selectedShippingMethod}
                 className={`w-full ${
-                  selectedAddressId && selectedShippingMethod
+                  selectedAddressId && selectedShippingMethod && !orderLoading
                     ? 'bg-blue-600 hover:bg-blue-700 text-white'
                     : 'bg-gray-400 text-gray-300 cursor-not-allowed'
                 }`}
               >
-                Continue to Payment
+                {orderLoading ? 'Processing Order...' : 'Place Order'}
               </Button>
 
               {(addressError || shippingError) && (

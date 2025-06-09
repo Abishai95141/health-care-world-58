@@ -19,6 +19,7 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import CartPage from "./components/CartPage";
 import CheckoutPage from "./components/CheckoutPage";
+import OrderConfirmation from "./pages/OrderConfirmation";
 import StaffLogin from "./pages/staff/StaffLogin";
 import StaffDashboard from "./pages/staff/StaffDashboard";
 import AddProduct from "./pages/staff/AddProduct";
@@ -68,6 +69,14 @@ const App: React.FC = () => (
                   element={
                     <ProtectedRoute>
                       <CheckoutPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/order-confirmation" 
+                  element={
+                    <ProtectedRoute>
+                      <OrderConfirmation />
                     </ProtectedRoute>
                   } 
                 />
