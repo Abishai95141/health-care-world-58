@@ -1,16 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Package, AlertTriangle, TrendingUp, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-
 interface DashboardStats {
   totalProducts: number;
   outOfStockItems: number;
   lowStockItems: number;
   recentImports: number;
 }
-
 const StaffDashboard = () => {
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,
@@ -19,40 +16,44 @@ const StaffDashboard = () => {
     recentImports: 0
   });
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     fetchDashboardStats();
   }, []);
-
   const fetchDashboardStats = async () => {
     try {
       // Fetch total products
-      const { count: totalProducts } = await supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true });
+      const {
+        count: totalProducts
+      } = await supabase.from('products').select('*', {
+        count: 'exact',
+        head: true
+      });
 
       // Fetch out of stock items
-      const { count: outOfStockItems } = await supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true })
-        .eq('stock', 0);
+      const {
+        count: outOfStockItems
+      } = await supabase.from('products').select('*', {
+        count: 'exact',
+        head: true
+      }).eq('stock', 0);
 
       // Fetch low stock items (stock <= 10 but > 0)
-      const { count: lowStockItems } = await supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true })
-        .gt('stock', 0)
-        .lte('stock', 10);
+      const {
+        count: lowStockItems
+      } = await supabase.from('products').select('*', {
+        count: 'exact',
+        head: true
+      }).gt('stock', 0).lte('stock', 10);
 
       // Fetch recent imports (last 7 days)
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      
-      const { count: recentImports } = await supabase
-        .from('product_import_logs')
-        .select('*', { count: 'exact', head: true })
-        .gte('imported_at', sevenDaysAgo.toISOString());
-
+      const {
+        count: recentImports
+      } = await supabase.from('product_import_logs').select('*', {
+        count: 'exact',
+        head: true
+      }).gte('imported_at', sevenDaysAgo.toISOString());
       setStats({
         totalProducts: totalProducts || 0,
         outOfStockItems: outOfStockItems || 0,
@@ -65,69 +66,56 @@ const StaffDashboard = () => {
       setLoading(false);
     }
   };
-
-  const statCards = [
-    {
-      title: 'Total Products',
-      value: stats.totalProducts,
-      icon: Package,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
-    },
-    {
-      title: 'Out of Stock Items',
-      value: stats.outOfStockItems,
-      icon: AlertTriangle,
-      color: 'text-red-600',
-      bgColor: 'bg-red-50'
-    },
-    {
-      title: 'Low Stock Items',
-      value: stats.lowStockItems,
-      icon: TrendingUp,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50'
-    },
-    {
-      title: 'Recent Imports',
-      value: stats.recentImports,
-      icon: Clock,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50'
-    }
-  ];
-
+  const statCards = [{
+    title: 'Total Products',
+    value: stats.totalProducts,
+    icon: Package,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50'
+  }, {
+    title: 'Out of Stock Items',
+    value: stats.outOfStockItems,
+    icon: AlertTriangle,
+    color: 'text-red-600',
+    bgColor: 'bg-red-50'
+  }, {
+    title: 'Low Stock Items',
+    value: stats.lowStockItems,
+    icon: TrendingUp,
+    color: 'text-yellow-600',
+    bgColor: 'bg-yellow-50'
+  }, {
+    title: 'Recent Imports',
+    value: stats.recentImports,
+    icon: Clock,
+    color: 'text-green-600',
+    bgColor: 'bg-green-50'
+  }];
   if (loading) {
-    return (
-      <div className="space-y-6">
+    return <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-[#0B1F45]">Dashboard</h1>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="animate-pulse">
+          {[1, 2, 3, 4].map(i => <Card key={i} className="animate-pulse">
               <CardContent className="p-6">
                 <div className="h-20 bg-gray-200 rounded"></div>
               </CardContent>
-            </Card>
-          ))}
+            </Card>)}
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-[#0B1F45]">Dashboard</h1>
-        <p className="text-sm text-gray-600">Welcome to the Capsule Care Staff Portal</p>
+        <p className="text-sm text-gray-600">
+      </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Card key={card.title} className="rounded-xl shadow-sm">
+        {statCards.map(card => {
+        const Icon = card.icon;
+        return <Card key={card.title} className="rounded-xl shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -139,9 +127,8 @@ const StaffDashboard = () => {
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          );
-        })}
+            </Card>;
+      })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -185,8 +172,6 @@ const StaffDashboard = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default StaffDashboard;
