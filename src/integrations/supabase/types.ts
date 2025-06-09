@@ -361,6 +361,22 @@ export type Database = {
         Args: { name: string }
         Returns: string
       }
+      get_user_role: {
+        Args: { user_email: string }
+        Returns: string
+      }
+      place_order: {
+        Args: {
+          cart_user_id: string
+          shipping_cost?: number
+          order_address_id?: string
+        }
+        Returns: {
+          order_id: string
+          success: boolean
+          error_message: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
