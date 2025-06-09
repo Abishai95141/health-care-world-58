@@ -37,6 +37,7 @@ const OrderConfirmation = () => {
 
   useEffect(() => {
     if (!user || !orderId) {
+      console.log('Missing user or orderId:', { user: !!user, orderId });
       setError('Invalid order access');
       setLoading(false);
       return;
@@ -47,7 +48,10 @@ const OrderConfirmation = () => {
 
   const fetchOrder = async () => {
     try {
-      console.log('Fetching order:', orderId);
+      console.log('Fetching order:', orderId, 'for user:', user!.id);
+      
+      // Add a small delay to ensure the order is fully created
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
@@ -74,7 +78,21 @@ const OrderConfirmation = () => {
 
       if (orderError) {
         console.error('Error fetching order:', orderError);
-        setError('Order not found');
+        
+        // If not found, try without user_id filter to see if order exists at all
+        const { data: anyOrder, error: anyOrderError } = await supabase
+          .from('orders')
+          .select('id, user_id')
+          .eq('id', orderId)
+          .single();
+          
+        if (anyOrderError) {
+          console.error('Order does not exist:', anyOrderError);
+          setError('Order not found');
+        } else {
+          console.error('Order exists but belongs to different user:', anyOrder);
+          setError('You do not have permission to view this order');
+        }
         return;
       }
 
@@ -121,7 +139,7 @@ const OrderConfirmation = () => {
             <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Order Not Found</h1>
             <p className="text-gray-600 mb-6">
-              We couldn't find the order you're looking for or you don't have permission to view it.
+              {error || "We couldn't find the order you're looking for or you don't have permission to view it."}
             </p>
             <Button 
               onClick={() => navigate('/shop')}
