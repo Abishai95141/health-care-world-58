@@ -1,15 +1,14 @@
+
 import { useState, useEffect } from 'react';
-import { Search, ShoppingCart, ChevronDown, ChevronLeft, ChevronRight, Star, X, Plus, Minus, Clock, Shield, Truck, MessageCircle, CreditCard, RotateCcw, User } from 'lucide-react';
+import { Search, ShoppingCart, ChevronDown, ChevronLeft, ChevronRight, Star, X, Plus, Minus, Clock, Shield, Truck, MessageCircle, CreditCard, RotateCcw, User, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/hooks/useCart';
 import { useNavigate } from 'react-router-dom';
 import FeaturedProducts from '@/components/FeaturedProducts';
+import MobileDrawer from '@/components/MobileDrawer';
 
 const Index = () => {
   const {
@@ -27,6 +26,7 @@ const Index = () => {
 
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isSlideTransitioning, setIsSlideTransitioning] = useState(false);
 
@@ -52,7 +52,6 @@ const Index = () => {
     }
   };
 
-  // Cart functionality - use the cart hook instead of app context
   const cartItemCount = totalItems;
 
   const handleCartClick = () => {
@@ -128,14 +127,24 @@ const Index = () => {
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-green-600">Capsule Care</h1>
+            {/* Mobile Menu Button & Logo */}
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setIsMobileDrawerOpen(true)}
+                className="md:hidden p-2 text-gray-600 hover:text-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 rounded-lg transition-colors"
+                aria-label="Open menu"
+              >
+                <Menu className="h-6 w-6" />
+              </button>
+              
+              <div className="flex-shrink-0">
+                <h1 className="text-2xl font-bold text-green-600">Capsule Care</h1>
+              </div>
             </div>
             
-            {/* Search Bar */}
-            <div className="flex-1 max-w-lg mx-8">
-              <form onSubmit={handleSearch} className="relative">
+            {/* Search Bar - Hidden on small screens */}
+            <div className="hidden sm:flex flex-1 max-w-lg mx-8">
+              <form onSubmit={handleSearch} className="relative w-full">
                 <Input 
                   name="search"
                   placeholder="Search for medicines, brands…" 
@@ -145,8 +154,8 @@ const Index = () => {
               </form>
             </div>
             
-            {/* Cart, Profile and Account */}
-            <div className="flex items-center space-x-4">
+            {/* Right side actions */}
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <button 
                 onClick={handleCartClick}
                 aria-label="View cart"
@@ -166,7 +175,8 @@ const Index = () => {
                 <User className="h-6 w-6" />
               </button>
               
-              <div className="flex space-x-4 text-sm">
+              {/* Desktop Auth/Help - Hidden on mobile */}
+              <div className="hidden md:flex space-x-4 text-sm">
                 {user ? (
                   <span className="text-gray-600">
                     Welcome, {user.email?.split('@')[0]}
@@ -190,8 +200,20 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Navigation Bar */}
-        <nav className="bg-gray-50 border-t border-gray-200">
+        {/* Mobile Search Bar */}
+        <div className="sm:hidden border-t border-gray-200 p-4">
+          <form onSubmit={handleSearch} className="relative">
+            <Input 
+              name="search"
+              placeholder="Search for medicines, brands…" 
+              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+          </form>
+        </div>
+        
+        {/* Desktop Navigation Bar */}
+        <nav className="hidden md:block bg-gray-50 border-t border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center space-x-8 h-12">
               <button 
@@ -248,30 +270,47 @@ const Index = () => {
         </nav>
       </header>
 
+      {/* Mobile Drawer */}
+      <MobileDrawer 
+        isOpen={isMobileDrawerOpen}
+        onClose={() => setIsMobileDrawerOpen(false)}
+        user={user}
+        cartItemCount={cartItemCount}
+        categories={categories}
+        onNavigate={(path) => {
+          navigate(path);
+          setIsMobileDrawerOpen(false);
+        }}
+        onHelp={() => {
+          setIsHelpModalOpen(true);
+          setIsMobileDrawerOpen(false);
+        }}
+      />
+
       {/* Main Content */}
-      <main>
-        {/* Hero Carousel with fade animation */}
-        <section className="relative bg-gradient-to-r from-green-50 to-blue-50 overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <main className="px-4 sm:px-6 lg:px-8">
+        {/* Hero Carousel with better mobile spacing */}
+        <section className="relative bg-gradient-to-r from-green-50 to-blue-50 overflow-hidden mx-auto max-w-7xl rounded-lg mt-6 mb-8">
+          <div className="py-12 sm:py-20 px-6 sm:px-12">
             <div className={`text-center transition-opacity duration-300 ${isSlideTransitioning ? 'opacity-0' : 'opacity-100'}`}>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+              <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">
                 {currentSlide === 0 && 'Stay Healthy with Capsule Care'}
                 {currentSlide === 1 && 'Wellness Essentials Sale – Up to 25% Off'}
                 {currentSlide === 2 && 'Free Same-Day Delivery on Orders Over ₹1,000'}
               </h2>
-              <div className="h-64 bg-gray-200 rounded-lg mb-8 flex items-center justify-center">
+              <div className="h-48 sm:h-64 bg-gray-200 rounded-lg mb-6 sm:mb-8 flex items-center justify-center">
                 <span className="text-gray-500">Hero Image {currentSlide + 1}</span>
               </div>
-              <Button 
-                onClick={() => {
-                  navigate('/shop');
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg focus:ring-2 focus:ring-green-500 transition-colors"
-              >
-                {currentSlide === 0 && 'Shop Now'}
-                {currentSlide === 1 && 'Shop Sale Items'}
-                {currentSlide === 2 && 'Learn More'}
-              </Button>
+              <div className="flex justify-center">
+                <Button 
+                  onClick={() => navigate('/shop')}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg focus:ring-2 focus:ring-green-500 transition-colors"
+                >
+                  {currentSlide === 0 && 'Shop Now'}
+                  {currentSlide === 1 && 'Shop Sale Items'}
+                  {currentSlide === 2 && 'Learn More'}
+                </Button>
+              </div>
             </div>
           </div>
           
@@ -321,17 +360,15 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Category Navigation */}
-        <section className="bg-white py-6">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-center space-x-4">
+        {/* Category Navigation - Horizontal scroll on mobile */}
+        <section className="bg-white py-6 mb-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex md:justify-center space-x-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2">
               {categories.map((category) => (
                 <button
                   key={category}
-                  onClick={() => {
-                    navigate('/shop');
-                  }}
-                  className="px-6 py-2 border rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 border-gray-300 text-gray-700 hover:bg-green-50 hover:border-green-300"
+                  onClick={() => navigate('/shop')}
+                  className="flex-shrink-0 px-4 sm:px-6 py-2 border rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 border-gray-300 text-gray-700 hover:bg-green-50 hover:border-green-300 snap-center"
                 >
                   {category}
                 </button>
@@ -341,25 +378,27 @@ const Index = () => {
         </section>
 
         {/* Featured Products Section */}
-        <FeaturedProducts />
+        <div className="mb-8">
+          <FeaturedProducts />
+        </div>
 
-        {/* Feature Highlights with proper icons */}
-        <section className="bg-gray-50 py-16">
+        {/* Feature Highlights with better mobile grid */}
+        <section className="bg-gray-50 py-12 sm:py-16 -mx-4 sm:-mx-6 lg:-mx-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
               {features.map((feature, index) => {
                 const IconComponent = feature.icon;
                 return (
                   <button
                     key={index}
                     onClick={() => handleFeatureClick(feature.message)}
-                    className="bg-white p-6 rounded-lg text-center hover:shadow-lg hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                    className="bg-white p-4 sm:p-6 rounded-lg text-center hover:shadow-lg hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
                   >
-                    <div className="w-12 h-12 bg-green-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                      <IconComponent className="w-6 h-6 text-green-600" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg mx-auto mb-3 sm:mb-4 flex items-center justify-center">
+                      <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                    <p className="text-sm text-gray-600">{feature.subtitle}</p>
+                    <h3 className="font-semibold text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">{feature.title}</h3>
+                    <p className="text-xs sm:text-sm text-gray-600">{feature.subtitle}</p>
                   </button>
                 );
               })}
@@ -368,12 +407,12 @@ const Index = () => {
         </section>
 
         {/* Top Deals Banner */}
-        <section className="bg-orange-500 text-white py-4">
+        <section className="bg-orange-500 text-white py-4 -mx-4 sm:-mx-6 lg:-mx-8 mb-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0">
               <div className="flex items-center">
                 <span className="text-2xl mr-3">💊</span>
-                <span className="text-lg font-semibold">Summer Fever Essentials – Up to 20% Off!</span>
+                <span className="text-lg font-semibold text-center sm:text-left">Summer Fever Essentials – Up to 20% Off!</span>
               </div>
               <Button 
                 onClick={() => navigate('/shop')}
@@ -387,9 +426,9 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
+      <footer className="bg-gray-900 text-white py-12 sm:py-16 -mx-4 sm:-mx-6 lg:-mx-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Customer Service */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Customer Service</h3>
@@ -438,7 +477,7 @@ const Index = () => {
                   </button>
                 ))}
               </div>
-              <div className="flex space-x-4">
+              <div className="flex flex-wrap gap-2">
                 {['GMP Certified', 'ISO 9001', 'Verified Pharmacy'].map((seal) => (
                   <div key={seal} className="text-xs text-gray-400 border border-gray-600 px-2 py-1 rounded">
                     {seal}
@@ -450,12 +489,12 @@ const Index = () => {
             {/* Newsletter */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Newsletter</h3>
-              <div className="flex mb-4">
+              <div className="flex flex-col sm:flex-row gap-2 mb-4">
                 <Input 
                   placeholder="Enter your email" 
-                  className="flex-1 mr-2 bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500"
+                  className="flex-1 bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500"
                 />
-                <Button disabled className="bg-gray-600 text-gray-400 cursor-not-allowed">Subscribe</Button>
+                <Button disabled className="bg-gray-600 text-gray-400 cursor-not-allowed whitespace-nowrap">Subscribe</Button>
               </div>
               <div className="hidden text-green-400 text-sm">Thank you for subscribing!</div>
             </div>

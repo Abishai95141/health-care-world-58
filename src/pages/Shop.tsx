@@ -5,22 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useProducts } from '@/hooks/useProducts';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import ProductCard from '@/components/ProductCard';
 import ProductModal from '@/components/ProductModal';
 import Layout from '@/components/Layout';
 
 const Shop = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  
   const [searchQuery, setSearchQuery] = useState('');
   const [currentCategory, setCurrentCategory] = useState('All');
   const [sortBy, setSortBy] = useState('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(24);
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
   const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
   const [selectedProduct, setSelectedProductLocal] = useState<any>(null);
@@ -105,8 +100,8 @@ const Shop = () => {
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">Shop All Products</h1>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">Shop All Products</h1>
             
             {/* Action Bar */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
@@ -131,7 +126,8 @@ const Shop = () => {
                     onClick={() => setIsCategoriesDropdownOpen(!isCategoriesDropdownOpen)}
                     className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
-                    <span>Category: {currentCategory}</span>
+                    <span className="hidden sm:inline">Category: </span>
+                    <span>{currentCategory}</span>
                     <ChevronDown className="h-4 w-4" />
                   </button>
                   {isCategoriesDropdownOpen && (
@@ -178,10 +174,10 @@ const Shop = () => {
         </div>
 
         {/* Products Grid */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {Array.from({ length: 8 }).map((_, index) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+              {Array.from({ length: 12 }).map((_, index) => (
                 <Card key={index} className="animate-pulse">
                   <CardContent className="p-4">
                     <div className="aspect-square bg-gray-200 rounded mb-4"></div>
@@ -193,7 +189,7 @@ const Shop = () => {
             </div>
           ) : products.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 mb-8">
                 {products.map((product) => (
                   <ProductCard
                     key={product.id}
@@ -205,7 +201,7 @@ const Shop = () => {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-700">
                       Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} products
@@ -220,7 +216,7 @@ const Shop = () => {
                       disabled={currentPage === 1}
                     >
                       <ChevronLeft className="h-4 w-4" />
-                      Previous
+                      <span className="hidden sm:inline ml-1">Previous</span>
                     </Button>
                     
                     <div className="flex space-x-1">
@@ -243,7 +239,7 @@ const Shop = () => {
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
                     >
-                      Next
+                      <span className="hidden sm:inline mr-1">Next</span>
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
@@ -255,9 +251,9 @@ const Shop = () => {
                       onChange={(e) => handlePageSizeChange(parseInt(e.target.value))}
                       className="border border-gray-300 rounded px-2 py-1 text-sm"
                     >
-                      <option value={10}>10</option>
-                      <option value={20}>20</option>
-                      <option value={50}>50</option>
+                      <option value={12}>12</option>
+                      <option value={24}>24</option>
+                      <option value={48}>48</option>
                     </select>
                   </div>
                 </div>

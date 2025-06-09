@@ -1,11 +1,7 @@
 
 import React from 'react';
-import { Star, ShoppingCart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useCart } from '@/hooks/useCart';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 
 interface Product {
   id: string;
@@ -24,51 +20,50 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) => {
-  const { addToCart } = useCart();
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  
   const hasDiscount = product.mrp && product.mrp > product.price;
   const discountPercent = hasDiscount ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
   const isOutOfStock = product.stock === 0;
   const isLowStock = product.stock > 0 && product.stock <= 10;
 
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    if (!user) {
-      navigate('/auth', { 
-        state: { 
-          from: window.location.pathname,
-          action: 'addToCart',
-          productId: product.id
-        }
-      });
-      return;
+  // Get the first valid image URL
+  const getImageUrl = () => {
+    if (product.image_urls && product.image_urls.length > 0) {
+      // Filter out empty strings and null values
+      const validUrls = product.image_urls.filter(url => url && url.trim() !== '');
+      if (validUrls.length > 0) {
+        return validUrls[0];
+      }
     }
-
-    if (product.stock > 0) {
-      await addToCart(product.id, 1);
-    }
+    return null;
   };
 
+  const imageUrl = getImageUrl();
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200 overflow-hidden">
-      <div 
-        className="relative cursor-pointer"
-        onClick={() => onProductClick(product)}
-      >
+    <div 
+      className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer"
+      onClick={() => onProductClick(product)}
+    >
+      <div className="relative">
         {/* Product Image */}
         <div className="aspect-square bg-gray-100 flex items-center justify-center relative">
-          {product.image_urls && product.image_urls.length > 0 ? (
+          {imageUrl ? (
             <img
-              src={product.image_urls[0]}
+              src={imageUrl}
               alt={product.name}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                // Hide broken images and show fallback
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+              }}
             />
-          ) : (
+          ) : null}
+          
+          {/* Fallback when no image or broken image */}
+          <div className={`absolute inset-0 flex items-center justify-center ${imageUrl ? 'hidden' : ''}`}>
             <span className="text-gray-400 text-sm">No Image</span>
-          )}
+          </div>
           
           {/* Out of Stock Overlay */}
           {isOutOfStock && (
@@ -92,7 +87,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
           )}
           
           {/* Low Stock Badge */}
-          {isLowStock && (
+          {isLowStock && !isOutOfStock && (
             <Badge className="absolute bottom-2 right-2 bg-orange-500 text-white text-xs">
               Only {product.stock} left
             </Badge>
@@ -128,25 +123,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
             <span className="text-xs text-gray-600 ml-1">(24)</span>
           </div>
           
-          {/* Add to Cart Button */}
-          <Button
-            onClick={handleAddToCart}
-            disabled={isOutOfStock}
-            className={`w-full text-sm ${
-              isOutOfStock 
-                ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-green-600 hover:bg-green-700'
-            }`}
-          >
+          {/* Stock status indicator */}
+          <div className="text-xs text-gray-600">
             {isOutOfStock ? (
-              'Out of Stock'
+              <span className="text-red-600 font-medium">Out of Stock</span>
+            ) : isLowStock ? (
+              <span className="text-orange-600 font-medium">Low Stock</span>
             ) : (
-              <>
-                <ShoppingCart className="w-4 h-4 mr-2" />
-                Add to Cart
-              </>
+              <span className="text-green-600 font-medium">In Stock</span>
             )}
-          </Button>
+          </div>
         </div>
       </div>
     </div>
