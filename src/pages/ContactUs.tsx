@@ -1,12 +1,15 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useApp } from '@/contexts/AppContext';
+import EnhancedNavigation from '@/components/EnhancedNavigation';
+import StickyOfferBanner from '@/components/StickyOfferBanner';
+import { useNavigate } from 'react-router-dom';
 
 const ContactUs = () => {
+  const navigate = useNavigate();
   const { showToast } = useApp();
   const [formData, setFormData] = useState({
     fullName: '',
@@ -90,8 +93,11 @@ const ContactUs = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <EnhancedNavigation />
+      <StickyOfferBanner onShopNow={() => navigate('/shop')} />
+      
       {/* Hero Section */}
-      <section className="bg-gray-100 py-16">
+      <section className="bg-gray-100 py-16 mt-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Get in Touch</h1>
           <p className="text-xl text-gray-600">We're Here to Help You 24/7</p>
