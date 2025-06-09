@@ -1,42 +1,76 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { ChevronLeft, Minus, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useApp } from '@/contexts/AppContext';
+import { useCart } from '@/hooks/useCart';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import Layout from './Layout';
 
 const CartPage = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { 
-    cart, 
+    cartItems, 
+    loading, 
     removeFromCart, 
-    updateCartQuantity, 
+    updateQuantity, 
     clearCart, 
-    navigateTo, 
-    isLoggedIn 
-  } = useApp();
-
-  const [showEmptyState, setShowEmptyState] = useState(false);
-
-  const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
-  const shipping = 50;
-  const total = subtotal + shipping;
+    cartTotal 
+  } = useCart();
 
   const handleContinueShopping = () => {
-    navigateTo('/shop');
+    navigate('/shop');
   };
 
   const handleEmptyCart = () => {
     if (window.confirm("Are you sure you want to remove all items?")) {
       clearCart();
-      setShowEmptyState(true);
     }
   };
 
   const handleProceedToCheckout = () => {
-    navigateTo('/checkout');
+    navigate('/checkout');
   };
 
-  if (cart.length === 0 || showEmptyState) {
+  const shipping = 50;
+  const total = cartTotal + shipping;
+
+  if (!user) {
+    return (
+      <Layout>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Please sign in</h3>
+            <p className="text-gray-600 mb-6">You need to be signed in to view your cart</p>
+            <Button 
+              onClick={() => navigate('/auth')}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Sign In
+            </Button>
+          </div>
+        </main>
+      </Layout>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Layout>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded mb-4 w-48 mx-auto"></div>
+              <div className="h-4 bg-gray-200 rounded mb-2 w-32 mx-auto"></div>
+            </div>
+          </div>
+        </main>
+      </Layout>
+    );
+  }
+
+  if (cartItems.length === 0) {
     return (
       <Layout>
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -47,7 +81,7 @@ const CartPage = () => {
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Your cart is empty</h3>
             <p className="text-gray-600 mb-6">Looks like you haven't added any items to your cart yet</p>
             <Button 
-              onClick={() => navigateTo('/shop')}
+              onClick={() => navigate('/shop')}
               className="bg-green-600 hover:bg-green-700"
             >
               Shop Now
@@ -65,30 +99,41 @@ const CartPage = () => {
           {/* Left Column - Cart Items */}
           <div className="lg:col-span-2">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">
-              Your Shopping Cart ({cart.length} item{cart.length !== 1 ? 's' : ''})
+              Your Shopping Cart ({cartItems.length} item{cartItems.length !== 1 ? 's' : ''})
             </h1>
             
             {/* Cart Items */}
             <div className="bg-white rounded-lg shadow-sm">
-              {cart.map((item) => (
+              {cartItems.map((item) => (
                 <div key={item.id} className="flex items-center p-6 border-b border-gray-200 last:border-b-0">
                   <div className="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center mr-4">
-                    <span className="text-xs text-gray-500">Product</span>
+                    {item.product?.image_urls && item.product.image_urls.length > 0 ? (
+                      <img
+                        src={item.product.image_urls[0]}
+                        alt={item.product.name}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    ) : (
+                      <span className="text-xs text-gray-500">No Image</span>
+                    )}
                   </div>
                   
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                    <p className="text-gray-600 text-sm">SKU: {item.id}</p>
+                    <h3 className="font-semibold text-gray-900">{item.product?.name || 'Unknown Product'}</h3>
+                    <p className="text-gray-600 text-sm">SKU: {item.product_id}</p>
+                    {item.product?.brand && (
+                      <p className="text-gray-600 text-sm">Brand: {item.product.brand}</p>
+                    )}
                   </div>
                   
                   <div className="text-right mr-6">
-                    <p className="font-semibold text-gray-900">₹{item.unitPrice}</p>
+                    <p className="font-semibold text-gray-900">₹{item.product?.price || 0}</p>
                     <p className="text-sm text-gray-600">Unit Price</p>
                   </div>
                   
                   <div className="flex items-center space-x-2 mr-6">
                     <button 
-                      onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       disabled={item.quantity <= 1}
                       className="p-1 border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -96,8 +141,8 @@ const CartPage = () => {
                     </button>
                     <span className="w-12 text-center py-1 border border-gray-300 rounded">{item.quantity}</span>
                     <button 
-                      onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
-                      disabled={item.quantity >= item.stock}
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      disabled={item.product ? item.quantity >= item.product.stock : true}
                       className="p-1 border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Plus className="h-4 w-4" />
@@ -105,7 +150,7 @@ const CartPage = () => {
                   </div>
                   
                   <div className="text-right mr-6">
-                    <p className="font-semibold text-gray-900">₹{item.unitPrice * item.quantity}</p>
+                    <p className="font-semibold text-gray-900">₹{(item.product?.price || 0) * item.quantity}</p>
                     <p className="text-sm text-gray-600">Subtotal</p>
                   </div>
                   
@@ -144,7 +189,7 @@ const CartPage = () => {
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-semibold">₹{subtotal}</span>
+                  <span className="font-semibold">₹{cartTotal}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>

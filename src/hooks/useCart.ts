@@ -17,6 +17,7 @@ interface CartItem {
     price: number;
     stock: number;
     image_urls: string[] | null;
+    brand?: string | null;
   };
 }
 
@@ -35,6 +36,7 @@ export const useCart = () => {
 
     setLoading(true);
     try {
+      console.log('Fetching cart for user:', user.id);
       const { data, error } = await supabase
         .from('cart_items')
         .select(`
@@ -44,12 +46,18 @@ export const useCart = () => {
             name,
             price,
             stock,
-            image_urls
+            image_urls,
+            brand
           )
         `)
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching cart:', error);
+        throw error;
+      }
+      
+      console.log('Fetched cart items:', data);
       setCartItems(data || []);
     } catch (error) {
       console.error('Error fetching cart:', error);
@@ -66,17 +74,25 @@ export const useCart = () => {
       return false;
     }
 
+    console.log('Adding to cart:', { productId, quantity, userId: user.id });
+
     try {
       // Check if item already exists in cart
-      const { data: existingItem } = await supabase
+      const { data: existingItem, error: checkError } = await supabase
         .from('cart_items')
         .select('*')
         .eq('user_id', user.id)
         .eq('product_id', productId)
         .maybeSingle();
 
+      if (checkError) {
+        console.error('Error checking existing item:', checkError);
+        throw checkError;
+      }
+
       if (existingItem) {
         // Update quantity if item exists
+        console.log('Updating existing cart item:', existingItem);
         const { error } = await supabase
           .from('cart_items')
           .update({ 
@@ -89,6 +105,7 @@ export const useCart = () => {
         showToast('Cart updated successfully', 'success');
       } else {
         // Insert new item
+        console.log('Inserting new cart item');
         const { error } = await supabase
           .from('cart_items')
           .insert({
@@ -97,7 +114,10 @@ export const useCart = () => {
             quantity
           });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error inserting cart item:', error);
+          throw error;
+        }
         showToast('Item added to cart', 'success');
       }
 
@@ -115,6 +135,8 @@ export const useCart = () => {
   const updateQuantity = async (cartItemId: string, quantity: number) => {
     if (!user) return false;
 
+    console.log('Updating quantity:', { cartItemId, quantity });
+
     try {
       if (quantity <= 0) {
         return await removeFromCart(cartItemId);
@@ -129,7 +151,10 @@ export const useCart = () => {
         .eq('id', cartItemId)
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating quantity:', error);
+        throw error;
+      }
       
       await fetchCart();
       return true;
@@ -144,6 +169,8 @@ export const useCart = () => {
   const removeFromCart = async (cartItemId: string) => {
     if (!user) return false;
 
+    console.log('Removing from cart:', cartItemId);
+
     try {
       const { error } = await supabase
         .from('cart_items')
@@ -151,7 +178,10 @@ export const useCart = () => {
         .eq('id', cartItemId)
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error removing from cart:', error);
+        throw error;
+      }
       
       showToast('Item removed from cart', 'info');
       await fetchCart();
@@ -167,13 +197,18 @@ export const useCart = () => {
   const clearCart = async () => {
     if (!user) return false;
 
+    console.log('Clearing cart for user:', user.id);
+
     try {
       const { error } = await supabase
         .from('cart_items')
         .delete()
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error clearing cart:', error);
+        throw error;
+      }
       
       showToast('Cart cleared', 'info');
       setCartItems([]);
@@ -213,6 +248,8 @@ export const useCart = () => {
       // Create a unique channel name to avoid conflicts
       const channelName = `cart-changes-${user.id}-${Math.random().toString(36).substr(2, 9)}`;
       
+      console.log('Setting up cart subscription:', channelName);
+      
       channel = supabase
         .channel(channelName)
         .on(
@@ -223,13 +260,13 @@ export const useCart = () => {
             table: 'cart_items',
             filter: `user_id=eq.${user.id}`
           },
-          () => {
-            console.log('Cart change detected, refetching...');
+          (payload) => {
+            console.log('Cart change detected:', payload);
             fetchCart();
           }
         )
         .subscribe((status) => {
-          console.log('Subscription status:', status);
+          console.log('Cart subscription status:', status);
         });
     };
 
