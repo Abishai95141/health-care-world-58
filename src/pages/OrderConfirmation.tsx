@@ -53,51 +53,52 @@ const OrderConfirmation = () => {
       // Add a small delay to ensure the order is fully created
       await new Promise(resolve => setTimeout(resolve, 500));
       
+      // First, check if the order exists and belongs to the user
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
-        .select(`
-          id,
-          total_amount,
-          shipping_amount,
-          created_at,
-          order_items (
-            id,
-            product_id,
-            quantity,
-            unit_price,
-            total_price,
-            product:products (
-              name,
-              image_urls
-            )
-          )
-        `)
+        .select('*')
         .eq('id', orderId)
         .eq('user_id', user!.id)
         .single();
 
       if (orderError) {
         console.error('Error fetching order:', orderError);
-        
-        // If not found, try without user_id filter to see if order exists at all
-        const { data: anyOrder, error: anyOrderError } = await supabase
-          .from('orders')
-          .select('id, user_id')
-          .eq('id', orderId)
-          .single();
-          
-        if (anyOrderError) {
-          console.error('Order does not exist:', anyOrderError);
-          setError('Order not found');
-        } else {
-          console.error('Order exists but belongs to different user:', anyOrder);
-          setError('You do not have permission to view this order');
-        }
+        setError('Order not found or you do not have permission to view it');
+        return;
+      }
+
+      // Then fetch the order items with product details
+      const { data: orderItemsData, error: itemsError } = await supabase
+        .from('order_items')
+        .select(`
+          id,
+          product_id,
+          quantity,
+          unit_price,
+          total_price,
+          product:products (
+            name,
+            image_urls
+          )
+        `)
+        .eq('order_id', orderId);
+
+      if (itemsError) {
+        console.error('Error fetching order items:', itemsError);
+        setError('Failed to load order details');
         return;
       }
 
       console.log('Order fetched successfully:', orderData);
-      setOrder(orderData);
+      console.log('Order items fetched successfully:', orderItemsData);
+      
+      // Combine the order data with items
+      const completeOrder: Order = {
+        ...orderData,
+        order_items: orderItemsData || []
+      };
+
+      setOrder(completeOrder);
     } catch (error) {
       console.error('Error fetching order:', error);
       setError('Failed to load order details');
