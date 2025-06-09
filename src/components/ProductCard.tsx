@@ -41,17 +41,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
 
   return (
     <div 
-      className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer"
+      className="group bg-white rounded-lg shadow-sm border hover:shadow-xl hover:-translate-y-2 hover:scale-105 transition-all duration-300 ease-out overflow-hidden cursor-pointer"
       onClick={() => onProductClick(product)}
     >
       <div className="relative">
         {/* Product Image */}
-        <div className="aspect-square bg-gray-100 flex items-center justify-center relative">
+        <div className="aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={product.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
               onError={(e) => {
                 // Hide broken images and show fallback
                 e.currentTarget.style.display = 'none';
@@ -74,7 +74,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
           
           {/* Discount Badge */}
           {hasDiscount && !isOutOfStock && (
-            <Badge className="absolute top-2 left-2 bg-red-500 text-white">
+            <Badge className="absolute top-2 left-2 bg-red-500 text-white animate-pulse">
               {discountPercent}% OFF
             </Badge>
           )}
@@ -88,7 +88,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
           
           {/* Low Stock Badge */}
           {isLowStock && !isOutOfStock && (
-            <Badge className="absolute bottom-2 right-2 bg-orange-500 text-white text-xs">
+            <Badge className="absolute bottom-2 right-2 bg-orange-500 text-white text-xs animate-bounce">
               Only {product.stock} left
             </Badge>
           )}
@@ -96,17 +96,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
         
         {/* Product Info */}
         <div className="p-4">
-          <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 text-sm">
+          <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 text-sm group-hover:text-green-700 transition-colors duration-200">
             {product.name}
           </h3>
           
           {product.brand && (
-            <p className="text-gray-600 text-xs mb-2">{product.brand}</p>
+            <p className="text-gray-600 text-xs mb-2 group-hover:text-gray-700 transition-colors duration-200">{product.brand}</p>
           )}
           
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
-              <span className="text-lg font-bold text-green-600">₹{product.price}</span>
+              <span className="text-lg font-bold text-green-600 group-hover:text-green-700 transition-colors duration-200">₹{product.price}</span>
               {hasDiscount && (
                 <span className="text-sm text-gray-500 line-through">₹{product.mrp}</span>
               )}
@@ -117,7 +117,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
           <div className="flex items-center mb-3">
             <div className="flex space-x-1">
               {[1, 2, 3, 4, 5].map((star) => (
-                <Star key={star} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                <Star key={star} className="h-3 w-3 fill-yellow-400 text-yellow-400 group-hover:scale-110 transition-transform duration-200" />
               ))}
             </div>
             <span className="text-xs text-gray-600 ml-1">(24)</span>
