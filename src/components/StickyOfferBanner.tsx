@@ -2,14 +2,20 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface StickyOfferBannerProps {
   onShopNow: () => void;
 }
 
 const StickyOfferBanner: React.FC<StickyOfferBannerProps> = ({ onShopNow }) => {
+  const isMobile = useIsMobile();
+
   return (
-    <div className="sticky top-16 z-40 bg-gradient-to-r from-orange-500 via-orange-400 to-yellow-400 shadow-lg">
+    <div className={`
+      z-50 bg-gradient-to-r from-orange-500 via-orange-400 to-yellow-400 shadow-lg
+      ${isMobile ? 'sticky top-16' : 'sticky top-16'}
+    `}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-3">
           <div className="flex items-center space-x-3">

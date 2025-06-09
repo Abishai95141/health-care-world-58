@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Heart, Shield, Users, Award, Clock, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,9 +5,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import EnhancedNavigation from '@/components/EnhancedNavigation';
 import StickyOfferBanner from '@/components/StickyOfferBanner';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const AboutUs = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const values = [
     {
@@ -38,8 +39,8 @@ const AboutUs = () => {
       <EnhancedNavigation />
       <StickyOfferBanner onShopNow={() => navigate('/shop')} />
 
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-green-600 to-emerald-500 py-24 overflow-hidden mt-32">
+      {/* Hero Section with adjusted margin for mobile */}
+      <section className={`relative bg-gradient-to-r from-green-600 to-emerald-500 py-24 overflow-hidden ${isMobile ? 'mt-40' : 'mt-32'}`}>
         <div className="absolute inset-0 bg-black opacity-10"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">Our Mission is Your Health</h1>

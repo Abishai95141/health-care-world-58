@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, User, Search, Menu, X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/hooks/useCart';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const EnhancedNavigation = () => {
   const navigate = useNavigate();
@@ -16,6 +16,7 @@ const EnhancedNavigation = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [cartPulse, setCartPulse] = useState(false);
   const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   // Track scroll position for navbar animation
   useEffect(() => {
@@ -217,8 +218,8 @@ const EnhancedNavigation = () => {
         </div>
       </div>
 
-      {/* Mobile Search Bar */}
-      <div className="sm:hidden border-t border-gray-200 p-4">
+      {/* Mobile Search Bar - Updated for better positioning */}
+      <div className="sm:hidden border-t border-gray-200 p-4 bg-white z-40 relative mt-0">
         <form onSubmit={handleSearch} className="relative">
           <Input 
             name="search"

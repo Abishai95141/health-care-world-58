@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Search, ShoppingCart, ChevronDown, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import ServiceHighlights from '@/components/ServiceHighlights';
 import StickyOfferBanner from '@/components/StickyOfferBanner';
 import EnhancedNavigation from '@/components/EnhancedNavigation';
 import EnhancedCarousel from '@/components/EnhancedCarousel';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
   const {
@@ -27,6 +27,7 @@ const Index = () => {
   const { user } = useAuth();
   const { totalItems } = useCart();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
@@ -91,8 +92,8 @@ const Index = () => {
         }}
       />
 
-      {/* Main Content with top padding for sticky header and banner */}
-      <main className="pt-32 px-4 sm:px-6 lg:px-8">
+      {/* Main Content with adjusted top padding for mobile */}
+      <main className={`${isMobile ? 'pt-40' : 'pt-32'} px-4 sm:px-6 lg:px-8`}>
         {/* Enhanced Hero Carousel */}
         <EnhancedCarousel />
 
