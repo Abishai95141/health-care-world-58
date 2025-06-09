@@ -7,22 +7,22 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/hooks/useCart';
 import { useNavigate } from 'react-router-dom';
 import FeaturedProducts from '@/components/FeaturedProducts';
 
 const Index = () => {
   const {
-    cart,
     selectedProduct,
     searchQuery,
     setSearchQuery,
-    addToCart,
     setSelectedProduct,
     navigateTo,
     showToast
   } = useApp();
 
   const { user } = useAuth();
+  const { totalItems } = useCart();
   const navigate = useNavigate();
 
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
@@ -52,8 +52,8 @@ const Index = () => {
     }
   };
 
-  // Cart functionality
-  const cartItemCount = user ? cart.reduce((sum, item) => sum + item.quantity, 0) : 0;
+  // Cart functionality - use the cart hook instead of app context
+  const cartItemCount = totalItems;
 
   const handleCartClick = () => {
     if (!user) {

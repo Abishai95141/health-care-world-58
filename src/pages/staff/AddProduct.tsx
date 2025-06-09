@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { X } from 'lucide-react';
+import ImageUpload from '@/components/staff/ImageUpload';
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -140,7 +140,7 @@ const AddProduct = () => {
         requires_prescription: formData.requires_prescription,
         stock: stock,
         expiration_date: formData.expiration_date || null,
-        is_active: formData.is_active && stock > 0, // Auto-set inactive if out of stock
+        is_active: formData.is_active && stock > 0,
         image_urls: formData.image_urls.length > 0 ? formData.image_urls : null
       };
 
@@ -390,6 +390,13 @@ const AddProduct = () => {
                 />
               </div>
             </div>
+
+            {/* Product Images */}
+            <ImageUpload
+              images={formData.image_urls}
+              onImagesChange={(images) => handleInputChange('image_urls', images)}
+              maxImages={5}
+            />
 
             {/* Toggles */}
             <div className="space-y-4">
