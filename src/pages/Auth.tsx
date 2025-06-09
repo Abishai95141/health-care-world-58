@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Shield } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -297,6 +297,19 @@ const Auth = () => {
                 className="w-full h-11 border-gray-300 hover:bg-gray-50 rounded-lg"
               >
                 View Store Without Signing In
+              </Button>
+            </div>
+
+            {/* Staff Login Button */}
+            <div className="text-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate('/staff/login')}
+                className="w-full h-11 border-[#27AE60] text-[#27AE60] hover:bg-[#27AE60] hover:text-white rounded-lg transition-colors"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Staff Login
               </Button>
             </div>
 
