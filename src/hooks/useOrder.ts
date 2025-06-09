@@ -43,86 +43,33 @@ export const useOrder = () => {
     try {
       console.log('Creating order for user:', user.id);
       
-      // Calculate total amount
-      const subtotal = cartItems.reduce((sum, item) => {
-        const price = item.product?.price || 0;
-        return sum + (price * item.quantity);
-      }, 0);
-      const totalAmount = subtotal + shippingCost;
+      // Use the Supabase function to place the order
+      const { data, error } = await supabase.rpc('place_order', {
+        cart_user_id: user.id,
+        shipping_cost: shippingCost,
+        order_address_id: addressId
+      });
 
-      // Create the order
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          total_amount: totalAmount,
-          shipping_amount: shippingCost,
-          address_id: addressId,
-          status: 'confirmed',
-          payment_status: 'paid'
-        })
-        .select()
-        .single();
-
-      if (orderError) {
-        console.error('Error creating order:', orderError);
-        throw orderError;
+      if (error) {
+        console.error('Error creating order:', error);
+        throw error;
       }
 
-      console.log('Order created:', orderData);
+      console.log('Order function result:', data);
 
-      // Create order items and update stock
-      for (const item of cartItems) {
-        if (!item.product) continue;
-
-        // Insert order item
-        const { error: itemError } = await supabase
-          .from('order_items')
-          .insert({
-            order_id: orderData.id,
-            product_id: item.product_id,
-            quantity: item.quantity,
-            unit_price: item.product.price,
-            total_price: item.product.price * item.quantity
-          });
-
-        if (itemError) {
-          console.error('Error creating order item:', itemError);
-          throw itemError;
+      if (data && data.length > 0) {
+        const result = data[0];
+        if (result.success) {
+          showToast('Order placed successfully!', 'success');
+          navigateTo(`/order-confirmation/${result.order_id}`);
+          return true;
+        } else {
+          showToast(result.error_message || 'Failed to place order', 'error');
+          return false;
         }
-
-        // Update product stock
-        const newStock = item.product.stock - item.quantity;
-        const { error: stockError } = await supabase
-          .from('products')
-          .update({ stock: Math.max(0, newStock) })
-          .eq('id', item.product_id);
-
-        if (stockError) {
-          console.error('Error updating stock:', stockError);
-          throw stockError;
-        }
-
-        console.log(`Updated stock for product ${item.product_id}: ${item.product.stock} -> ${newStock}`);
+      } else {
+        throw new Error('No response from order function');
       }
-
-      // Clear the cart
-      const { error: clearError } = await supabase
-        .from('cart_items')
-        .delete()
-        .eq('user_id', user.id);
-
-      if (clearError) {
-        console.error('Error clearing cart:', clearError);
-        // Don't throw here as order is already created
-      }
-
-      showToast('Order placed successfully!', 'success');
-      
-      // Navigate to order confirmation page
-      navigateTo(`/order-confirmation/${orderData.id}`);
-      
-      return true;
     } catch (error) {
       console.error('Error creating order:', error);
       showToast('Failed to place order. Please try again.', 'error');
@@ -147,65 +94,47 @@ export const useOrder = () => {
     try {
       console.log('Creating single item order for product:', product.id);
       
-      const totalAmount = (product.price * quantity) + shippingCost;
-
-      // Create the order
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
+      // First add item to cart temporarily
+      const { error: cartError } = await supabase
+        .from('cart_items')
         .insert({
           user_id: user.id,
-          total_amount: totalAmount,
-          shipping_amount: shippingCost,
-          address_id: addressId,
-          status: 'confirmed',
-          payment_status: 'paid'
-        })
-        .select()
-        .single();
-
-      if (orderError) {
-        console.error('Error creating order:', orderError);
-        throw orderError;
-      }
-
-      console.log('Single item order created:', orderData);
-
-      // Create order item
-      const { error: itemError } = await supabase
-        .from('order_items')
-        .insert({
-          order_id: orderData.id,
           product_id: product.id,
-          quantity: quantity,
-          unit_price: product.price,
-          total_price: product.price * quantity
+          quantity: quantity
         });
 
-      if (itemError) {
-        console.error('Error creating order item:', itemError);
-        throw itemError;
+      if (cartError) {
+        console.error('Error adding to cart:', cartError);
+        throw cartError;
       }
 
-      // Update product stock
-      const newStock = product.stock - quantity;
-      const { error: stockError } = await supabase
-        .from('products')
-        .update({ stock: Math.max(0, newStock) })
-        .eq('id', product.id);
+      // Then use the place_order function
+      const { data, error } = await supabase.rpc('place_order', {
+        cart_user_id: user.id,
+        shipping_cost: shippingCost,
+        order_address_id: addressId
+      });
 
-      if (stockError) {
-        console.error('Error updating stock:', stockError);
-        throw stockError;
+      if (error) {
+        console.error('Error creating single item order:', error);
+        throw error;
       }
 
-      console.log(`Updated stock for product ${product.id}: ${product.stock} -> ${newStock}`);
+      console.log('Single item order function result:', data);
 
-      showToast('Order placed successfully!', 'success');
-      
-      // Navigate to order confirmation page
-      navigateTo(`/order-confirmation/${orderData.id}`);
-      
-      return true;
+      if (data && data.length > 0) {
+        const result = data[0];
+        if (result.success) {
+          showToast('Order placed successfully!', 'success');
+          navigateTo(`/order-confirmation/${result.order_id}`);
+          return true;
+        } else {
+          showToast(result.error_message || 'Failed to place order', 'error');
+          return false;
+        }
+      } else {
+        throw new Error('No response from order function');
+      }
     } catch (error) {
       console.error('Error creating single item order:', error);
       showToast('Failed to place order. Please try again.', 'error');
