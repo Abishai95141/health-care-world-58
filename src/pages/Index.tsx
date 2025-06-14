@@ -93,9 +93,9 @@ const Index = () => {
         }}
       />
 
-      {/* Main Content */}
-      <main className={`${isMobile ? 'pt-32' : 'pt-32'}`}>
-        {/* Enhanced Hero Carousel */}
+      {/* Main Content - Removed top padding gap */}
+      <main className="relative">
+        {/* Enhanced Hero Carousel - No gap from banner */}
         <EnhancedCarousel />
 
         {/* Category Navigation */}
