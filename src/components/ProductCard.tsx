@@ -27,7 +27,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
 
   // Use the new uploaded medicine image as the standard placeholder
   const getPlaceholderImage = () => {
-    return '/lovable-uploads/bb1d84b7-7fc7-482e-97c8-ce4c401a2309.png';
+    return '/lovable-uploads/67d3fb0f-b343-4363-9e20-7f3dda0049b3.png';
   };
 
   // Get the first valid image URL or use placeholder
