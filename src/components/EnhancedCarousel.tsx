@@ -17,8 +17,7 @@ const EnhancedCarousel = () => {
       description: "Experience the future of pharmacy with our curated selection of premium healthcare products.",
       cta: "Explore Collection",
       background: "linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #000000 100%)",
-      textColor: "text-white",
-      image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?auto=format&fit=crop&w=800&q=80"
+      textColor: "text-white"
     },
     {
       id: 2,
@@ -27,8 +26,7 @@ const EnhancedCarousel = () => {
       description: "Every product in our collection is carefully verified and sourced from certified manufacturers.",
       cta: "Shop Now",
       background: "linear-gradient(135deg, #f8f9fa 0%, #ffffff 50%, #f1f3f4 100%)",
-      textColor: "text-black",
-      image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=800&q=80"
+      textColor: "text-black"
     },
     {
       id: 3,
@@ -37,8 +35,7 @@ const EnhancedCarousel = () => {
       description: "Get your healthcare essentials delivered quickly and safely with our express delivery service.",
       cta: "Order Today",
       background: "linear-gradient(135deg, #1a1a1a 0%, #000000 50%, #2d2d2d 100%)",
-      textColor: "text-white",
-      image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80"
+      textColor: "text-white"
     }
   ];
 
@@ -85,59 +82,39 @@ const EnhancedCarousel = () => {
             
             <div className="relative h-full flex items-center">
               <div className="max-w-7xl mx-auto px-6 lg:px-8 w-full">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center h-full">
-                  {/* Content Side */}
-                  <div className="max-w-2xl ml-8 lg:ml-12">
-                    <div className={`space-y-8 transform transition-all duration-700 delay-300 ${
-                      index === currentSlide 
-                        ? 'translate-y-0 opacity-100' 
-                        : 'translate-y-8 opacity-0'
-                    }`}>
-                      <div className="space-y-4">
-                        <h2 className={`text-sm font-medium uppercase tracking-wider ${slide.textColor} opacity-80`}>
-                          {slide.subtitle}
-                        </h2>
-                        <h1 className={`text-4xl lg:text-5xl xl:text-6xl font-light ${slide.textColor} leading-tight`}>
-                          {slide.title}
-                        </h1>
-                      </div>
-                      
-                      <p className={`text-lg lg:text-xl ${slide.textColor} opacity-80 leading-relaxed max-w-xl`}>
-                        {slide.description}
-                      </p>
-                      
-                      <div className="pt-6">
-                        <Button
-                          onClick={() => navigate('/shop')}
-                          className={`group px-8 py-4 text-lg font-medium rounded-full transition-all duration-300 
-                                    hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                            slide.textColor === 'text-white'
-                              ? 'bg-white text-black hover:bg-gray-100 focus:ring-white'
-                              : 'bg-black text-white hover:bg-gray-800 focus:ring-black'
-                          }`}
-                        >
-                          {slide.cta}
-                          <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
-                        </Button>
-                      </div>
+                {/* Content container with proper spacing from arrows */}
+                <div className="max-w-3xl ml-16 lg:ml-20">
+                  <div className={`space-y-8 transform transition-all duration-700 delay-300 ${
+                    index === currentSlide 
+                      ? 'translate-y-0 opacity-100' 
+                      : 'translate-y-8 opacity-0'
+                  }`}>
+                    <div className="space-y-4">
+                      <h2 className={`text-sm font-medium uppercase tracking-wider ${slide.textColor} opacity-80`}>
+                        {slide.subtitle}
+                      </h2>
+                      <h1 className={`text-4xl lg:text-6xl xl:text-7xl font-light ${slide.textColor} leading-tight`}>
+                        {slide.title}
+                      </h1>
                     </div>
-                  </div>
-
-                  {/* Image Side */}
-                  <div className="hidden lg:flex justify-center items-center">
-                    <div className={`transform transition-all duration-700 delay-500 ${
-                      index === currentSlide 
-                        ? 'translate-x-0 opacity-100 scale-100' 
-                        : 'translate-x-8 opacity-0 scale-95'
-                    }`}>
-                      <div className="relative">
-                        <img
-                          src={slide.image}
-                          alt={slide.title}
-                          className="w-full max-w-lg h-auto object-cover rounded-2xl shadow-2xl"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
-                      </div>
+                    
+                    <p className={`text-lg lg:text-xl xl:text-2xl ${slide.textColor} opacity-80 leading-relaxed max-w-2xl`}>
+                      {slide.description}
+                    </p>
+                    
+                    <div className="pt-6">
+                      <Button
+                        onClick={() => navigate('/shop')}
+                        className={`group px-8 py-4 text-lg font-medium rounded-full transition-all duration-300 
+                                  hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                          slide.textColor === 'text-white'
+                            ? 'bg-white text-black hover:bg-gray-100 focus:ring-white'
+                            : 'bg-black text-white hover:bg-gray-800 focus:ring-black'
+                        }`}
+                      >
+                        {slide.cta}
+                        <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -147,7 +124,7 @@ const EnhancedCarousel = () => {
         ))}
       </div>
 
-      {/* Navigation Arrows */}
+      {/* Navigation Arrows - Repositioned to avoid content overlap */}
       <button
         onClick={prevSlide}
         className="absolute left-4 lg:left-6 top-1/2 transform -translate-y-1/2 z-10 
