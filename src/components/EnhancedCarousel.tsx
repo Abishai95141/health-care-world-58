@@ -82,7 +82,8 @@ const EnhancedCarousel = () => {
             
             <div className="relative h-full flex items-center">
               <div className="max-w-7xl mx-auto px-6 lg:px-8 w-full">
-                <div className="max-w-3xl">
+                {/* Content container with proper spacing from arrows */}
+                <div className="max-w-3xl ml-16 lg:ml-20">
                   <div className={`space-y-8 transform transition-all duration-700 delay-300 ${
                     index === currentSlide 
                       ? 'translate-y-0 opacity-100' 
@@ -92,12 +93,12 @@ const EnhancedCarousel = () => {
                       <h2 className={`text-sm font-medium uppercase tracking-wider ${slide.textColor} opacity-80`}>
                         {slide.subtitle}
                       </h2>
-                      <h1 className={`text-5xl lg:text-7xl font-light ${slide.textColor} leading-tight`}>
+                      <h1 className={`text-4xl lg:text-6xl xl:text-7xl font-light ${slide.textColor} leading-tight`}>
                         {slide.title}
                       </h1>
                     </div>
                     
-                    <p className={`text-xl lg:text-2xl ${slide.textColor} opacity-80 leading-relaxed max-w-2xl`}>
+                    <p className={`text-lg lg:text-xl xl:text-2xl ${slide.textColor} opacity-80 leading-relaxed max-w-2xl`}>
                       {slide.description}
                     </p>
                     
@@ -123,27 +124,27 @@ const EnhancedCarousel = () => {
         ))}
       </div>
 
-      {/* Navigation Arrows */}
+      {/* Navigation Arrows - Repositioned to avoid content overlap */}
       <button
         onClick={prevSlide}
-        className="absolute left-6 top-1/2 transform -translate-y-1/2 z-10 
-                 w-12 h-12 bg-white/10 backdrop-blur-sm border border-white/20 
+        className="absolute left-4 lg:left-6 top-1/2 transform -translate-y-1/2 z-10 
+                 w-10 h-10 lg:w-12 lg:h-12 bg-white/10 backdrop-blur-sm border border-white/20 
                  rounded-full flex items-center justify-center 
                  hover:bg-white/20 hover:scale-110 transition-all duration-200 
                  focus:outline-none focus:ring-2 focus:ring-white/50"
       >
-        <ChevronLeft className="h-6 w-6 text-white" />
+        <ChevronLeft className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
       </button>
 
       <button
         onClick={nextSlide}
-        className="absolute right-6 top-1/2 transform -translate-y-1/2 z-10 
-                 w-12 h-12 bg-white/10 backdrop-blur-sm border border-white/20 
+        className="absolute right-4 lg:right-6 top-1/2 transform -translate-y-1/2 z-10 
+                 w-10 h-10 lg:w-12 lg:h-12 bg-white/10 backdrop-blur-sm border border-white/20 
                  rounded-full flex items-center justify-center 
                  hover:bg-white/20 hover:scale-110 transition-all duration-200 
                  focus:outline-none focus:ring-2 focus:ring-white/50"
       >
-        <ChevronRight className="h-6 w-6 text-white" />
+        <ChevronRight className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
       </button>
 
       {/* Dots Indicator */}
