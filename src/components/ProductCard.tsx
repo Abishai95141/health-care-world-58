@@ -25,22 +25,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
   const isOutOfStock = product.stock === 0;
   const isLowStock = product.stock > 0 && product.stock <= 10;
 
-  // High-quality healthcare product images
+  // Use the uploaded image as the standard placeholder for all products
   const getPlaceholderImage = () => {
-    const placeholderImages = [
-      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop&crop=center&auto=format&q=80', // Medicine bottles
-      'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=400&fit=crop&crop=center&auto=format&q=80', // Pills and capsules
-      'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400&h=400&fit=crop&crop=center&auto=format&q=80', // Healthcare products
-      'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=400&h=400&fit=crop&crop=center&auto=format&q=80', // Medical supplies
-      'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=400&fit=crop&crop=center&auto=format&q=80', // Vitamins
-      'https://images.unsplash.com/photo-1550572017-edd951aa8ca6?w=400&h=400&fit=crop&crop=center&auto=format&q=80', // Health supplements
-      'https://images.unsplash.com/photo-1628771065518-0d82f1938462?w=400&h=400&fit=crop&crop=center&auto=format&q=80', // Medicine packaging
-      'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=400&h=400&fit=crop&crop=center&auto=format&q=80'  // Healthcare items
-    ];
-    
-    // Use product ID to consistently assign the same image to the same product
-    const index = parseInt(product.id.slice(-1), 16) % placeholderImages.length;
-    return placeholderImages[index];
+    return '/lovable-uploads/608483b2-2513-434b-be33-5704c93f7423.png';
   };
 
   // Get the first valid image URL or use placeholder
