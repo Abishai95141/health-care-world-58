@@ -13,27 +13,28 @@ const StickyOfferBanner: React.FC<StickyOfferBannerProps> = ({ onShopNow }) => {
 
   return (
     <div className={`
-      z-40 bg-black shadow-lg border-b border-gray-800
+      z-40 bg-black shadow-xl border-b border-gray-800 backdrop-blur-sm
       ${isMobile ? 'sticky top-16' : 'sticky top-16'}
     `}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between py-2">
-          <div className="flex items-center space-x-3">
-            <Sparkles className="w-5 h-5 text-gray-400" />
-            <span className="text-gray-300 font-medium text-sm sm:text-base">
-              Summer Essentials – Up to 20% Off!
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="flex items-center justify-between py-3">
+          <div className="flex items-center space-x-4">
+            <Sparkles className="w-5 h-5 text-gray-300 animate-pulse" />
+            <span className="text-gray-100 font-medium text-sm lg:text-base tracking-wide">
+              Premium Healthcare Collection – Exclusive Access
             </span>
           </div>
           
           <Button 
             onClick={onShopNow}
             variant="ghost"
-            className="group text-gray-300 hover:bg-gray-900 hover:text-white
-                       focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-black
-                       transition-all duration-200 text-sm px-4 py-2 h-auto"
+            className="group text-gray-100 hover:bg-gray-800 hover:text-white
+                       focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 focus:ring-offset-black
+                       transition-all duration-300 text-sm px-6 py-2 h-auto rounded-full
+                       hover:scale-105"
           >
-            Shop Now
-            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+            Explore Now
+            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
           </Button>
         </div>
       </div>

@@ -33,7 +33,6 @@ const Profile = () => {
 
   const handleSave = () => {
     setIsEditing(false);
-    // Here you would normally save to backend
   };
 
   const handleCancel = () => {
@@ -46,9 +45,9 @@ const Profile = () => {
   };
 
   const statCards = [
-    { icon: Package, label: 'Orders Placed', value: '0', color: 'text-blue-600' },
-    { icon: Heart, label: 'Wishlist Items', value: '0', color: 'text-red-600' },
-    { icon: MapPin, label: 'Saved Addresses', value: '0', color: 'text-green-600' }
+    { icon: Package, label: 'Orders Placed', value: '0', color: 'text-black' },
+    { icon: Heart, label: 'Wishlist Items', value: '0', color: 'text-black' },
+    { icon: MapPin, label: 'Saved Addresses', value: '0', color: 'text-black' }
   ];
 
   const memberSince = new Date(user?.created_at || '').toLocaleDateString('en-US', { 
@@ -60,65 +59,74 @@ const Profile = () => {
     <Layout>
       <div className="min-h-screen bg-gray-50">
         {/* Hero Cover Banner */}
-        <div className="relative h-48 bg-gradient-to-r from-green-400 via-green-500 to-green-600 overflow-hidden">
-          <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative h-64 lg:h-80 bg-gradient-to-br from-black via-gray-900 to-black overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 relative">
           {/* Avatar Section */}
-          <div className="relative -mt-16 mb-8 text-center">
+          <div className="relative -mt-20 mb-12 text-center">
             <div className="relative inline-block group">
-              <Avatar className="w-32 h-32 border-4 border-white shadow-xl">
+              <Avatar className="w-36 h-36 lg:w-40 lg:h-40 border-4 border-white shadow-2xl">
                 <AvatarImage src="" alt={profileData.fullName} />
-                <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-green-400 to-green-600 text-white">
+                <AvatarFallback className="text-3xl font-light bg-gradient-to-br from-gray-100 to-white text-black">
                   {profileData.fullName?.split(' ').map(n => n[0]).join('') || 'U'}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center cursor-pointer">
-                <Camera className="h-8 w-8 text-white" />
+              <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 
+                            transition-opacity duration-300 flex items-center justify-center cursor-pointer">
+                <Camera className="h-10 w-10 text-white" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mt-4">{profileData.fullName || 'User'}</h1>
-            <p className="text-sm text-gray-600">Member since {memberSince}</p>
+            <h1 className="text-3xl lg:text-4xl font-light text-black mt-6 tracking-tight">
+              {profileData.fullName || 'User'}
+            </h1>
+            <p className="text-gray-600 mt-2 text-lg">Member since {memberSince}</p>
           </div>
 
           {/* Profile Completeness */}
-          <Card className="mb-8 transform hover:scale-[1.02] transition-all duration-300 hover:shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Profile Completeness</span>
-                <span className="text-sm font-bold text-green-600">{progressValue}% Complete</span>
+          <Card className="mb-12 border-0 shadow-lg rounded-3xl hover:shadow-xl transition-all duration-300">
+            <CardContent className="p-8">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-lg font-medium text-black">Profile Completeness</span>
+                <span className="text-lg font-semibold text-black">{progressValue}% Complete</span>
               </div>
-              <Progress value={progressValue} className="h-2 transition-all duration-1000 ease-out" />
+              <Progress value={progressValue} className="h-3 transition-all duration-1000 ease-out rounded-full" />
             </CardContent>
           </Card>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             {statCards.map((stat, index) => (
               <Card 
                 key={stat.label} 
-                className="text-center transform hover:scale-105 hover:shadow-lg transition-all duration-300 animate-fade-in cursor-pointer"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="text-center border-0 shadow-lg hover:shadow-xl transition-all duration-300 
+                         hover:scale-105 cursor-pointer rounded-3xl animate-fade-in"
+                style={{ animationDelay: `${index * 150}ms` }}
               >
-                <CardContent className="p-6">
-                  <stat.icon className={`h-8 w-8 mx-auto mb-3 ${stat.color}`} />
-                  <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
+                <CardContent className="p-8">
+                  <div className="bg-gray-50 w-16 h-16 lg:w-20 lg:h-20 rounded-2xl mx-auto mb-6 
+                                flex items-center justify-center hover:bg-black hover:scale-110 
+                                transition-all duration-300 group">
+                    <stat.icon className={`h-8 w-8 lg:h-10 lg:w-10 ${stat.color} group-hover:text-white 
+                                         transition-colors duration-300`} />
+                  </div>
+                  <div className="text-3xl lg:text-4xl font-light text-black mb-2">{stat.value}</div>
+                  <div className="text-gray-600 text-lg">{stat.label}</div>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {/* Personal Information */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card className="transform hover:scale-[1.02] transition-all duration-300 hover:shadow-lg">
+            <div className="lg:col-span-2 space-y-8">
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-3xl">
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
+                  <CardTitle className="flex items-center justify-between text-xl">
                     <div className="flex items-center">
-                      <User className="h-5 w-5 mr-2" />
+                      <User className="h-6 w-6 mr-3 text-black" />
                       Personal Information
                     </div>
                     {!isEditing ? (
@@ -126,9 +134,9 @@ const Profile = () => {
                         variant="ghost"
                         size="sm"
                         onClick={handleEdit}
-                        className="opacity-70 hover:opacity-100 hover:scale-110 transition-all duration-200"
+                        className="hover:bg-gray-100 hover:scale-110 transition-all duration-200 rounded-xl"
                       >
-                        <Edit2 className="h-4 w-4" />
+                        <Edit2 className="h-5 w-5 text-gray-600" />
                       </Button>
                     ) : (
                       <div className="flex space-x-2">
@@ -136,69 +144,72 @@ const Profile = () => {
                           variant="ghost"
                           size="sm"
                           onClick={handleSave}
-                          className="text-green-600 hover:text-green-700 hover:scale-110 transition-all duration-200"
+                          className="text-black hover:bg-gray-100 hover:scale-110 transition-all duration-200 rounded-xl"
                         >
-                          <Save className="h-4 w-4" />
+                          <Save className="h-5 w-5" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={handleCancel}
-                          className="text-red-600 hover:text-red-700 hover:scale-110 transition-all duration-200"
+                          className="text-gray-600 hover:bg-gray-100 hover:scale-110 transition-all duration-200 rounded-xl"
                         >
-                          <X className="h-4 w-4" />
+                          <X className="h-5 w-5" />
                         </Button>
                       </div>
                     )}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <CardContent className="space-y-8 px-8 pb-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">Full Name</label>
                       {isEditing ? (
                         <Input
                           value={profileData.fullName}
                           onChange={(e) => setProfileData(prev => ({ ...prev, fullName: e.target.value }))}
-                          className="transition-all duration-300 focus:scale-105"
+                          className="h-12 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                                   transition-all duration-200"
                         />
                       ) : (
-                        <p className="text-gray-900 p-2 rounded hover:bg-gray-50 transition-colors duration-200">
+                        <p className="text-black p-3 rounded-2xl hover:bg-gray-50 transition-colors duration-200 text-lg">
                           {profileData.fullName || 'Not provided'}
                         </p>
                       )}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">Email</label>
                       {isEditing ? (
                         <Input
                           value={profileData.email}
                           onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                          className="transition-all duration-300 focus:scale-105"
+                          className="h-12 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                                   transition-all duration-200"
                         />
                       ) : (
-                        <p className="text-gray-900 p-2 rounded hover:bg-gray-50 transition-colors duration-200">
+                        <p className="text-black p-3 rounded-2xl hover:bg-gray-50 transition-colors duration-200 text-lg">
                           {profileData.email}
                         </p>
                       )}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">Phone</label>
                       {isEditing ? (
                         <Input
                           value={profileData.phone}
                           onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                          className="transition-all duration-300 focus:scale-105"
+                          className="h-12 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                                   transition-all duration-200"
                         />
                       ) : (
-                        <p className="text-gray-900 p-2 rounded hover:bg-gray-50 transition-colors duration-200">
+                        <p className="text-black p-3 rounded-2xl hover:bg-gray-50 transition-colors duration-200 text-lg">
                           {profileData.phone}
                         </p>
                       )}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date Joined</label>
-                      <p className="text-gray-900 p-2 rounded hover:bg-gray-50 transition-colors duration-200">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">Date Joined</label>
+                      <p className="text-black p-3 rounded-2xl hover:bg-gray-50 transition-colors duration-200 text-lg">
                         {new Date(user?.created_at || '').toLocaleDateString()}
                       </p>
                     </div>
@@ -207,22 +218,24 @@ const Profile = () => {
               </Card>
 
               {/* Recent Orders */}
-              <Card className="transform hover:scale-[1.02] transition-all duration-300 hover:shadow-lg">
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-3xl">
                 <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Package className="h-5 w-5 mr-2" />
+                  <CardTitle className="flex items-center text-xl">
+                    <Package className="h-6 w-6 mr-3 text-black" />
                     Recent Orders
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-12">
-                    <div className="relative inline-block">
-                      <Package className="h-16 w-16 text-gray-300 mx-auto mb-4 animate-bounce" style={{ animationDuration: '3s' }} />
-                      <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-blue-400/20 rounded-full animate-pulse"></div>
+                  <div className="text-center py-16">
+                    <div className="relative inline-block mb-8">
+                      <Package className="h-20 w-20 text-gray-300 mx-auto animate-pulse" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-gray-200/20 to-gray-300/20 
+                                    rounded-full animate-pulse"></div>
                     </div>
-                    <p className="text-gray-600 text-lg font-medium">No orders yet</p>
-                    <p className="text-sm text-gray-500 mt-2">Start shopping to see your orders here</p>
-                    <Button className="mt-4 bg-green-600 hover:bg-green-700 hover:scale-105 transition-all duration-200">
+                    <p className="text-black text-xl font-light mb-3">No orders yet</p>
+                    <p className="text-gray-600 mb-8 text-lg">Start shopping to see your orders here</p>
+                    <Button className="bg-black text-white hover:bg-gray-800 px-8 py-3 text-lg 
+                                     rounded-full hover:scale-105 transition-all duration-200">
                       Start Shopping
                     </Button>
                   </div>
@@ -231,46 +244,54 @@ const Profile = () => {
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-6">
+            <div className="space-y-8">
               {/* Quick Actions */}
-              <Card className="transform hover:scale-[1.02] transition-all duration-300 hover:shadow-lg">
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-3xl">
                 <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
+                  <CardTitle className="text-xl">Quick Actions</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start hover:bg-red-50 hover:border-red-200 hover:scale-105 transition-all duration-200 group">
-                    <Heart className="h-4 w-4 mr-3 group-hover:text-red-500 transition-colors duration-200" />
+                <CardContent className="space-y-4">
+                  <Button variant="outline" className="w-full justify-start h-14 border-gray-200 
+                                                     hover:bg-gray-50 hover:border-black hover:scale-105 
+                                                     transition-all duration-200 group rounded-2xl text-lg">
+                    <Heart className="h-5 w-5 mr-4 group-hover:text-black transition-colors duration-200" />
                     Wishlist
                   </Button>
-                  <Button variant="outline" className="w-full justify-start hover:bg-green-50 hover:border-green-200 hover:scale-105 transition-all duration-200 group">
-                    <MapPin className="h-4 w-4 mr-3 group-hover:text-green-500 transition-colors duration-200" />
+                  <Button variant="outline" className="w-full justify-start h-14 border-gray-200 
+                                                     hover:bg-gray-50 hover:border-black hover:scale-105 
+                                                     transition-all duration-200 group rounded-2xl text-lg">
+                    <MapPin className="h-5 w-5 mr-4 group-hover:text-black transition-colors duration-200" />
                     Addresses
                   </Button>
-                  <Button variant="outline" className="w-full justify-start hover:bg-blue-50 hover:border-blue-200 hover:scale-105 transition-all duration-200 group">
-                    <Settings className="h-4 w-4 mr-3 group-hover:text-blue-500 transition-colors duration-200" />
+                  <Button variant="outline" className="w-full justify-start h-14 border-gray-200 
+                                                     hover:bg-gray-50 hover:border-black hover:scale-105 
+                                                     transition-all duration-200 group rounded-2xl text-lg">
+                    <Settings className="h-5 w-5 mr-4 group-hover:text-black transition-colors duration-200" />
                     Account Settings
                   </Button>
                 </CardContent>
               </Card>
 
               {/* Account Status */}
-              <Card className="transform hover:scale-[1.02] transition-all duration-300 hover:shadow-lg">
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-3xl">
                 <CardHeader>
-                  <CardTitle>Account Status</CardTitle>
+                  <CardTitle className="text-xl">Account Status</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Email Verified</span>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800 hover:scale-110 transition-transform duration-200">
-                        <CheckCircle className="h-3 w-3 mr-1" />
+                      <span className="text-gray-600 text-lg">Email Verified</span>
+                      <Badge variant="secondary" className="bg-black text-white hover:scale-110 
+                                                          transition-transform duration-200 px-3 py-1 rounded-full">
+                        <CheckCircle className="h-4 w-4 mr-1" />
                         Verified
                       </Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Phone Verified</span>
-                      <Badge variant="secondary" className="bg-orange-100 text-orange-800 hover:scale-110 transition-transform duration-200">
-                        <AlertCircle className="h-3 w-3 mr-1" />
+                      <span className="text-gray-600 text-lg">Phone Verified</span>
+                      <Badge variant="secondary" className="bg-gray-100 text-gray-600 hover:scale-110 
+                                                          transition-transform duration-200 px-3 py-1 rounded-full">
+                        <AlertCircle className="h-4 w-4 mr-1" />
                         Pending
                       </Badge>
                     </div>

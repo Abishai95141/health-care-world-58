@@ -124,8 +124,8 @@ const OrderConfirmation = () => {
       <Layout>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading order details...</p>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-black mx-auto mb-6"></div>
+            <p className="text-gray-600 text-lg">Loading order details...</p>
           </div>
         </div>
       </Layout>
@@ -136,15 +136,16 @@ const OrderConfirmation = () => {
     return (
       <Layout>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-sm p-8 text-center">
-            <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Order Not Found</h1>
-            <p className="text-gray-600 mb-6">
+          <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-12 text-center">
+            <AlertCircle className="h-20 w-20 text-red-500 mx-auto mb-6" />
+            <h1 className="text-3xl font-light text-black mb-4">Order Not Found</h1>
+            <p className="text-gray-600 mb-8 text-lg leading-relaxed">
               {error || "We couldn't find the order you're looking for or you don't have permission to view it."}
             </p>
             <Button 
               onClick={() => navigate('/shop')}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-black hover:bg-gray-800 text-white px-8 py-4 text-lg rounded-full 
+                       hover:scale-105 transition-all duration-200"
             >
               Continue Shopping
             </Button>
@@ -156,94 +157,98 @@ const OrderConfirmation = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-5xl mx-auto px-6 lg:px-8">
           {/* Success Header */}
-          <div className="bg-white rounded-lg shadow-sm p-8 text-center mb-8">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Thank you for your order!</h1>
-            <p className="text-gray-600">
+          <div className="bg-white rounded-3xl shadow-xl p-12 text-center mb-12">
+            <CheckCircle className="h-20 w-20 text-black mx-auto mb-6" />
+            <h1 className="text-4xl lg:text-5xl font-light text-black mb-4 tracking-tight">
+              Thank you for your order!
+            </h1>
+            <p className="text-gray-600 text-xl">
               Your order has been confirmed and is being prepared for delivery.
             </p>
           </div>
 
           {/* Order Summary */}
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <div className="border-b border-gray-200 pb-4 mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Order Summary</h2>
-              <div className="mt-2 text-sm text-gray-600">
-                <p>Order #: {order.id}</p>
-                <p>Order Date: {formatDate(order.created_at)}</p>
+          <div className="bg-white rounded-3xl shadow-xl p-8 lg:p-12 mb-12">
+            <div className="border-b border-gray-100 pb-8 mb-10">
+              <h2 className="text-2xl lg:text-3xl font-light text-black mb-4">Order Summary</h2>
+              <div className="space-y-2 text-gray-600 text-lg">
+                <p><span className="font-medium text-black">Order #:</span> {order.id}</p>
+                <p><span className="font-medium text-black">Order Date:</span> {formatDate(order.created_at)}</p>
               </div>
             </div>
 
             {/* Order Items */}
-            <div className="space-y-4 mb-6">
+            <div className="space-y-6 mb-10">
               {order.order_items.map((item) => (
-                <div key={item.id} className="flex items-center space-x-4 py-4 border-b border-gray-100 last:border-b-0">
-                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                <div key={item.id} className="flex items-center space-x-6 py-6 border-b border-gray-50 last:border-b-0">
+                  <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center">
                     {item.product?.image_urls && item.product.image_urls.length > 0 ? (
                       <img
                         src={item.product.image_urls[0]}
                         alt={item.product.name}
-                        className="w-full h-full object-cover rounded-lg"
+                        className="w-full h-full object-cover rounded-2xl"
                       />
                     ) : (
-                      <span className="text-xs text-gray-500">No Image</span>
+                      <span className="text-sm text-gray-500">No Image</span>
                     )}
                   </div>
                   
                   <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{item.product?.name || 'Unknown Product'}</h3>
-                    <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                    <h3 className="font-medium text-black text-lg mb-2">{item.product?.name || 'Unknown Product'}</h3>
+                    <p className="text-gray-600">Quantity: {item.quantity}</p>
                   </div>
                   
                   <div className="text-right">
-                    <p className="font-medium text-gray-900">₹{item.unit_price}</p>
-                    <p className="text-sm text-gray-600">Unit Price</p>
+                    <p className="font-medium text-black text-lg">₹{item.unit_price}</p>
+                    <p className="text-gray-600">Unit Price</p>
                   </div>
                   
                   <div className="text-right">
-                    <p className="font-semibold text-gray-900">₹{item.total_price}</p>
-                    <p className="text-sm text-gray-600">Total</p>
+                    <p className="font-semibold text-black text-xl">₹{item.total_price}</p>
+                    <p className="text-gray-600">Total</p>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Order Totals */}
-            <div className="border-t border-gray-200 pt-4">
-              <div className="space-y-2">
+            <div className="border-t border-gray-100 pt-8">
+              <div className="space-y-4 text-lg">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">₹{subtotal}</span>
+                  <span className="font-medium text-black">₹{subtotal}</span>
                 </div>
                 {order.shipping_amount && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Shipping</span>
-                    <span className="font-medium">₹{order.shipping_amount}</span>
+                    <span className="font-medium text-black">₹{order.shipping_amount}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-lg font-semibold border-t pt-2">
-                  <span>Total</span>
-                  <span>₹{order.total_amount}</span>
+                <div className="flex justify-between text-xl lg:text-2xl font-semibold border-t border-gray-100 pt-4">
+                  <span className="text-black">Total</span>
+                  <span className="text-black">₹{order.total_amount}</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
             <Button 
               onClick={() => navigate('/shop')}
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              className="flex-1 bg-black hover:bg-gray-800 text-white h-14 text-lg rounded-full 
+                       hover:scale-105 transition-all duration-200"
             >
               Continue Shopping
             </Button>
             <Button 
               onClick={() => navigate('/profile')}
               variant="outline"
-              className="flex-1"
+              className="flex-1 border-gray-200 hover:border-black hover:bg-black hover:text-white 
+                       h-14 text-lg rounded-full hover:scale-105 transition-all duration-200"
             >
               View My Orders
             </Button>

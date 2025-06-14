@@ -99,21 +99,23 @@ const Shop = () => {
     <Layout>
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="bg-white border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">Shop All Products</h1>
+        <div className="bg-white border-b border-gray-100">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+            <h1 className="text-4xl lg:text-5xl font-light text-black mb-8 tracking-tight">
+              Shop All Products
+            </h1>
             
             {/* Action Bar */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0">
               {/* Search */}
               <form onSubmit={handleSearch} className="flex-1 max-w-md">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                   <Input
                     placeholder="Search products..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-12 h-12 rounded-2xl border-gray-200 focus:border-black focus:ring-black"
                   />
                 </div>
               </form>
@@ -124,19 +126,23 @@ const Shop = () => {
                 <div className="relative">
                   <button
                     onClick={() => setIsCategoriesDropdownOpen(!isCategoriesDropdownOpen)}
-                    className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="flex items-center space-x-3 px-6 py-3 border border-gray-200 rounded-2xl 
+                             hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 
+                             focus:outline-none focus:ring-2 focus:ring-black"
                   >
-                    <span className="hidden sm:inline">Category: </span>
-                    <span>{currentCategory}</span>
-                    <ChevronDown className="h-4 w-4" />
+                    <span className="hidden sm:inline text-gray-600">Category: </span>
+                    <span className="font-medium text-black">{currentCategory}</span>
+                    <ChevronDown className="h-4 w-4 text-gray-400" />
                   </button>
                   {isCategoriesDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                    <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-100 
+                                  rounded-2xl shadow-xl z-10 py-2">
                       {categories.map((category) => (
                         <button
                           key={category}
                           onClick={() => handleCategoryChange(category)}
-                          className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                          className="block w-full text-left px-6 py-3 text-gray-700 hover:bg-gray-50 
+                                   hover:text-black transition-colors duration-200"
                         >
                           {category}
                         </button>
@@ -149,18 +155,22 @@ const Shop = () => {
                 <div className="relative">
                   <button
                     onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                    className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="flex items-center space-x-3 px-6 py-3 border border-gray-200 rounded-2xl 
+                             hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 
+                             focus:outline-none focus:ring-2 focus:ring-black"
                   >
-                    <span>Sort</span>
-                    <ChevronDown className="h-4 w-4" />
+                    <span className="font-medium text-black">Sort</span>
+                    <ChevronDown className="h-4 w-4 text-gray-400" />
                   </button>
                   {isSortDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-100 
+                                  rounded-2xl shadow-xl z-10 py-2">
                       {sortOptions.map((option) => (
                         <button
                           key={`${option.value}-${option.order}`}
                           onClick={() => handleSortChange(option.value, option.order as 'asc' | 'desc')}
-                          className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                          className="block w-full text-left px-6 py-3 text-gray-700 hover:bg-gray-50 
+                                   hover:text-black transition-colors duration-200"
                         >
                           {option.label}
                         </button>
@@ -174,36 +184,42 @@ const Shop = () => {
         </div>
 
         {/* Products Grid */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
           {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8">
               {Array.from({ length: 12 }).map((_, index) => (
-                <Card key={index} className="animate-pulse">
-                  <CardContent className="p-4">
-                    <div className="aspect-square bg-gray-200 rounded mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                <Card key={index} className="animate-pulse border-gray-100 rounded-2xl">
+                  <CardContent className="p-6">
+                    <div className="aspect-square bg-gray-100 rounded-xl mb-4"></div>
+                    <div className="h-4 bg-gray-100 rounded-full mb-2"></div>
+                    <div className="h-4 bg-gray-100 rounded-full w-2/3"></div>
                   </CardContent>
                 </Card>
               ))}
             </div>
           ) : products.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 mb-8">
-                {products.map((product) => (
-                  <ProductCard
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8 mb-12">
+                {products.map((product, index) => (
+                  <div
                     key={product.id}
-                    product={product}
-                    onProductClick={handleProductClick}
-                  />
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <ProductCard
+                      product={product}
+                      onProductClick={handleProductClick}
+                    />
+                  </div>
                 ))}
               </div>
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                <div className="flex flex-col sm:flex-row items-center justify-between space-y-6 sm:space-y-0 
+                              bg-white rounded-2xl p-6 border border-gray-100">
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-700">
+                    <span className="text-gray-600">
                       Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} products
                     </span>
                   </div>
@@ -214,6 +230,8 @@ const Shop = () => {
                       size="sm"
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
+                      className="rounded-xl border-gray-200 hover:border-black hover:bg-black hover:text-white 
+                               transition-all duration-200"
                     >
                       <ChevronLeft className="h-4 w-4" />
                       <span className="hidden sm:inline ml-1">Previous</span>
@@ -226,7 +244,11 @@ const Shop = () => {
                           variant={currentPage === page ? "default" : "outline"}
                           size="sm"
                           onClick={() => handlePageChange(page)}
-                          className="w-10"
+                          className={`w-10 h-10 rounded-xl transition-all duration-200 ${
+                            currentPage === page
+                              ? 'bg-black text-white'
+                              : 'border-gray-200 hover:border-black hover:bg-black hover:text-white'
+                          }`}
                         >
                           {page}
                         </Button>
@@ -238,18 +260,21 @@ const Shop = () => {
                       size="sm"
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
+                      className="rounded-xl border-gray-200 hover:border-black hover:bg-black hover:text-white 
+                               transition-all duration-200"
                     >
                       <span className="hidden sm:inline mr-1">Next</span>
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-700">Rows per page:</span>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-gray-600">Rows per page:</span>
                     <select
                       value={pageSize}
                       onChange={(e) => handlePageSizeChange(parseInt(e.target.value))}
-                      className="border border-gray-300 rounded px-2 py-1 text-sm"
+                      className="border border-gray-200 rounded-xl px-3 py-2 focus:outline-none 
+                               focus:ring-2 focus:ring-black focus:border-black transition-all duration-200"
                     >
                       <option value={12}>12</option>
                       <option value={24}>24</option>
@@ -260,12 +285,12 @@ const Shop = () => {
               )}
             </>
           ) : (
-            <div className="text-center py-16">
-              <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                <span className="text-gray-500">No Results</span>
+            <div className="text-center py-20">
+              <div className="w-32 h-32 bg-gray-100 rounded-2xl mx-auto mb-6 flex items-center justify-center">
+                <span className="text-gray-400 text-xl">No Results</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
-              <p className="text-gray-600">Try adjusting your search criteria or filters</p>
+              <h3 className="text-2xl font-light text-black mb-4">No products found</h3>
+              <p className="text-gray-600 text-lg">Try adjusting your search criteria or filters</p>
             </div>
           )}
         </div>

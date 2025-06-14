@@ -13,31 +13,31 @@ const services: ServiceHighlight[] = [
   {
     icon: RotateCcw,
     title: 'Quick Refill',
-    subtitle: 'Auto-refill on meds',
+    subtitle: 'Auto-refill system',
     message: 'Auto-refill setup coming soon!'
   },
   {
     icon: Shield,
-    title: 'Verified Pharma',
-    subtitle: 'Genuine Brands',
+    title: 'Verified Quality',
+    subtitle: 'Authentic Products',
     message: 'All products are 100% genuine'
   },
   {
     icon: Truck,
-    title: 'Fast Delivery',
+    title: 'Express Delivery',
     subtitle: 'Within 48 Hours',
     message: 'Free delivery on orders over ₹500'
   },
   {
     icon: MessageCircle,
-    title: '24/7 Chat',
-    subtitle: 'Expert Help Anytime',
+    title: '24/7 Support',
+    subtitle: 'Expert Assistance',
     message: 'Chat support coming soon!'
   },
   {
     icon: CreditCard,
     title: 'Secure Payment',
-    subtitle: 'Encrypted & Safe',
+    subtitle: 'Protected & Safe',
     message: 'Your payments are 100% secure'
   }
 ];
@@ -71,16 +71,19 @@ const ServiceHighlights: React.FC<ServiceHighlightsProps> = ({ onServiceClick })
   return (
     <section 
       ref={sectionRef}
-      className="py-16 sm:py-24 bg-white"
+      className="py-20 lg:py-28 bg-gradient-to-b from-gray-50 to-white"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Dedicated to Your Well-being</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-              We provide a seamless and trustworthy healthcare experience with services designed for you.
-            </p>
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="text-center mb-16 lg:mb-20">
+          <h2 className="text-4xl lg:text-5xl font-light text-black mb-6 tracking-tight">
+            Dedicated to Your Well-being
+          </h2>
+          <p className="text-gray-600 text-lg lg:text-xl max-w-3xl mx-auto leading-relaxed">
+            We provide a seamless and trustworthy healthcare experience with services designed around you.
+          </p>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
+        
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
           {services.map((service, index) => {
             const IconComponent = service.icon;
             return (
@@ -88,25 +91,34 @@ const ServiceHighlights: React.FC<ServiceHighlightsProps> = ({ onServiceClick })
                 key={index}
                 onClick={() => onServiceClick(service.message)}
                 className={`
-                  group text-center
-                  transition-all duration-300 ease-out
+                  group text-center p-6 lg:p-8 rounded-2xl bg-white border border-gray-100
+                  transition-all duration-500 ease-out hover:shadow-xl hover:scale-105
+                  hover:border-gray-200 focus:outline-none focus:ring-2 focus:ring-black 
+                  focus:ring-offset-2
                   ${isVisible 
                     ? `animate-fade-in opacity-100 translate-y-0` 
                     : 'opacity-0 translate-y-8'
                   }
                 `}
                 style={{
-                  animationDelay: `${index * 100}ms`,
+                  animationDelay: `${index * 150}ms`,
                   animationFillMode: 'forwards'
                 }}
               >
-                <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-5 flex items-center justify-center group-hover:bg-gray-200 group-hover:scale-110 transition-all duration-300">
-                  <IconComponent className="w-7 h-7 text-gray-700 group-hover:text-black transition-colors duration-300" />
+                <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gray-50 rounded-2xl mx-auto mb-6 
+                              flex items-center justify-center group-hover:bg-black 
+                              transition-all duration-300 group-hover:scale-110">
+                  <IconComponent className="w-8 h-8 lg:w-10 lg:h-10 text-gray-700 
+                                         group-hover:text-white transition-colors duration-300" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1 text-base group-hover:text-black transition-colors duration-200">
+                
+                <h3 className="font-semibold text-black mb-2 text-lg lg:text-xl 
+                             group-hover:text-black transition-colors duration-200">
                   {service.title}
                 </h3>
-                <p className="text-sm text-gray-600">
+                
+                <p className="text-gray-600 text-sm lg:text-base group-hover:text-gray-700 
+                             transition-colors duration-200">
                   {service.subtitle}
                 </p>
               </button>

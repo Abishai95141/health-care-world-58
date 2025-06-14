@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -97,24 +98,27 @@ const ContactUs = () => {
       <StickyOfferBanner onShopNow={() => navigate('/shop')} />
       
       {/* Hero Section */}
-      <section className="bg-gray-100 py-16 mt-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Get in Touch</h1>
-          <p className="text-xl text-gray-600">We're Here to Help You 24/7</p>
+      <section className="bg-gradient-to-br from-black via-gray-900 to-black py-24 mt-32">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
+          <div className="space-y-6">
+            <div className="w-24 h-0.5 bg-white mx-auto"></div>
+            <h1 className="text-5xl lg:text-6xl font-light text-white tracking-tight">Get in Touch</h1>
+            <p className="text-xl text-gray-300">We're Here to Help You 24/7</p>
+          </div>
         </div>
       </section>
 
       {/* Main Content */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Left Column - Contact Form */}
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Send Us a Message</h2>
+            <div className="space-y-8">
+              <h2 className="text-3xl lg:text-4xl font-light text-black tracking-tight">Send Us a Message</h2>
               
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <Label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
                     Full Name *
                   </Label>
                   <Input
@@ -123,15 +127,16 @@ const ContactUs = () => {
                     placeholder="Your Name"
                     value={formData.fullName}
                     onChange={(e) => handleInputChange('fullName', e.target.value)}
-                    className={`w-full ${errors.fullName ? 'border-red-500' : ''}`}
+                    className={`h-14 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                              text-lg transition-all duration-200 ${errors.fullName ? 'border-red-300' : ''}`}
                   />
                   {errors.fullName && (
-                    <p className="text-red-600 text-sm mt-1">{errors.fullName}</p>
+                    <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
                   )}
                 </div>
 
-                <div>
-                  <Label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                     Email Address *
                   </Label>
                   <Input
@@ -140,15 +145,16 @@ const ContactUs = () => {
                     placeholder="Your Email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`w-full ${errors.email ? 'border-red-500' : ''}`}
+                    className={`h-14 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                              text-lg transition-all duration-200 ${errors.email ? 'border-red-300' : ''}`}
                   />
                   {errors.email && (
-                    <p className="text-red-600 text-sm mt-1">{errors.email}</p>
+                    <p className="text-red-500 text-sm mt-1">{errors.email}</p>
                   )}
                 </div>
 
-                <div>
-                  <Label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="space-y-2">
+                  <Label htmlFor="mobile" className="text-sm font-medium text-gray-700">
                     Mobile Number
                   </Label>
                   <Input
@@ -157,12 +163,13 @@ const ContactUs = () => {
                     placeholder="Your Mobile Number"
                     value={formData.mobile}
                     onChange={(e) => handleInputChange('mobile', e.target.value)}
-                    className="w-full"
+                    className="h-14 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                             text-lg transition-all duration-200"
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="space-y-2">
+                  <Label htmlFor="subject" className="text-sm font-medium text-gray-700">
                     Subject *
                   </Label>
                   <Input
@@ -171,39 +178,43 @@ const ContactUs = () => {
                     placeholder="Subject"
                     value={formData.subject}
                     onChange={(e) => handleInputChange('subject', e.target.value)}
-                    className={`w-full ${errors.subject ? 'border-red-500' : ''}`}
+                    className={`h-14 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                              text-lg transition-all duration-200 ${errors.subject ? 'border-red-300' : ''}`}
                   />
                   {errors.subject && (
-                    <p className="text-red-600 text-sm mt-1">{errors.subject}</p>
+                    <p className="text-red-500 text-sm mt-1">{errors.subject}</p>
                   )}
                 </div>
 
-                <div>
-                  <Label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="space-y-2">
+                  <Label htmlFor="message" className="text-sm font-medium text-gray-700">
                     Message *
                   </Label>
                   <textarea
                     id="message"
-                    rows={5}
+                    rows={6}
                     placeholder="How can we help you?"
                     value={formData.message}
                     onChange={(e) => handleInputChange('message', e.target.value)}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
-                      errors.message ? 'border-red-500' : ''
+                    className={`w-full px-6 py-4 border border-gray-200 rounded-2xl 
+                              focus:outline-none focus:ring-2 focus:ring-black focus:border-black 
+                              text-lg transition-all duration-200 resize-none ${
+                      errors.message ? 'border-red-300' : ''
                     }`}
                   />
                   {errors.message && (
-                    <p className="text-red-600 text-sm mt-1">{errors.message}</p>
+                    <p className="text-red-500 text-sm mt-1">{errors.message}</p>
                   )}
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <Checkbox
                     id="subscribe"
                     checked={formData.subscribe}
                     onCheckedChange={handleSubscribeChange}
+                    className="rounded-md"
                   />
-                  <Label htmlFor="subscribe" className="text-sm text-gray-700">
+                  <Label htmlFor="subscribe" className="text-gray-700">
                     Subscribe to our newsletter
                   </Label>
                 </div>
@@ -211,10 +222,10 @@ const ContactUs = () => {
                 <Button
                   type="submit"
                   disabled={!isFormValid}
-                  className={`w-full py-3 text-white font-semibold rounded-md transition-colors ${
+                  className={`w-full h-14 text-lg font-medium rounded-2xl transition-all duration-300 ${
                     isFormValid
-                      ? 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
-                      : 'bg-gray-400 cursor-not-allowed'
+                      ? 'bg-black hover:bg-gray-800 text-white hover:scale-105 focus:ring-2 focus:ring-black'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 >
                   Send Message
@@ -222,43 +233,45 @@ const ContactUs = () => {
               </form>
             </div>
 
-            {/* Right Column - Company Details & Map */}
-            <div className="space-y-8">
+            {/* Right Column - Company Details */}
+            <div className="space-y-12">
               {/* Contact Information Card */}
-              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Corporate Office</h3>
-                <div className="space-y-3">
+              <div className="bg-gray-50 rounded-3xl p-10">
+                <h3 className="text-2xl font-semibold text-black mb-8">Corporate Office</h3>
+                <div className="space-y-6 text-gray-600 leading-relaxed">
                   <div>
-                    <p className="text-gray-600">
+                    <p className="text-lg">
                       123 Green Pharmacy Road<br />
                       Mumbai, Maharashtra 400001
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600">
-                      <strong>Phone:</strong>{' '}
+                    <p>
+                      <strong className="text-black">Phone:</strong>{' '}
                       <a 
                         href="tel:+912212345678" 
-                        className="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                        className="text-black hover:underline transition-all duration-200 
+                                 focus:outline-none focus:ring-2 focus:ring-black rounded"
                       >
                         +91 22 1234 5678
                       </a>
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600">
-                      <strong>Email:</strong>{' '}
+                    <p>
+                      <strong className="text-black">Email:</strong>{' '}
                       <a 
                         href="mailto:support@capsulecare.com" 
-                        className="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                        className="text-black hover:underline transition-all duration-200 
+                                 focus:outline-none focus:ring-2 focus:ring-black rounded"
                       >
                         support@capsulecare.com
                       </a>
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600">
-                      <strong>Hours:</strong><br />
+                    <p>
+                      <strong className="text-black">Hours:</strong><br />
                       Mon–Sat: 8 AM – 8 PM<br />
                       Sun: 9 AM – 5 PM
                     </p>
@@ -267,8 +280,8 @@ const ContactUs = () => {
               </div>
 
               {/* Map Placeholder */}
-              <div className="bg-gray-200 border border-gray-200 rounded-lg h-64 flex items-center justify-center">
-                <span className="text-gray-500 text-lg">Map Placeholder</span>
+              <div className="bg-gray-100 rounded-3xl h-80 flex items-center justify-center">
+                <span className="text-gray-500 text-xl">Interactive Map</span>
               </div>
             </div>
           </div>
@@ -276,13 +289,14 @@ const ContactUs = () => {
       </section>
 
       {/* Footer Call-to-Action Strip */}
-      <section className="bg-green-600 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-white text-lg">
+      <section className="bg-black py-16">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
+          <p className="text-white text-xl">
             Need Immediate Assistance? Call Us at{' '}
             <a 
               href="tel:+912212345678" 
-              className="underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-white rounded"
+              className="underline hover:no-underline transition-all duration-200 
+                       focus:outline-none focus:ring-2 focus:ring-white rounded"
             >
               +91 22 1234 5678
             </a>
@@ -291,88 +305,58 @@ const ContactUs = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Customer Service */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Customer Service</h3>
-              <ul className="space-y-2">
-                {[
-                  { text: 'Contact Us', active: true },
-                  { text: 'Returns' },
-                  { text: 'FAQs' },
-                  { text: 'Shipping Policy' }
-                ].map((link) => (
-                  <li key={link.text}>
-                    <button 
-                      className={`hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1 ${
-                        link.active ? 'text-green-400 font-semibold' : 'text-gray-300 hover:text-white'
-                      }`}
-                    >
-                      {link.text}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+      <footer className="bg-black text-white py-24">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+            {[
+              { title: 'Customer Service', links: [{ text: 'Contact Us', active: true }, { text: 'Returns' }, { text: 'FAQs' }, { text: 'Shipping Policy' }] },
+              { title: 'Information', links: [{ text: 'About Us' }, { text: 'Privacy Policy' }, { text: 'Terms of Service' }, { text: 'Careers' }] },
+              { title: 'Legal', links: [{ text: 'Terms of Service' }, { text: 'Privacy Policy' }, { text: 'Cookie Policy' }, { text: 'Compliance' }] }
+            ].map((section) => (
+              <div key={section.title} className="space-y-6">
+                <h3 className="text-xl font-semibold">{section.title}</h3>
+                <ul className="space-y-3">
+                  {section.links.map((link) => (
+                    <li key={link.text}>
+                      <button 
+                        className={`transition-all duration-200 hover:scale-105 focus:outline-none 
+                                  focus:ring-2 focus:ring-white focus:ring-offset-2 
+                                  focus:ring-offset-black rounded-sm ${
+                          link.active ? 'text-white font-semibold' :
 
-            {/* Information */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Information</h3>
-              <ul className="space-y-2">
-                {['About Us', 'Privacy Policy', 'Terms of Service', 'Careers'].map((link) => (
-                  <li key={link}>
-                    <button className="text-gray-300 hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1">
-                      {link}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Connect */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Connect</h3>
-              <div className="flex space-x-4 mb-6">
-                {['Facebook', 'Twitter', 'Instagram', 'YouTube'].map((social) => (
+ 'text-gray-300 hover:text-white'
+                        }`}
+                      >
+                        {link.text}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            
+            <div className="space-y-6">
+              <h3 className="text-xl font-semibold">Connect</h3>
+              <div className="flex space-x-4">
+                {['Facebook', 'Twitter', 'Instagram', 'YouTube'].map((social, index) => (
                   <button
                     key={social}
-                    className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
+                    className="w-12 h-12 bg-gray-800 rounded-2xl flex items-center justify-center 
+                             hover:bg-white hover:scale-110 transition-all duration-300 
+                             focus:outline-none focus:ring-2 focus:ring-white group"
                   >
                     <span className="sr-only">{social}</span>
-                    <div className="w-5 h-5 bg-gray-400 rounded"></div>
+                    <div className="w-6 h-6 bg-gray-400 group-hover:bg-black rounded transition-colors duration-200"></div>
                   </button>
                 ))}
               </div>
-              <div className="flex space-x-4">
-                {['GMP Certified', 'ISO 9001', 'Verified Pharmacy'].map((seal) => (
-                  <div key={seal} className="text-xs text-gray-400 border border-gray-600 px-2 py-1 rounded">
-                    {seal}
-                  </div>
-                ))}
+              
+              <div className="space-y-3">
+                <p className="text-gray-400">
+                  © 2025 Capsule Care Pharma.<br />All Rights Reserved.
+                </p>
               </div>
             </div>
-
-            {/* Newsletter */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Newsletter</h3>
-              <div className="flex mb-4">
-                <input 
-                  type="email"
-                  placeholder="Enter your email" 
-                  className="flex-1 mr-2 bg-gray-800 border border-gray-600 text-white placeholder-gray-400 rounded px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                />
-                <Button disabled className="bg-gray-600 text-gray-400 cursor-not-allowed">Subscribe</Button>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center">
-            <p className="text-gray-400 mb-2">© 2025 Capsule Care Pharma – All Rights Reserved.</p>
-            <a href="#" className="text-gray-500 hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1 text-sm">
-              Accessibility Statement
-            </a>
           </div>
         </div>
       </footer>

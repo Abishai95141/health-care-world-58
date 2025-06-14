@@ -64,8 +64,6 @@ const Auth = () => {
           title: "Welcome back!",
           description: "You've successfully logged in.",
         });
-        
-        // The useEffect above will handle the redirect and action completion
       } else {
         if (password !== confirmPassword) {
           toast({
@@ -123,54 +121,54 @@ const Auth = () => {
   const showRedirectMessage = location.state?.from;
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Left Panel - Hero Image */}
-      <div className="relative lg:w-1/2 h-[40vh] lg:h-screen bg-cover bg-center bg-no-repeat"
-           style={{
-             backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')`
-           }}>
-        <div className="absolute bottom-0 left-0 p-10 text-white">
-          <div className="mb-4">
-            <div className="w-24 h-0.5 bg-white mb-6"></div>
-            <h1 className="text-4xl font-bold mb-4 leading-tight">
-              Secure, Simple, Swift.
+    <div className="min-h-screen flex">
+      {/* Left Panel - Hero */}
+      <div className="relative lg:w-1/2 h-screen bg-gradient-to-br from-black via-gray-900 to-black 
+                    flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent" />
+        <div className="relative z-10 text-center px-12 max-w-lg">
+          <div className="mb-8">
+            <div className="w-24 h-0.5 bg-white mx-auto mb-8"></div>
+            <h1 className="text-5xl lg:text-6xl font-light text-white mb-6 leading-tight tracking-tight">
+              Welcome to the Future
             </h1>
-            <p className="text-lg opacity-85">
-              Your health journey starts here.
+            <p className="text-xl text-gray-300 leading-relaxed">
+              Your health journey starts with premium care.
             </p>
           </div>
         </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
       </div>
 
       {/* Right Panel - Authentication Form */}
-      <div className="lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
-        <Card className="w-full max-w-md shadow-xl rounded-xl border-0 bg-white">
-          <CardHeader className="text-center pb-8">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Capsule Care</h2>
+      <div className="lg:w-1/2 flex items-center justify-center p-8 bg-white">
+        <Card className="w-full max-w-md border-0 shadow-2xl rounded-3xl bg-white">
+          <CardHeader className="text-center pb-8 pt-12">
+            <div className="mb-8">
+              <h2 className="text-3xl font-light text-black mb-2 tracking-tight">Capsule Care</h2>
             </div>
             
             {showRedirectMessage && (
-              <div className="mb-4 p-3 bg-gray-100 border border-gray-200 rounded-lg">
+              <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-2xl">
                 <p className="text-sm text-gray-800">
                   You must be logged in to add items to your cart or complete checkout.
                 </p>
               </div>
             )}
             
-            <h3 className="text-3xl font-bold text-black mb-2">
+            <h3 className="text-4xl font-light text-black mb-3 tracking-tight">
               {isLogin ? 'Welcome Back' : 'Create Account'}
             </h3>
-            <p className="text-gray-500">
+            <p className="text-gray-500 text-lg">
               {isLogin ? 'Access your account securely' : 'Join us in minutes'}
             </p>
           </CardHeader>
           
-          <CardContent className="space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <CardContent className="space-y-8 px-12 pb-12">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {!isLogin && (
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                     Full Name
                   </label>
                   <Input
@@ -180,13 +178,14 @@ const Auth = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required={!isLogin}
-                    className="h-12 rounded-lg border-gray-300 focus:border-black focus:ring-black"
+                    className="h-14 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                             text-lg transition-all duration-200"
                   />
                 </div>
               )}
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="space-y-2">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email
                 </label>
                 <Input
@@ -196,12 +195,13 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="h-12 rounded-lg border-gray-300 focus:border-black focus:ring-black"
+                  className="h-14 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                           text-lg transition-all duration-200"
                 />
               </div>
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="space-y-2">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
                 </label>
                 <div className="relative">
@@ -212,12 +212,14 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-12 rounded-lg border-gray-300 focus:border-black focus:ring-black pr-10"
+                    className="h-14 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                             text-lg pr-12 transition-all duration-200"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 
+                             hover:text-gray-700 transition-colors duration-200"
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
@@ -225,8 +227,8 @@ const Auth = () => {
               </div>
 
               {!isLogin && (
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="space-y-2">
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -237,12 +239,14 @@ const Auth = () => {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
-                      className="h-12 rounded-lg border-gray-300 focus:border-black focus:ring-black pr-10"
+                      className="h-14 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                               text-lg pr-12 transition-all duration-200"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 
+                               hover:text-gray-700 transition-colors duration-200"
                     >
                       {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
@@ -253,7 +257,9 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-12 bg-black hover:bg-gray-800 text-white font-semibold rounded-lg transition-colors text-base"
+                className="w-full h-14 bg-black hover:bg-gray-800 text-white font-medium 
+                         rounded-2xl transition-all duration-300 hover:scale-105 text-lg 
+                         shadow-lg hover:shadow-xl"
               >
                 {isLoading ? 'Loading...' : (isLogin ? 'Log In' : 'Create Account')}
               </Button>
@@ -262,15 +268,17 @@ const Auth = () => {
             <div className="text-center">
               <button
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-black hover:underline font-medium"
+                className="text-black hover:text-gray-600 font-medium text-lg 
+                         transition-colors duration-200 hover:scale-105"
               >
                 {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
               </button>
             </div>
 
             <div className="relative">
-              <Separator className="my-6" />
-              <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-gray-500 text-sm">
+              <Separator className="my-8" />
+              <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
+                             bg-white px-4 text-gray-500">
                 or
               </span>
             </div>
@@ -279,9 +287,10 @@ const Auth = () => {
               type="button"
               variant="outline"
               onClick={handleGoogleAuth}
-              className="w-full h-12 border-gray-300 hover:bg-gray-100 rounded-lg text-base"
+              className="w-full h-14 border-gray-200 hover:bg-gray-50 rounded-2xl text-lg 
+                       transition-all duration-300 hover:scale-105"
             >
-              <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 mr-3" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -290,39 +299,39 @@ const Auth = () => {
               Continue with Google
             </Button>
 
-            <div className="text-center">
+            <div className="space-y-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => navigate('/shop')}
-                className="w-full h-12 border-gray-300 hover:bg-gray-100 rounded-lg text-base"
+                className="w-full h-14 border-gray-200 hover:bg-gray-50 rounded-2xl text-lg 
+                         transition-all duration-300 hover:scale-105"
               >
                 View Store Without Signing In
               </Button>
-            </div>
 
-            {/* Staff Login Button */}
-            <div className="text-center">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => navigate('/staff/login')}
-                className="w-full h-12 border-gray-400 text-gray-600 hover:bg-gray-100 hover:border-black hover:text-black rounded-lg transition-colors text-base"
+                className="w-full h-14 border-gray-300 text-gray-600 hover:bg-gray-50 
+                         hover:border-black hover:text-black rounded-2xl 
+                         transition-all duration-300 hover:scale-105 text-lg"
               >
-                <Shield className="w-4 h-4 mr-2" />
+                <Shield className="w-5 h-5 mr-2" />
                 Staff Login
               </Button>
             </div>
 
-            <p className="text-center text-xs text-gray-500 mt-6">
+            <p className="text-center text-xs text-gray-500 pt-4">
               By continuing, you agree to our{' '}
-              <a href="#" className="text-black underline hover:no-underline">
+              <button className="text-black hover:underline transition-all duration-200">
                 Privacy Policy
-              </a>{' '}
+              </button>{' '}
               and{' '}
-              <a href="#" className="text-black underline hover:no-underline">
+              <button className="text-black hover:underline transition-all duration-200">
                 Terms of Service
-              </a>
+              </button>
             </p>
           </CardContent>
         </Card>
