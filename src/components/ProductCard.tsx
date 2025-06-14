@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -25,9 +24,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
   const isOutOfStock = product.stock === 0;
   const isLowStock = product.stock > 0 && product.stock <= 10;
 
-  // Use the uploaded colorful medicine image as the standard placeholder for all products
+  // Use a professional healthcare/medicine image as the standard placeholder
   const getPlaceholderImage = () => {
-    return '/lovable-uploads/19a8db78-ffd3-40c3-ba3d-fdae2cf80a09.png';
+    return 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=400&fit=crop&crop=center&auto=format&q=80';
   };
 
   // Get the first valid image URL or use placeholder
