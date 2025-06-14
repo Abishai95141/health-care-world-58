@@ -24,9 +24,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
   const isOutOfStock = product.stock === 0;
   const isLowStock = product.stock > 0 && product.stock <= 10;
 
-  // Use a professional healthcare/medicine image as the standard placeholder
+  // Use the uploaded medicine image as the standard placeholder
   const getPlaceholderImage = () => {
-    return 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=400&fit=crop&crop=center&auto=format&q=80';
+    return '/lovable-uploads/ab2f8942-47aa-480f-9d6f-869399cbfd45.png';
   };
 
   // Get the first valid image URL or use placeholder
