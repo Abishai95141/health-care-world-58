@@ -25,7 +25,25 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
   const isOutOfStock = product.stock === 0;
   const isLowStock = product.stock > 0 && product.stock <= 10;
 
-  // Get the first valid image URL
+  // High-quality healthcare product images
+  const getPlaceholderImage = () => {
+    const placeholderImages = [
+      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop&crop=center&auto=format&q=80', // Medicine bottles
+      'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=400&fit=crop&crop=center&auto=format&q=80', // Pills and capsules
+      'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400&h=400&fit=crop&crop=center&auto=format&q=80', // Healthcare products
+      'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=400&h=400&fit=crop&crop=center&auto=format&q=80', // Medical supplies
+      'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=400&fit=crop&crop=center&auto=format&q=80', // Vitamins
+      'https://images.unsplash.com/photo-1550572017-edd951aa8ca6?w=400&h=400&fit=crop&crop=center&auto=format&q=80', // Health supplements
+      'https://images.unsplash.com/photo-1628771065518-0d82f1938462?w=400&h=400&fit=crop&crop=center&auto=format&q=80', // Medicine packaging
+      'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=400&h=400&fit=crop&crop=center&auto=format&q=80'  // Healthcare items
+    ];
+    
+    // Use product ID to consistently assign the same image to the same product
+    const index = parseInt(product.id.slice(-1), 16) % placeholderImages.length;
+    return placeholderImages[index];
+  };
+
+  // Get the first valid image URL or use placeholder
   const getImageUrl = () => {
     if (product.image_urls && product.image_urls.length > 0) {
       // Filter out empty strings and null values
@@ -34,7 +52,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
         return validUrls[0];
       }
     }
-    return null;
+    return getPlaceholderImage();
   };
 
   const imageUrl = getImageUrl();
@@ -46,24 +64,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
     >
       <div className="relative">
         {/* Product Image */}
-        <div className="aspect-square bg-gray-50 flex items-center justify-center relative overflow-hidden rounded-t-2xl">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              onError={(e) => {
-                // Hide broken images and show fallback
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling?.classList.remove('hidden');
-              }}
-            />
-          ) : null}
-          
-          {/* Fallback when no image or broken image */}
-          <div className={`absolute inset-0 flex items-center justify-center ${imageUrl ? 'hidden' : ''}`}>
-            <span className="text-gray-400 text-sm font-light">No Image</span>
-          </div>
+        <div className="aspect-square bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center relative overflow-hidden rounded-t-2xl">
+          <img
+            src={imageUrl}
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            loading="lazy"
+          />
           
           {/* Out of Stock Overlay */}
           {isOutOfStock && (
@@ -74,21 +81,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
           
           {/* Discount Badge */}
           {hasDiscount && !isOutOfStock && (
-            <Badge className="absolute top-3 left-3 bg-black text-white px-3 py-1 text-xs font-medium">
+            <Badge className="absolute top-3 left-3 bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-xs font-medium rounded-full">
               {discountPercent}% OFF
             </Badge>
           )}
           
           {/* Prescription Required Badge */}
           {product.requires_prescription && (
-            <Badge className="absolute top-3 right-3 bg-gray-800 text-white text-xs px-2 py-1">
+            <Badge className="absolute top-3 right-3 bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded-full font-medium">
               Rx
             </Badge>
           )}
           
           {/* Low Stock Badge */}
           {isLowStock && !isOutOfStock && (
-            <Badge className="absolute bottom-3 right-3 bg-gray-700 text-white text-xs px-2 py-1">
+            <Badge className="absolute bottom-3 right-3 bg-orange-500 hover:bg-orange-600 text-white text-xs px-2 py-1 rounded-full font-medium">
               Only {product.stock} left
             </Badge>
           )}
@@ -119,7 +126,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
           <div className="flex items-center space-x-2">
             <div className="flex space-x-1">
               {[1, 2, 3, 4, 5].map((star) => (
-                <Star key={star} className="h-3 w-3 fill-gray-800 text-gray-800 group-hover:scale-110 transition-transform duration-300" />
+                <Star key={star} className="h-3 w-3 fill-yellow-400 text-yellow-400 group-hover:scale-110 transition-transform duration-300" />
               ))}
             </div>
             <span className="text-xs text-gray-500 font-light">(24)</span>
@@ -128,11 +135,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
           {/* Stock status indicator */}
           <div className="text-xs font-medium">
             {isOutOfStock ? (
-              <span className="text-gray-500">Out of Stock</span>
+              <span className="text-red-500 bg-red-50 px-2 py-1 rounded-full">Out of Stock</span>
             ) : isLowStock ? (
-              <span className="text-gray-600">Low Stock</span>
+              <span className="text-orange-600 bg-orange-50 px-2 py-1 rounded-full">Low Stock</span>
             ) : (
-              <span className="text-gray-800">In Stock</span>
+              <span className="text-green-600 bg-green-50 px-2 py-1 rounded-full">In Stock</span>
             )}
           </div>
         </div>
