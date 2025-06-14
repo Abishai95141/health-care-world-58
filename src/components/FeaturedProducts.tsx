@@ -24,9 +24,9 @@ const FeaturedProducts = () => {
 
   if (loading) {
     return (
-      <section className="py-12 sm:py-16 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">Featured Products</h2>
+      <section className="py-12 sm:py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-12 text-center">Featured Products</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
             {Array.from({ length: 12 }).map((_, index) => (
               <Card key={index} className="animate-pulse">
@@ -45,18 +45,18 @@ const FeaturedProducts = () => {
   }
 
   return (
-    <section className="py-12 sm:py-16 bg-white">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-16 sm:py-24 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Featured Products</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Featured Products</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-lg">
             Discover our latest and most popular healthcare products, carefully selected for your wellness needs.
           </p>
         </div>
         
         {products.length > 0 ? (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 mb-12">
               {products.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -69,7 +69,7 @@ const FeaturedProducts = () => {
             <div className="text-center">
               <button
                 onClick={() => navigate('/shop')}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg font-semibold transition-colors"
+                className="bg-gray-900 hover:bg-black text-white px-8 sm:px-10 py-3 rounded-lg font-semibold transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
               >
                 View All Products
               </button>

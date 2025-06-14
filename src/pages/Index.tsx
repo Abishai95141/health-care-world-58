@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Search, ShoppingCart, ChevronDown, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -93,22 +94,20 @@ const Index = () => {
       />
 
       {/* Main Content with adjusted top padding for mobile */}
-      <main className={`${isMobile ? 'pt-40' : 'pt-32'} px-4 sm:px-6 lg:px-8`}>
+      <main className={`${isMobile ? 'pt-28' : 'pt-32'}`}>
         {/* Enhanced Hero Carousel */}
         <EnhancedCarousel />
 
-        {/* Service Highlights Strip */}
-        <ServiceHighlights onServiceClick={handleServiceClick} />
-
         {/* Category Navigation - Horizontal scroll on mobile */}
-        <section className="bg-white py-6 mb-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex md:justify-center space-x-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2">
+        <section className="bg-white py-10 mb-8">
+          <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-6">Shop by Category</h3>
+            <div className="flex justify-center flex-wrap gap-3">
               {categories.map((category) => (
                 <button
                   key={category}
                   onClick={() => navigate('/shop')}
-                  className="flex-shrink-0 px-4 sm:px-6 py-2 border rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 border-gray-300 text-gray-700 hover:bg-green-50 hover:border-green-300 hover:scale-105 hover:shadow-md snap-center"
+                  className="px-5 py-2.5 border rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400 hover:text-black"
                 >
                   {category}
                 </button>
@@ -117,11 +116,14 @@ const Index = () => {
           </div>
         </section>
 
+        {/* Service Highlights Strip */}
+        <ServiceHighlights onServiceClick={handleServiceClick} />
+
         {/* Featured Products Section with Animation */}
         <div 
           ref={featuredProductsRef}
           className={`
-            mb-8 transition-all duration-700 ease-out
+            transition-all duration-700 ease-out
             ${featuredProductsVisible 
               ? 'opacity-100 translate-y-0' 
               : 'opacity-0 translate-y-8'
@@ -136,7 +138,7 @@ const Index = () => {
       <footer 
         ref={footerRef}
         className={`
-          bg-gray-900 text-white py-12 sm:py-16 -mx-4 sm:-mx-6 lg:-mx-8
+          bg-black text-white py-16 sm:py-20
           transition-all duration-700 ease-out
           ${footerVisible 
             ? 'opacity-100 translate-y-0' 
@@ -145,14 +147,14 @@ const Index = () => {
         `}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
             {/* Customer Service */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Customer Service</h3>
-              <ul className="space-y-2">
+              <h3 className="text-lg font-semibold mb-4 text-gray-300">Customer Service</h3>
+              <ul className="space-y-3">
                 {['Contact Us', 'Returns', 'FAQs', 'Shipping Policy'].map((link) => (
                   <li key={link}>
-                    <a href="#" className="text-gray-300 hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1 transition-colors duration-200">{link}</a>
+                    <a href="#" className="text-gray-400 hover:text-white hover:underline focus:outline-none focus:ring-1 focus:ring-white rounded px-1 transition-colors duration-200">{link}</a>
                   </li>
                 ))}
               </ul>
@@ -160,8 +162,8 @@ const Index = () => {
 
             {/* Information */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Information</h3>
-              <ul className="space-y-2">
+              <h3 className="text-lg font-semibold mb-4 text-gray-300">Information</h3>
+              <ul className="space-y-3">
                 {[
                   { text: 'About Us', onClick: () => navigateTo('/about-us') },
                   { text: 'Privacy Policy', onClick: () => {} },
@@ -171,7 +173,7 @@ const Index = () => {
                   <li key={link.text}>
                     <button 
                       onClick={link.onClick}
-                      className="text-gray-300 hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1 transition-colors duration-200"
+                      className="text-gray-400 hover:text-white hover:underline focus:outline-none focus:ring-1 focus:ring-white rounded px-1 transition-colors duration-200 text-left w-full"
                     >
                       {link.text}
                     </button>
@@ -182,21 +184,21 @@ const Index = () => {
 
             {/* Connect */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Connect</h3>
+              <h3 className="text-lg font-semibold mb-4 text-gray-300">Connect</h3>
               <div className="flex space-x-4 mb-6">
                 {['Facebook', 'Twitter', 'Instagram', 'YouTube'].map((social) => (
                   <button
                     key={social}
-                    className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-green-600 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                    className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white transition-all duration-200"
                   >
                     <span className="sr-only">{social}</span>
-                    <div className="w-5 h-5 bg-gray-400 rounded"></div>
+                    <div className="w-5 h-5 bg-gray-600 rounded"></div>
                   </button>
                 ))}
               </div>
               <div className="flex flex-wrap gap-2">
                 {['GMP Certified', 'ISO 9001', 'Verified Pharmacy'].map((seal) => (
-                  <div key={seal} className="text-xs text-gray-400 border border-gray-600 px-2 py-1 rounded hover:border-gray-500 transition-colors duration-200">
+                  <div key={seal} className="text-xs text-gray-400 border border-gray-700 px-2 py-1 rounded-full hover:border-gray-500 transition-colors duration-200">
                     {seal}
                   </div>
                 ))}
@@ -205,21 +207,21 @@ const Index = () => {
 
             {/* Newsletter */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Newsletter</h3>
+              <h3 className="text-lg font-semibold mb-4 text-gray-300">Newsletter</h3>
               <div className="flex flex-col sm:flex-row gap-2 mb-4">
                 <Input 
                   placeholder="Enter your email" 
-                  className="flex-1 bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500"
+                  className="flex-1 bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:ring-white focus:border-white rounded-md"
                 />
-                <Button disabled className="bg-gray-600 text-gray-400 cursor-not-allowed whitespace-nowrap">Subscribe</Button>
+                <Button disabled className="bg-gray-700 text-gray-400 cursor-not-allowed whitespace-nowrap rounded-md">Subscribe</Button>
               </div>
               <div className="hidden text-green-400 text-sm">Thank you for subscribing!</div>
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center">
+          <div className="border-t border-gray-800 mt-16 pt-8 text-center">
             <p className="text-gray-400 mb-2">© 2025 Capsule Care Pharma – All Rights Reserved.</p>
-            <a href="#" className="text-gray-500 hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-1 text-sm transition-colors duration-200">
+            <a href="#" className="text-gray-500 hover:text-white hover:underline focus:outline-none focus:ring-1 focus:ring-white rounded px-1 text-sm transition-colors duration-200">
               Accessibility Statement
             </a>
           </div>

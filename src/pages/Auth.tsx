@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -126,42 +127,42 @@ const Auth = () => {
       {/* Left Panel - Hero Image */}
       <div className="relative lg:w-1/2 h-[40vh] lg:h-screen bg-cover bg-center bg-no-repeat"
            style={{
-             backgroundImage: `linear-gradient(rgba(39, 174, 96, 0.3), rgba(39, 174, 96, 0.3)), url('https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')`
+             backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')`
            }}>
         <div className="absolute bottom-0 left-0 p-10 text-white">
           <div className="mb-4">
             <div className="w-24 h-0.5 bg-white mb-6"></div>
             <h1 className="text-4xl font-bold mb-4 leading-tight">
-              Your Health, Our Priority
+              Secure, Simple, Swift.
             </h1>
             <p className="text-lg opacity-85">
-              Trusted Care Delivered to Your Doorstep
+              Your health journey starts here.
             </p>
           </div>
         </div>
       </div>
 
       {/* Right Panel - Authentication Form */}
-      <div className="lg:w-1/2 flex items-center justify-center p-8 bg-white">
-        <Card className="w-full max-w-md shadow-lg rounded-xl border-0">
+      <div className="lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
+        <Card className="w-full max-w-md shadow-xl rounded-xl border-0 bg-white">
           <CardHeader className="text-center pb-8">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-[#27AE60] mb-2">Capsule Care</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Capsule Care</h2>
             </div>
             
             {showRedirectMessage && (
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
+              <div className="mb-4 p-3 bg-gray-100 border border-gray-200 rounded-lg">
+                <p className="text-sm text-gray-800">
                   You must be logged in to add items to your cart or complete checkout.
                 </p>
               </div>
             )}
             
-            <h3 className="text-2xl font-bold text-[#0B1F45] mb-2">
-              {isLogin ? 'Log In' : 'Sign Up'}
+            <h3 className="text-3xl font-bold text-black mb-2">
+              {isLogin ? 'Welcome Back' : 'Create Account'}
             </h3>
-            <p className="text-[#6C757D]">
-              {isLogin ? 'Access your account' : 'Create a new account'}
+            <p className="text-gray-500">
+              {isLogin ? 'Access your account securely' : 'Join us in minutes'}
             </p>
           </CardHeader>
           
@@ -169,7 +170,7 @@ const Auth = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-[#0B1F45] mb-2">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                     Full Name
                   </label>
                   <Input
@@ -179,13 +180,13 @@ const Auth = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required={!isLogin}
-                    className="h-11 rounded-lg border-gray-300 focus:border-[#27AE60] focus:ring-[#27AE60]"
+                    className="h-12 rounded-lg border-gray-300 focus:border-black focus:ring-black"
                   />
                 </div>
               )}
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-[#0B1F45] mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   Email
                 </label>
                 <Input
@@ -195,12 +196,12 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="h-11 rounded-lg border-gray-300 focus:border-[#27AE60] focus:ring-[#27AE60]"
+                  className="h-12 rounded-lg border-gray-300 focus:border-black focus:ring-black"
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-[#0B1F45] mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                   Password
                 </label>
                 <div className="relative">
@@ -211,7 +212,7 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-11 rounded-lg border-gray-300 focus:border-[#27AE60] focus:ring-[#27AE60] pr-10"
+                    className="h-12 rounded-lg border-gray-300 focus:border-black focus:ring-black pr-10"
                   />
                   <button
                     type="button"
@@ -225,7 +226,7 @@ const Auth = () => {
 
               {!isLogin && (
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#0B1F45] mb-2">
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -236,7 +237,7 @@ const Auth = () => {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
-                      className="h-11 rounded-lg border-gray-300 focus:border-[#27AE60] focus:ring-[#27AE60] pr-10"
+                      className="h-12 rounded-lg border-gray-300 focus:border-black focus:ring-black pr-10"
                     />
                     <button
                       type="button"
@@ -252,7 +253,7 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 bg-[#27AE60] hover:bg-[#219150] text-white font-semibold rounded-lg transition-colors"
+                className="w-full h-12 bg-black hover:bg-gray-800 text-white font-semibold rounded-lg transition-colors text-base"
               >
                 {isLoading ? 'Loading...' : (isLogin ? 'Log In' : 'Create Account')}
               </Button>
@@ -261,7 +262,7 @@ const Auth = () => {
             <div className="text-center">
               <button
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-[#27AE60] hover:underline font-medium"
+                className="text-black hover:underline font-medium"
               >
                 {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
               </button>
@@ -278,7 +279,7 @@ const Auth = () => {
               type="button"
               variant="outline"
               onClick={handleGoogleAuth}
-              className="w-full h-11 border-gray-300 hover:bg-gray-50 rounded-lg"
+              className="w-full h-12 border-gray-300 hover:bg-gray-100 rounded-lg text-base"
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -294,7 +295,7 @@ const Auth = () => {
                 type="button"
                 variant="outline"
                 onClick={() => navigate('/shop')}
-                className="w-full h-11 border-gray-300 hover:bg-gray-50 rounded-lg"
+                className="w-full h-12 border-gray-300 hover:bg-gray-100 rounded-lg text-base"
               >
                 View Store Without Signing In
               </Button>
@@ -306,20 +307,20 @@ const Auth = () => {
                 type="button"
                 variant="outline"
                 onClick={() => navigate('/staff/login')}
-                className="w-full h-11 border-[#27AE60] text-[#27AE60] hover:bg-[#27AE60] hover:text-white rounded-lg transition-colors"
+                className="w-full h-12 border-gray-400 text-gray-600 hover:bg-gray-100 hover:border-black hover:text-black rounded-lg transition-colors text-base"
               >
                 <Shield className="w-4 h-4 mr-2" />
                 Staff Login
               </Button>
             </div>
 
-            <p className="text-center text-xs text-[#6C757D] mt-6">
+            <p className="text-center text-xs text-gray-500 mt-6">
               By continuing, you agree to our{' '}
-              <a href="#" className="text-[#27AE60] underline hover:no-underline">
+              <a href="#" className="text-black underline hover:no-underline">
                 Privacy Policy
               </a>{' '}
               and{' '}
-              <a href="#" className="text-[#27AE60] underline hover:no-underline">
+              <a href="#" className="text-black underline hover:no-underline">
                 Terms of Service
               </a>
             </p>
