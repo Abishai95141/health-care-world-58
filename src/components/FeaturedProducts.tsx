@@ -12,7 +12,7 @@ const FeaturedProducts = () => {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   
   const { products, loading } = useProducts({
-    limit: 12,
+    limit: 8, // Only show 8 products (4x2 grid)
     sortBy: 'created_at',
     sortOrder: 'desc'
   });
@@ -29,8 +29,8 @@ const FeaturedProducts = () => {
           <h2 className="text-4xl lg:text-5xl font-light text-black mb-16 text-center tracking-tight">
             Featured Products
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8">
-            {Array.from({ length: 12 }).map((_, index) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+            {Array.from({ length: 8 }).map((_, index) => (
               <Card key={index} className="animate-pulse border-gray-100 rounded-2xl">
                 <CardContent className="p-6">
                   <div className="aspect-square bg-gray-100 rounded-xl mb-6"></div>
@@ -60,8 +60,9 @@ const FeaturedProducts = () => {
         
         {products.length > 0 ? (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8 mb-16">
-              {products.map((product, index) => (
+            {/* Product Grid - 4 columns, maximum 2 rows */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 mb-16">
+              {products.slice(0, 8).map((product, index) => (
                 <div
                   key={product.id}
                   className="animate-fade-in"
@@ -75,6 +76,7 @@ const FeaturedProducts = () => {
               ))}
             </div>
             
+            {/* View All Products Button */}
             <div className="text-center">
               <button
                 onClick={() => navigate('/shop')}

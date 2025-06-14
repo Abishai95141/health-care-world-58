@@ -41,17 +41,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
 
   return (
     <div 
-      className="group bg-white rounded-lg shadow-sm border hover:shadow-xl hover:-translate-y-2 hover:scale-105 transition-all duration-300 ease-out overflow-hidden cursor-pointer"
+      className="group bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-3 hover:scale-105 transition-all duration-500 ease-out overflow-hidden cursor-pointer"
       onClick={() => onProductClick(product)}
     >
       <div className="relative">
         {/* Product Image */}
-        <div className="aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
+        <div className="aspect-square bg-gray-50 flex items-center justify-center relative overflow-hidden rounded-t-2xl">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               onError={(e) => {
                 // Hide broken images and show fallback
                 e.currentTarget.style.display = 'none';
@@ -62,75 +62,77 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
           
           {/* Fallback when no image or broken image */}
           <div className={`absolute inset-0 flex items-center justify-center ${imageUrl ? 'hidden' : ''}`}>
-            <span className="text-gray-400 text-sm">No Image</span>
+            <span className="text-gray-400 text-sm font-light">No Image</span>
           </div>
           
           {/* Out of Stock Overlay */}
           {isOutOfStock && (
-            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-              <span className="text-white font-semibold text-lg">Out of Stock</span>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+              <span className="text-white font-medium text-lg">Out of Stock</span>
             </div>
           )}
           
           {/* Discount Badge */}
           {hasDiscount && !isOutOfStock && (
-            <Badge className="absolute top-2 left-2 bg-red-500 text-white animate-pulse">
+            <Badge className="absolute top-3 left-3 bg-black text-white px-3 py-1 text-xs font-medium">
               {discountPercent}% OFF
             </Badge>
           )}
           
           {/* Prescription Required Badge */}
           {product.requires_prescription && (
-            <Badge className="absolute top-2 right-2 bg-blue-500 text-white text-xs">
+            <Badge className="absolute top-3 right-3 bg-gray-800 text-white text-xs px-2 py-1">
               Rx
             </Badge>
           )}
           
           {/* Low Stock Badge */}
           {isLowStock && !isOutOfStock && (
-            <Badge className="absolute bottom-2 right-2 bg-orange-500 text-white text-xs animate-bounce">
+            <Badge className="absolute bottom-3 right-3 bg-gray-700 text-white text-xs px-2 py-1">
               Only {product.stock} left
             </Badge>
           )}
         </div>
         
         {/* Product Info */}
-        <div className="p-4">
-          <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 text-sm group-hover:text-green-700 transition-colors duration-200">
-            {product.name}
-          </h3>
+        <div className="p-6 space-y-4">
+          <div className="space-y-2">
+            <h3 className="font-medium text-black text-base line-clamp-2 group-hover:text-gray-800 transition-colors duration-300 leading-relaxed">
+              {product.name}
+            </h3>
+            
+            {product.brand && (
+              <p className="text-gray-500 text-sm font-light group-hover:text-gray-600 transition-colors duration-300">{product.brand}</p>
+            )}
+          </div>
           
-          {product.brand && (
-            <p className="text-gray-600 text-xs mb-2 group-hover:text-gray-700 transition-colors duration-200">{product.brand}</p>
-          )}
-          
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center space-x-2">
-              <span className="text-lg font-bold text-green-600 group-hover:text-green-700 transition-colors duration-200">₹{product.price}</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <span className="text-xl font-semibold text-black group-hover:text-gray-800 transition-colors duration-300">₹{product.price}</span>
               {hasDiscount && (
-                <span className="text-sm text-gray-500 line-through">₹{product.mrp}</span>
+                <span className="text-sm text-gray-400 line-through font-light">₹{product.mrp}</span>
               )}
             </div>
           </div>
           
-          {/* Rating (placeholder) */}
-          <div className="flex items-center mb-3">
+          {/* Rating */}
+          <div className="flex items-center space-x-2">
             <div className="flex space-x-1">
               {[1, 2, 3, 4, 5].map((star) => (
-                <Star key={star} className="h-3 w-3 fill-yellow-400 text-yellow-400 group-hover:scale-110 transition-transform duration-200" />
+                <Star key={star} className="h-3 w-3 fill-gray-800 text-gray-800 group-hover:scale-110 transition-transform duration-300" />
               ))}
             </div>
-            <span className="text-xs text-gray-600 ml-1">(24)</span>
+            <span className="text-xs text-gray-500 font-light">(24)</span>
           </div>
           
           {/* Stock status indicator */}
-          <div className="text-xs text-gray-600">
+          <div className="text-xs font-medium">
             {isOutOfStock ? (
-              <span className="text-red-600 font-medium">Out of Stock</span>
+              <span className="text-gray-500">Out of Stock</span>
             ) : isLowStock ? (
-              <span className="text-orange-600 font-medium">Low Stock</span>
+              <span className="text-gray-600">Low Stock</span>
             ) : (
-              <span className="text-green-600 font-medium">In Stock</span>
+              <span className="text-gray-800">In Stock</span>
             )}
           </div>
         </div>
