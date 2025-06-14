@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -25,9 +26,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
   const isOutOfStock = product.stock === 0;
   const isLowStock = product.stock > 0 && product.stock <= 10;
 
-  // Use the new uploaded medicine image as the standard placeholder
+  // Use the uploaded medicine image as the standard placeholder
   const getPlaceholderImage = () => {
-    return '/lovable-uploads/bb1d84b7-7fc7-482e-97c8-ce4c401a2309.png';
+    return '/lovable-uploads/9a2eeb89-b9ec-4acf-b9f5-5a87173a3c74.png';
   };
 
   // Get the first valid image URL or use placeholder
@@ -136,3 +137,4 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
 };
 
 export default ProductCard;
+
