@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, ShoppingCart, User, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -133,21 +132,29 @@ const ChatWidget: React.FC = () => {
     }
   };
 
+  console.log('ChatWidget rendering, isOpen:', isOpen);
+
   if (!isOpen) {
     return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 left-6 w-14 h-14 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-50 flex items-center justify-center group"
-        aria-label="Open HealthCare Assistant"
-      >
-        <MessageCircle className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
-        <div className="absolute -top-2 -right-2 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-      </button>
+      <div className="fixed bottom-4 left-4 z-[9999]">
+        <button
+          onClick={() => {
+            console.log('Chat button clicked');
+            setIsOpen(true);
+          }}
+          className="w-16 h-16 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center group border-2 border-white"
+          aria-label="Open HealthCare Assistant"
+          style={{ position: 'relative' }}
+        >
+          <MessageCircle className="w-7 h-7 group-hover:scale-110 transition-transform duration-200" />
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-pulse border-2 border-white"></div>
+        </button>
+      </div>
     );
   }
 
   return (
-    <div className="fixed bottom-6 left-6 w-80 h-[520px] bg-white rounded-lg shadow-2xl border border-gray-200 z-50 flex flex-col animate-in slide-in-from-bottom-4 duration-250 ease-out sm:w-96">
+    <div className="fixed bottom-4 left-4 w-80 h-[520px] bg-white rounded-lg shadow-2xl border border-gray-200 z-[9999] flex flex-col animate-in slide-in-from-bottom-4 duration-250 ease-out sm:w-96">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-green-600 text-white rounded-t-lg">
         <div className="flex items-center space-x-3">
