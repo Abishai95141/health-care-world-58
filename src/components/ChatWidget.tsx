@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, ShoppingCart, User, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -136,42 +137,57 @@ const ChatWidget: React.FC = () => {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-4 left-4 z-[9999]">
+      <div 
+        className="fixed bottom-4 left-4 z-[999999]" 
+        style={{ 
+          position: 'fixed',
+          bottom: '16px',
+          left: '16px',
+          zIndex: 999999
+        }}
+      >
         <button
           onClick={() => {
             console.log('Chat button clicked');
             setIsOpen(true);
           }}
-          className="w-16 h-16 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center group border-2 border-white"
+          className="w-16 h-16 bg-black hover:bg-gray-800 text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center group border-2 border-gray-300"
           aria-label="Open HealthCare Assistant"
-          style={{ position: 'relative' }}
         >
           <MessageCircle className="w-7 h-7 group-hover:scale-110 transition-transform duration-200" />
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-pulse border-2 border-white"></div>
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full animate-pulse border-2 border-black"></div>
         </button>
       </div>
     );
   }
 
   return (
-    <div className="fixed bottom-4 left-4 w-80 h-[520px] bg-white rounded-lg shadow-2xl border border-gray-200 z-[9999] flex flex-col animate-in slide-in-from-bottom-4 duration-250 ease-out sm:w-96">
+    <div 
+      className="fixed bottom-4 left-4 w-80 h-[520px] bg-white rounded-lg shadow-2xl border-2 border-black z-[999999] flex flex-col sm:w-96"
+      style={{ 
+        position: 'fixed',
+        bottom: '16px',
+        left: '16px',
+        zIndex: 999999
+      }}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-green-600 text-white rounded-t-lg">
+      <div className="flex items-center justify-between p-4 border-b-2 border-black bg-black text-white rounded-t-lg">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-            <User className="w-5 h-5 text-green-600" />
+            <User className="w-5 h-5 text-black" />
           </div>
           <div>
             <h3 className="font-medium">HealthCare Assistant</h3>
             <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-green-300 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
               <span className="text-xs opacity-90">Online</span>
             </div>
           </div>
         </div>
         <button
           onClick={() => setIsOpen(false)}
-          className="p-1 hover:bg-green-700 rounded transition-colors"
+          className="p-1 hover:bg-gray-800 rounded transition-colors"
           aria-label="Close chat"
         >
           <X className="w-5 h-5" />
@@ -184,7 +200,7 @@ const ChatWidget: React.FC = () => {
           <div key={message.id} className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}>
             <div className={`max-w-[80%] rounded-lg px-3 py-2 ${
               message.isBot 
-                ? 'bg-gray-100 text-gray-900' 
+                ? 'bg-gray-100 text-black border border-gray-300' 
                 : 'bg-black text-white'
             }`}>
               <p className="text-sm whitespace-pre-wrap">{message.text}</p>
@@ -193,31 +209,31 @@ const ChatWidget: React.FC = () => {
               {message.products && message.products.length > 0 && (
                 <div className="mt-3 space-y-2">
                   {message.products.map((product) => (
-                    <div key={product.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                    <div key={product.id} className="bg-white border-2 border-black rounded-lg p-3">
                       <div className="flex items-start space-x-3">
                         {product.image_urls && product.image_urls[0] && (
                           <img 
                             src={product.image_urls[0]} 
                             alt={product.name}
-                            className="w-12 h-12 object-cover rounded"
+                            className="w-12 h-12 object-cover rounded border border-gray-300"
                           />
                         )}
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-sm text-gray-900 truncate">{product.name}</h4>
+                          <h4 className="font-medium text-sm text-black truncate">{product.name}</h4>
                           <div className="flex items-center space-x-2 mt-1">
-                            <span className="text-green-600 font-medium">₹{product.price}</span>
+                            <span className="text-black font-medium">₹{product.price}</span>
                             {product.mrp && product.mrp > product.price && (
                               <span className="text-xs text-gray-500 line-through">₹{product.mrp}</span>
                             )}
                           </div>
                           <div className="flex items-center justify-between mt-2">
-                            <span className={`text-xs px-2 py-1 rounded ${
-                              product.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            <span className={`text-xs px-2 py-1 rounded border ${
+                              product.stock > 0 ? 'bg-white text-black border-black' : 'bg-gray-200 text-gray-800 border-gray-400'
                             }`}>
                               {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
                             </span>
                             {product.requires_prescription && (
-                              <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                              <span className="text-xs bg-gray-200 text-black px-2 py-1 rounded border border-gray-400">
                                 Prescription
                               </span>
                             )}
@@ -226,7 +242,7 @@ const ChatWidget: React.FC = () => {
                             size="sm"
                             onClick={() => handleAddToCart(product)}
                             disabled={product.stock === 0}
-                            className="w-full mt-2 h-7 text-xs"
+                            className="w-full mt-2 h-7 text-xs bg-black text-white hover:bg-gray-800 border border-black"
                           >
                             <ShoppingCart className="w-3 h-3 mr-1" />
                             Add to Cart
@@ -244,11 +260,11 @@ const ChatWidget: React.FC = () => {
         {/* Typing Indicator */}
         {isTyping && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg px-3 py-2 flex items-center space-x-1">
+            <div className="bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 flex items-center space-x-1">
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-black rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
             </div>
           </div>
@@ -258,7 +274,7 @@ const ChatWidget: React.FC = () => {
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t-2 border-black">
         <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="flex space-x-2">
           <Input
             ref={inputRef}
@@ -266,13 +282,13 @@ const ChatWidget: React.FC = () => {
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type your message..."
             disabled={isTyping}
-            className="flex-1 text-sm"
+            className="flex-1 text-sm border-2 border-black focus:border-black focus:ring-0"
           />
           <Button
             type="submit"
             size="sm"
             disabled={!inputValue.trim() || isTyping}
-            className="px-3"
+            className="px-3 bg-black text-white hover:bg-gray-800 border-2 border-black"
           >
             {isTyping ? (
               <Loader2 className="w-4 h-4 animate-spin" />
