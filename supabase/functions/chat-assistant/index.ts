@@ -229,7 +229,7 @@ Current conversation context:
 
   try {
     console.log('Making Gemini API request...');
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -239,23 +239,7 @@ Current conversation context:
           parts: [{
             text: `${systemPrompt}\n\nUser: ${userPrompt}`
           }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 500,
-          topP: 0.8,
-          topK: 40
-        },
-        safetySettings: [
-          {
-            category: "HARM_CATEGORY_MEDICAL",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            category: "HARM_CATEGORY_DANGEROUS_CONTENT", 
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          }
-        ]
+        }]
       }),
     });
 
