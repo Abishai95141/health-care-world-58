@@ -3,10 +3,12 @@ import React, { useState } from 'react';
 import { X, Minus, Plus, Star, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/hooks/useCart';
 import { useOrder } from '@/hooks/useOrder';
 import { useNavigate } from 'react-router-dom';
+import ReviewsSection from './ReviewsSection';
 
 interface Product {
   id: string;
@@ -29,7 +31,7 @@ interface ProductModalProps {
 const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState('details');
+  const [activeTab, setActiveTab] = useState('reviews');
   const { user } = useAuth();
   const { addToCart } = useCart();
   const { createSingleItemOrder, loading: orderLoading } = useOrder();
@@ -79,21 +81,23 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
 
     if (product.stock >= quantity) {
       await createSingleItemOrder(product, quantity);
-      // The createSingleItemOrder function will handle navigation to order confirmation
-      onClose(); // Close the modal
+      onClose();
     }
   };
 
-  const stockPercentage = (product.stock / 100) * 100; // Assuming max stock of 100 for display
+  const stockPercentage = (product.stock / 100) * 100;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose} />
-      <div className="relative bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in">
+      <div 
+        className="absolute inset-0 bg-black bg-opacity-50" 
+        onClick={onClose} 
+      />
+      <div className="relative bg-white rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden animate-scale-in">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-100"
+          className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-all duration-200"
         >
           <X className="h-5 w-5" />
         </button>
@@ -115,8 +119,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
                   <button
                     key={index}
                     onClick={() => setSelectedImageIndex(index)}
-                    className={`flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden ${
-                      selectedImageIndex === index ? 'border-green-500' : 'border-gray-200'
+                    className={`flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden transition-all duration-200 ${
+                      selectedImageIndex === index ? 'border-black' : 'border-gray-200 hover:border-gray-400'
                     }`}
                   >
                     <img
@@ -132,79 +136,72 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
 
           {/* Right side - Product info */}
           <div className="p-6 overflow-y-auto">
-            <div className="mb-4">
+            <div className="mb-6">
               {product.brand && (
-                <p className="text-sm text-gray-600 mb-1">{product.brand}</p>
+                <p className="text-sm text-gray-600 mb-2">{product.brand}</p>
               )}
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
+              <h1 className="text-2xl font-bold text-[#111] mb-4">{product.name}</h1>
               
-              {/* Rating */}
-              <div className="flex items-center mb-4">
-                <div className="flex space-x-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
+              {/* Info Cards */}
+              <div className="space-y-4 mb-6">
+                {/* Price Card */}
+                <div className="bg-white border border-gray-100 rounded-lg p-4 hover:shadow-md hover:translate-y-[-3px] transition-all duration-200">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-3xl font-bold text-[#111]">₹{product.price}</span>
+                    {hasDiscount && (
+                      <>
+                        <span className="text-lg text-gray-500 line-through">₹{product.mrp}</span>
+                        <Badge className="bg-red-500 text-white hover:bg-red-600">
+                          {discountPercent}% OFF
+                        </Badge>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <span className="text-sm text-gray-600 ml-2">(24 reviews)</span>
-              </div>
 
-              {/* Price */}
-              <div className="flex items-center space-x-3 mb-4">
-                <span className="text-3xl font-bold text-green-600">₹{product.price}</span>
-                {hasDiscount && (
-                  <>
-                    <span className="text-xl text-gray-500 line-through">₹{product.mrp}</span>
-                    <Badge className="bg-red-500 text-white">
-                      {discountPercent}% OFF
-                    </Badge>
-                  </>
-                )}
-              </div>
-
-              {/* Prescription badge */}
-              {product.requires_prescription && (
-                <Badge className="bg-blue-500 text-white mb-4">
-                  Prescription Required
-                </Badge>
-              )}
-
-              {/* Stock status */}
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">
-                    {isOutOfStock ? 'Out of Stock' : isLowStock ? 'Low Stock' : 'In Stock'}
-                  </span>
-                  <span className="text-sm text-gray-600">{product.stock} available</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full ${
-                      isOutOfStock ? 'bg-red-500' : isLowStock ? 'bg-orange-500' : 'bg-green-500'
-                    }`}
-                    style={{ width: `${Math.min(stockPercentage, 100)}%` }}
+                {/* Stock Status Card */}
+                <div className="bg-white border border-gray-100 rounded-lg p-4 hover:shadow-md hover:translate-y-[-3px] transition-all duration-200">
+                  <div className="mb-2">
+                    <span className="text-sm font-medium text-[#111]">
+                      {isOutOfStock ? 'Out of Stock' : isLowStock ? 'Low Stock' : 'In Stock'}
+                    </span>
+                    <span className="text-sm text-gray-600 ml-2">({product.stock} available)</span>
+                  </div>
+                  <Progress 
+                    value={Math.min(stockPercentage, 100)} 
+                    className={`h-2 ${isOutOfStock ? '[&>div]:bg-red-500' : isLowStock ? '[&>div]:bg-orange-500' : '[&>div]:bg-green-500'}`}
                   />
                 </div>
+
+                {/* Prescription Badge */}
+                {product.requires_prescription && (
+                  <div className="bg-white border border-gray-100 rounded-lg p-4 hover:shadow-md hover:translate-y-[-3px] transition-all duration-200">
+                    <Badge className="bg-gray-100 text-[#111] hover:bg-gray-200 rounded-full px-4 py-2">
+                      Rx Required
+                    </Badge>
+                  </div>
+                )}
               </div>
 
               {/* Quantity selector */}
               {!isOutOfStock && (
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[#111] mb-2">
                     Quantity
                   </label>
                   <div className="flex items-center space-x-3">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="p-2 border border-gray-300 rounded hover:bg-gray-50"
+                      className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                     >
                       <Minus className="h-4 w-4" />
                     </button>
-                    <span className="px-4 py-2 border border-gray-300 rounded min-w-[60px] text-center">
+                    <span className="px-4 py-2 border border-gray-300 rounded-lg min-w-[60px] text-center">
                       {quantity}
                     </span>
                     <button
                       onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                      className="p-2 border border-gray-300 rounded hover:bg-gray-50"
+                      className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                     >
                       <Plus className="h-4 w-4" />
                     </button>
@@ -217,7 +214,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
                 <Button
                   onClick={handleAddToCart}
                   disabled={isOutOfStock}
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="w-full bg-black text-white hover:bg-white hover:text-black hover:border-black border-2 border-transparent rounded-lg transition-all duration-200 hover:scale-105"
                 >
                   <ShoppingCart className="w-4 h-4 mr-2" />
                   Add to Cart
@@ -225,8 +222,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
                 <Button
                   onClick={handleBuyNow}
                   disabled={isOutOfStock || orderLoading}
-                  variant="outline"
-                  className="w-full"
+                  className="w-full bg-black text-white hover:bg-white hover:text-black hover:border-black border-2 border-transparent rounded-lg transition-all duration-200 hover:scale-105"
                 >
                   {orderLoading ? 'Processing...' : 'Buy Now'}
                 </Button>
@@ -236,22 +232,25 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
             {/* Tabs */}
             <div className="border-t pt-6">
               <div className="flex space-x-6 mb-4 border-b">
-                {['details', 'ingredients', 'reviews', 'qa'].map((tab) => (
+                {['reviews', 'details', 'ingredients', 'qa'].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`pb-2 text-sm font-medium capitalize ${
+                    className={`pb-2 text-sm font-medium capitalize transition-all duration-150 ${
                       activeTab === tab
-                        ? 'text-green-600 border-b-2 border-green-600'
-                        : 'text-gray-600 hover:text-gray-900'
+                        ? 'text-black border-b-2 border-black'
+                        : 'text-gray-600 hover:text-[#111]'
                     }`}
                   >
-                    {tab === 'qa' ? 'Q&A' : tab}
+                    {tab === 'qa' ? 'Q&A' : tab === 'reviews' ? 'Customer Reviews' : tab}
                   </button>
                 ))}
               </div>
 
-              <div className="text-sm text-gray-700">
+              <div className="text-sm text-[#111]">
+                {activeTab === 'reviews' && (
+                  <ReviewsSection productId={product.id} />
+                )}
                 {activeTab === 'details' && (
                   <div>
                     <p>{product.description || 'No description available.'}</p>
@@ -260,11 +259,6 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
                 {activeTab === 'ingredients' && (
                   <div>
                     <p>Ingredient information not available.</p>
-                  </div>
-                )}
-                {activeTab === 'reviews' && (
-                  <div>
-                    <p>Customer reviews will be displayed here.</p>
                   </div>
                 )}
                 {activeTab === 'qa' && (
