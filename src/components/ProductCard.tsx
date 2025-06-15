@@ -1,11 +1,16 @@
 
 import React from 'react';
-import { Star } from 'lucide-react';
+import { ShoppingCart, Star } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/hooks/useCart';
 
 interface Product {
   id: string;
   name: string;
+  slug: string;
   price: number;
   mrp: number | null;
   stock: number;
@@ -16,120 +21,105 @@ interface Product {
 
 interface ProductCardProps {
   product: Product;
-  onProductClick: (product: Product) => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addToCart } = useCart();
+
   const hasDiscount = product.mrp && product.mrp > product.price;
   const discountPercent = hasDiscount ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
   const isOutOfStock = product.stock === 0;
   const isLowStock = product.stock > 0 && product.stock <= 10;
 
-  // Use the new uploaded medicine image as the standard placeholder
-  const getPlaceholderImage = () => {
-    return '/lovable-uploads/67d3fb0f-b343-4363-9e20-7f3dda0049b3.png';
-  };
+  const imageUrl = product.image_urls && product.image_urls.length > 0 
+    ? product.image_urls[0] 
+    : '/placeholder.svg';
 
-  // Get the first valid image URL or use placeholder
-  const getImageUrl = () => {
-    if (product.image_urls && product.image_urls.length > 0) {
-      // Filter out empty strings and null values
-      const validUrls = product.image_urls.filter(url => url && url.trim() !== '');
-      if (validUrls.length > 0) {
-        return validUrls[0];
-      }
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      navigate('/auth', { 
+        state: { 
+          from: `/product/${product.slug}`,
+          action: 'addToCart',
+          productId: product.id,
+          quantity: 1
+        }
+      });
+      return;
     }
-    return getPlaceholderImage();
+
+    if (product.stock >= 1) {
+      await addToCart(product.id, 1);
+    }
   };
 
-  const imageUrl = getImageUrl();
+  const handleProductClick = () => {
+    navigate(`/product/${product.slug}`);
+  };
 
   return (
     <div 
-      className="group bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-3 hover:scale-105 transition-all duration-500 ease-out overflow-hidden cursor-pointer"
-      onClick={() => onProductClick(product)}
+      onClick={handleProductClick}
+      className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer"
     >
-      <div className="relative">
-        {/* Product Image */}
-        <div className="aspect-square bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center relative overflow-hidden rounded-t-2xl">
-          <img
-            src={imageUrl}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            loading="lazy"
-          />
-          
-          {/* Out of Stock Overlay */}
-          {isOutOfStock && (
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
-              <span className="text-white font-medium text-lg">Out of Stock</span>
-            </div>
-          )}
-          
-          {/* Discount Badge */}
-          {hasDiscount && !isOutOfStock && (
-            <Badge className="absolute top-3 left-3 bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-xs font-medium rounded-full">
-              {discountPercent}% OFF
-            </Badge>
-          )}
-          
-          {/* Prescription Required Badge */}
-          {product.requires_prescription && (
-            <Badge className="absolute top-3 right-3 bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded-full font-medium">
-              Rx
-            </Badge>
-          )}
-          
-          {/* Low Stock Badge */}
-          {isLowStock && !isOutOfStock && (
-            <Badge className="absolute bottom-3 right-3 bg-orange-500 hover:bg-orange-600 text-white text-xs px-2 py-1 rounded-full font-medium">
-              Only {product.stock} left
-            </Badge>
-          )}
-        </div>
+      <div className="relative overflow-hidden">
+        <img
+          src={imageUrl}
+          alt={product.name}
+          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        {hasDiscount && (
+          <Badge className="absolute top-3 left-3 bg-red-500 text-white hover:bg-red-600">
+            {discountPercent}% OFF
+          </Badge>
+        )}
+        {product.requires_prescription && (
+          <Badge className="absolute top-3 right-3 bg-gray-100 text-[#111] hover:bg-gray-200 rounded-full px-3 py-1">
+            Rx
+          </Badge>
+        )}
+      </div>
+
+      <div className="p-4 space-y-3">
+        {product.brand && (
+          <p className="text-xs text-gray-600 uppercase tracking-wide font-medium">{product.brand}</p>
+        )}
         
-        {/* Product Info */}
-        <div className="p-6 space-y-4">
-          <div className="space-y-2">
-            <h3 className="font-medium text-black text-base line-clamp-2 group-hover:text-gray-800 transition-colors duration-300 leading-relaxed">
-              {product.name}
-            </h3>
-            
-            {product.brand && (
-              <p className="text-gray-500 text-sm font-light group-hover:text-gray-600 transition-colors duration-300">{product.brand}</p>
-            )}
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <span className="text-xl font-semibold text-black group-hover:text-gray-800 transition-colors duration-300">₹{product.price}</span>
-              {hasDiscount && (
-                <span className="text-sm text-gray-400 line-through font-light">₹{product.mrp}</span>
-              )}
-            </div>
-          </div>
-          
-          {/* Rating */}
-          <div className="flex items-center space-x-2">
-            <div className="flex space-x-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star key={star} className="h-3 w-3 fill-yellow-400 text-yellow-400 group-hover:scale-110 transition-transform duration-300" />
-              ))}
-            </div>
-            <span className="text-xs text-gray-500 font-light">(24)</span>
-          </div>
-          
-          {/* Stock status indicator */}
-          <div className="text-xs font-medium">
-            {isOutOfStock ? (
-              <span className="text-red-500 bg-red-50 px-2 py-1 rounded-full">Out of Stock</span>
-            ) : isLowStock ? (
-              <span className="text-orange-600 bg-orange-50 px-2 py-1 rounded-full">Low Stock</span>
-            ) : (
-              <span className="text-green-600 bg-green-50 px-2 py-1 rounded-full">In Stock</span>
-            )}
-          </div>
+        <h3 className="font-semibold text-[#111] line-clamp-2 group-hover:text-green-600 transition-colors">
+          {product.name}
+        </h3>
+
+        <div className="flex items-center space-x-2">
+          <span className="text-lg font-bold text-[#111]">₹{product.price}</span>
+          {hasDiscount && (
+            <span className="text-sm text-gray-500 line-through">₹{product.mrp}</span>
+          )}
         </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-1">
+            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            <span className="text-sm text-gray-600">4.5 (24)</span>
+          </div>
+          
+          <span className={`text-xs font-medium ${
+            isOutOfStock ? 'text-red-600' : isLowStock ? 'text-orange-600' : 'text-green-600'
+          }`}>
+            {isOutOfStock ? 'Out of Stock' : isLowStock ? 'Low Stock' : 'In Stock'}
+          </span>
+        </div>
+
+        <Button
+          onClick={handleAddToCart}
+          disabled={isOutOfStock}
+          className="w-full bg-black text-white hover:bg-white hover:text-black hover:border-black border-2 border-transparent rounded-lg transition-all duration-200 hover:scale-105"
+        >
+          <ShoppingCart className="w-4 h-4 mr-2" />
+          Add to Cart
+        </Button>
       </div>
     </div>
   );

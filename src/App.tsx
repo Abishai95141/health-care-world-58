@@ -13,6 +13,7 @@ import StaffProtectedRoute from "./components/staff/StaffProtectedRoute";
 import StaffLayout from "./components/staff/StaffLayout";
 import Index from "./pages/Index";
 import Shop from "./pages/Shop";
+import ProductDetail from "./pages/ProductDetail";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 import Auth from "./pages/Auth";
@@ -44,6 +45,7 @@ const App: React.FC = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/shop" element={<Shop />} />
                 <Route path="/products" element={<Shop />} />
+                <Route path="/product/:slug" element={<ProductDetail />} />
                 <Route path="/about-us" element={<AboutUs />} />
                 <Route path="/contact-us" element={<ContactUs />} />
                 <Route path="/login" element={<Auth />} />
