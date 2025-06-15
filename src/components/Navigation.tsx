@@ -29,7 +29,7 @@ const Navigation = () => {
               onClick={() => navigate('/')}
               className="text-2xl font-bold text-green-600 hover:text-green-700"
             >
-              Capsule Care
+              HealthCareWorld
             </button>
           </div>
 

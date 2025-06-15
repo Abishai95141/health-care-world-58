@@ -90,7 +90,7 @@ const EnhancedNavigation = () => {
                   ${isScrolled ? 'text-xl' : 'text-2xl'}
                 `}
               >
-                Capsule Care
+                HealthCareWorld
               </button>
             </div>
 

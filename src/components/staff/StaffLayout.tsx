@@ -93,7 +93,7 @@ const StaffLayout = ({ children }: StaffLayoutProps) => {
                 <Building2 className="w-6 h-6 text-white" />
               </div>
               <div className="flex flex-col">
-                <h1 className="text-xl font-semibold text-[#27AE60]">Capsule Care</h1>
+                <h1 className="text-xl font-semibold text-[#27AE60]">HealthCareWorld</h1>
                 <span className="text-sm text-gray-600 hidden sm:block">Staff Portal</span>
               </div>
             </div>

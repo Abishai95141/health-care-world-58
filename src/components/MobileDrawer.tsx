@@ -37,7 +37,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b">
-            <h2 className="text-xl font-bold text-green-600">Capsule Care</h2>
+            <h2 className="text-xl font-bold text-green-600">HealthCareWorld</h2>
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"

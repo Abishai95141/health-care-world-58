@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useReviews } from '@/hooks/useReviews';
 
 interface WriteReviewFormProps {
   productId: string;
@@ -15,6 +16,7 @@ const WriteReviewForm: React.FC<WriteReviewFormProps> = ({ productId, onCancel, 
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { submitReview } = useReviews(productId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,13 +24,13 @@ const WriteReviewForm: React.FC<WriteReviewFormProps> = ({ productId, onCancel, 
 
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const success = await submitReview(rating, comment);
     
-    console.log('Submitting review:', { productId, rating, comment });
+    if (success) {
+      onSubmit();
+    }
     
     setIsSubmitting(false);
-    onSubmit();
   };
 
   return (
