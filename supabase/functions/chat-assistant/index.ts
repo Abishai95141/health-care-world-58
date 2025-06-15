@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
@@ -10,7 +9,14 @@ const corsHeaders = {
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const geminiApiKey = Deno.env.get('GOOGLE_AI_API_KEY')!;
+const geminiApiKey = Deno.env.get('GOOGLE_AI_API_KEY');
+
+console.log('Environment check:', {
+  hasSupabaseUrl: !!supabaseUrl,
+  hasSupabaseKey: !!supabaseKey,
+  hasGeminiKey: !!geminiApiKey,
+  geminiKeyLength: geminiApiKey?.length || 0
+});
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -42,6 +48,19 @@ serve(async (req) => {
 
     console.log('Chat request:', { userId, message, conversationId });
 
+    // Check if Gemini API key is available
+    if (!geminiApiKey) {
+      console.error('GOOGLE_AI_API_KEY not found in environment variables');
+      return new Response(JSON.stringify({
+        message: 'AI service is currently unavailable. Please try again later.',
+        products: [],
+        intent: 'error',
+        conversationId
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Detect intent and search products if needed
     const intent = await detectIntent(message);
     console.log('Detected intent:', intent);
@@ -60,16 +79,20 @@ serve(async (req) => {
       orderInfo = await getOrderStatus(userId, message);
     }
 
-    // Generate response using Gemini with better error handling
+    // Generate response using Gemini
     const response = await generateResponse(message, intent, products, orderInfo);
 
-    // Store conversation context
-    await storeConversationContext(conversationId, {
-      userMessage: message,
-      botResponse: response,
-      intent,
-      timestamp: new Date().toISOString()
-    });
+    // Store conversation context (only if table exists)
+    try {
+      await storeConversationContext(conversationId, {
+        userMessage: message,
+        botResponse: response,
+        intent,
+        timestamp: new Date().toISOString()
+      });
+    } catch (contextError) {
+      console.log('Note: Could not store conversation context (table may not exist):', contextError);
+    }
 
     return new Response(JSON.stringify({
       message: response,
@@ -82,9 +105,16 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in chat assistant:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
     return new Response(JSON.stringify({ 
       error: 'I apologize, but I encountered an error. Please try again.',
-      message: 'I apologize, but I encountered an error. Please try again.'
+      message: 'I apologize, but I encountered an error. Please try again.',
+      details: error.message // Include error details for debugging
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -228,7 +258,9 @@ Current conversation context:
   }
 
   try {
-    console.log('Making Gemini API request...');
+    console.log('Making Gemini API request with key length:', geminiApiKey.length);
+    console.log('Request prompt length:', userPrompt.length);
+    
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
@@ -239,7 +271,11 @@ Current conversation context:
           parts: [{
             text: `${systemPrompt}\n\nUser: ${userPrompt}`
           }]
-        }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 500
+        }
       }),
     });
 
@@ -247,12 +283,12 @@ Current conversation context:
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      throw new Error(`Gemini API error: ${response.status}`);
+      console.error('Gemini API error response:', errorText);
+      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    console.log('Gemini API response received');
+    console.log('Gemini API response structure:', Object.keys(data));
     
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       let botResponse = data.candidates[0].content.parts[0].text;
@@ -265,13 +301,19 @@ Current conversation context:
         botResponse += '\n\n⚕️ This information is for general purposes only. Always consult a qualified healthcare professional for medical advice.';
       }
       
+      console.log('Generated response length:', botResponse.length);
       return botResponse;
+    } else {
+      console.log('Unexpected Gemini response structure:', JSON.stringify(data, null, 2));
+      throw new Error('No valid content in Gemini response');
     }
     
-    console.log('No valid content in Gemini response, using fallback');
-    return getDefaultResponse(intent, products);
   } catch (error) {
-    console.error('Gemini API error:', error);
+    console.error('Gemini API error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
     return getDefaultResponse(intent, products);
   }
 }
@@ -305,5 +347,6 @@ async function storeConversationContext(conversationId: string, context: any) {
       });
   } catch (error) {
     console.error('Error storing conversation context:', error);
+    // Don't throw - this is not critical for chat functionality
   }
 }
