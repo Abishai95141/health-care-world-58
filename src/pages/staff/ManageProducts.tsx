@@ -124,23 +124,25 @@ const ManageProducts = () => {
     if (!deleteModal.product) return;
 
     try {
+      // Soft delete by setting is_active to false
       const { error } = await supabase
         .from('products')
-        .delete()
+        .update({ is_active: false })
         .eq('id', deleteModal.product.id);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Product deleted successfully",
+        description: "Product deactivated successfully",
       });
 
       await fetchProducts();
     } catch (error: any) {
+      console.error('Error deactivating product:', error);
       toast({
         title: "Error",
-        description: "Failed to delete product",
+        description: "Failed to deactivate product",
         variant: "destructive",
       });
     } finally {
@@ -285,6 +287,7 @@ const ManageProducts = () => {
                             size="sm"
                             onClick={() => handleDelete(product)}
                             className="text-red-600 hover:text-red-700"
+                            disabled={!product.is_active}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>

@@ -32,9 +32,9 @@ const DeleteProductModal: React.FC<DeleteProductModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onCancel}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Confirm Delete</DialogTitle>
+          <DialogTitle>Deactivate Product</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete "{product?.name}"? This action cannot be undone.
+            Are you sure you want to deactivate "{product?.name}"? This will hide it from customers but preserve all data for records. You can reactivate it later if needed.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -42,7 +42,7 @@ const DeleteProductModal: React.FC<DeleteProductModalProps> = ({
             Cancel
           </Button>
           <Button variant="destructive" onClick={onConfirm}>
-            Delete
+            Deactivate
           </Button>
         </DialogFooter>
       </DialogContent>
