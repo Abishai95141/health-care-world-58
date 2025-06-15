@@ -1,26 +1,18 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useProducts } from '@/hooks/useProducts';
 import ProductCard from './ProductCard';
-import ProductModal from './ProductModal';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 
 const FeaturedProducts = () => {
   const navigate = useNavigate();
-  const [selectedProduct, setSelectedProductLocal] = useState<any>(null);
-  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   
   const { products, loading } = useProducts({
     limit: 8, // Only show 8 products (4x2 grid)
     sortBy: 'created_at',
     sortOrder: 'desc'
   });
-
-  const handleProductClick = (product: any) => {
-    setSelectedProductLocal(product);
-    setIsProductModalOpen(true);
-  };
 
   if (loading) {
     return (
@@ -68,10 +60,7 @@ const FeaturedProducts = () => {
                   className="animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <ProductCard
-                    product={product}
-                    onProductClick={handleProductClick}
-                  />
+                  <ProductCard product={product} />
                 </div>
               ))}
             </div>
@@ -90,18 +79,6 @@ const FeaturedProducts = () => {
                 </span>
               </button>
             </div>
-
-            {/* Product Modal */}
-            {selectedProduct && (
-              <ProductModal
-                product={selectedProduct}
-                isOpen={isProductModalOpen}
-                onClose={() => {
-                  setIsProductModalOpen(false);
-                  setSelectedProductLocal(null);
-                }}
-              />
-            )}
           </>
         ) : (
           <div className="text-center py-20">
