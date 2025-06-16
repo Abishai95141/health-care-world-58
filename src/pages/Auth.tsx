@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -121,9 +122,9 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Panel - Hero */}
-      <div className="relative lg:w-1/2 min-h-screen bg-gradient-to-br from-black via-gray-900 to-black 
-                    flex items-center justify-center overflow-hidden">
+      {/* Left Panel - Hero - Hidden on mobile */}
+      <div className="relative hidden lg:flex lg:w-1/2 min-h-screen bg-gradient-to-br from-black via-gray-900 to-black 
+                    items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent" />
         <div className="relative z-10 text-center px-8 max-w-lg">
           <div className="mb-6">
@@ -139,13 +140,13 @@ const Auth = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
       </div>
 
-      {/* Right Panel - Authentication Form */}
-      <div className="lg:w-1/2 flex items-center justify-center p-4 lg:p-6 bg-white min-h-screen">
-        <div className="w-full max-w-md">
+      {/* Right Panel - Authentication Form - Full width on mobile */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-6 bg-white min-h-screen">
+        <div className="w-full max-w-md sm:max-w-[90vw] sm:w-[90vw]">
           <Card className="w-full border-0 shadow-2xl rounded-3xl bg-white">
-            <CardHeader className="text-center pb-4 pt-6">
+            <CardHeader className="text-center pb-4 pt-6 px-4 sm:px-16">
               <div className="mb-4">
-                <h2 className="text-2xl font-light text-black mb-2 tracking-tight">HealthCareWorld</h2>
+                <h2 className="text-xl sm:text-2xl font-light text-black mb-2 tracking-tight">Health Care World</h2>
               </div>
               
               {showRedirectMessage && (
@@ -156,15 +157,15 @@ const Auth = () => {
                 </div>
               )}
               
-              <h3 className="text-3xl font-light text-black mb-2 tracking-tight">
+              <h3 className="text-2xl sm:text-3xl font-light text-black mb-2 tracking-tight">
                 {isLogin ? 'Welcome Back' : 'Create Account'}
               </h3>
-              <p className="text-gray-500 text-base">
+              <p className="text-sm sm:text-base text-gray-500">
                 {isLogin ? 'Access your account securely' : 'Join us in minutes'}
               </p>
             </CardHeader>
             
-            <CardContent className="space-y-4 px-8 pb-6">
+            <CardContent className="space-y-4 px-4 sm:px-8 pb-6">
               <form onSubmit={handleSubmit} className="space-y-4">
                 {!isLogin && (
                   <div className="space-y-1">
@@ -178,7 +179,7 @@ const Auth = () => {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required={!isLogin}
-                      className="h-12 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                      className="w-full h-12 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
                                text-base transition-all duration-200"
                     />
                   </div>
@@ -195,7 +196,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="h-12 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                    className="w-full h-12 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
                              text-base transition-all duration-200"
                   />
                 </div>
@@ -212,7 +213,7 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="h-12 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                      className="w-full h-12 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
                                text-base pr-10 transition-all duration-200"
                     />
                     <button
@@ -239,7 +240,7 @@ const Auth = () => {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
-                        className="h-12 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
+                        className="w-full h-12 rounded-2xl border-gray-200 focus:border-black focus:ring-black 
                                  text-base pr-10 transition-all duration-200"
                       />
                       <button
