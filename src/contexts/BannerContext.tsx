@@ -2,21 +2,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import type { Tables } from '@/integrations/supabase/types';
 
-interface Banner {
-  id: string;
-  title: string;
-  placement: 'home_hero' | 'shop_top' | 'cart_footer' | 'checkout_confirmation';
-  image_url?: string;
-  headline: string;
-  subtext?: string;
-  cta_text?: string;
-  cta_url?: string;
-  display_order: number;
-  is_enabled: boolean;
-  created_at: string;
-  updated_at: string;
-}
+type Banner = Tables<'ad_banners'>;
 
 interface BannerContextType {
   banners: Banner[];
@@ -43,13 +31,13 @@ export const BannerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const fetchBanners = async () => {
     try {
       const { data, error } = await supabase
-        .from('ad_banners' as any)
+        .from('ad_banners')
         .select('*')
         .eq('is_enabled', true)
         .order('display_order', { ascending: true });
 
       if (error) throw error;
-      setBanners(data as Banner[] || []);
+      setBanners(data || []);
     } catch (error: any) {
       console.error('Error fetching banners:', error);
       toast({

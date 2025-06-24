@@ -6,21 +6,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import BannerEditorModal from '@/components/banners/BannerEditorModal';
+import type { Tables } from '@/integrations/supabase/types';
 
-interface Banner {
-  id: string;
-  title: string;
-  placement: string;
-  headline: string;
-  subtext?: string;
-  cta_text?: string;
-  cta_url?: string;
-  image_url?: string;
-  display_order: number;
-  is_enabled: boolean;
-  created_at: string;
-  updated_at: string;
-}
+type Banner = Tables<'ad_banners'>;
 
 const BannerManagement = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -32,12 +20,12 @@ const BannerManagement = () => {
   const fetchBanners = async () => {
     try {
       const { data, error } = await supabase
-        .from('ad_banners' as any)
+        .from('ad_banners')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setBanners(data as Banner[] || []);
+      setBanners(data || []);
     } catch (error: any) {
       console.error('Error fetching banners:', error);
       toast({
@@ -57,7 +45,7 @@ const BannerManagement = () => {
   const handleToggleStatus = async (bannerId: string, isEnabled: boolean) => {
     try {
       const { error } = await supabase
-        .from('ad_banners' as any)
+        .from('ad_banners')
         .update({ is_enabled: !isEnabled })
         .eq('id', bannerId);
 
@@ -86,7 +74,7 @@ const BannerManagement = () => {
 
     try {
       const { error } = await supabase
-        .from('ad_banners' as any)
+        .from('ad_banners')
         .delete()
         .eq('id', bannerId);
 
