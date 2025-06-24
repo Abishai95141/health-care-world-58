@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/contexts/AppContext';
-import { useCartSessions } from './useCartSessions';
 
 interface CartItem {
   id: string;
@@ -27,7 +26,6 @@ interface Product {
 export const useOrder = () => {
   const { user } = useAuth();
   const { showToast, navigateTo } = useApp();
-  const { markSessionConverted } = useCartSessions();
   const [loading, setLoading] = useState(false);
 
   const createOrder = async (cartItems: CartItem[], shippingCost: number, addressId?: string) => {
@@ -62,9 +60,6 @@ export const useOrder = () => {
       if (data && data.length > 0) {
         const result = data[0];
         if (result.success) {
-          // Mark cart session as converted
-          await markSessionConverted();
-          
           showToast('Order placed successfully!', 'success');
           navigateTo(`/order-confirmation/${result.order_id}`);
           return true;
@@ -130,9 +125,6 @@ export const useOrder = () => {
       if (data && data.length > 0) {
         const result = data[0];
         if (result.success) {
-          // Mark cart session as converted
-          await markSessionConverted();
-          
           showToast('Order placed successfully!', 'success');
           navigateTo(`/order-confirmation/${result.order_id}`);
           return true;
