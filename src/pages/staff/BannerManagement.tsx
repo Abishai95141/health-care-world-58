@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -33,12 +32,12 @@ const BannerManagement = () => {
   const fetchBanners = async () => {
     try {
       const { data, error } = await supabase
-        .from('ad_banners')
+        .from('ad_banners' as any)
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setBanners(data || []);
+      setBanners(data as Banner[] || []);
     } catch (error: any) {
       console.error('Error fetching banners:', error);
       toast({
@@ -58,7 +57,7 @@ const BannerManagement = () => {
   const handleToggleStatus = async (bannerId: string, isEnabled: boolean) => {
     try {
       const { error } = await supabase
-        .from('ad_banners')
+        .from('ad_banners' as any)
         .update({ is_enabled: !isEnabled })
         .eq('id', bannerId);
 
@@ -87,7 +86,7 @@ const BannerManagement = () => {
 
     try {
       const { error } = await supabase
-        .from('ad_banners')
+        .from('ad_banners' as any)
         .delete()
         .eq('id', bannerId);
 

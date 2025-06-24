@@ -94,13 +94,13 @@ const BannerEditorModal: React.FC<BannerEditorModalProps> = ({
     try {
       if (banner) {
         const { error } = await supabase
-          .from('ad_banners')
+          .from('ad_banners' as any)
           .update(formData)
           .eq('id', banner.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from('ad_banners')
+          .from('ad_banners' as any)
           .insert([formData]);
         if (error) throw error;
       }

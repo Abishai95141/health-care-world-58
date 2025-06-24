@@ -43,13 +43,13 @@ export const BannerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const fetchBanners = async () => {
     try {
       const { data, error } = await supabase
-        .from('ad_banners')
+        .from('ad_banners' as any)
         .select('*')
         .eq('is_enabled', true)
         .order('display_order', { ascending: true });
 
       if (error) throw error;
-      setBanners(data || []);
+      setBanners(data as Banner[] || []);
     } catch (error: any) {
       console.error('Error fetching banners:', error);
       toast({
