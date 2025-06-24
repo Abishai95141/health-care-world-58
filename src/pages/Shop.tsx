@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Grid, List, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useProducts } from '@/hooks/useProducts';
 import ProductCard from '@/components/ProductCard';
 import EnhancedNavigation from '@/components/EnhancedNavigation';
+import ShopTopBanner from '@/components/banners/ShopTopBanner';
 
 const Shop = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,6 +60,9 @@ const Shop = () => {
       <EnhancedNavigation />
       
       <div className="pt-20">
+        {/* Shop Top Banner - NEW */}
+        <ShopTopBanner />
+
         {/* Header */}
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

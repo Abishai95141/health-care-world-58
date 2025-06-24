@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Search, ShoppingCart, ChevronDown, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import StickyOfferBanner from '@/components/StickyOfferBanner';
 import EnhancedNavigation from '@/components/EnhancedNavigation';
 import EnhancedCarousel from '@/components/EnhancedCarousel';
 import { useIsMobile } from '@/hooks/use-mobile';
+import HomeHeroBanner from '@/components/banners/HomeHeroBanner';
 
 const Index = () => {
   const {
@@ -93,10 +93,13 @@ const Index = () => {
         }}
       />
 
-      {/* Main Content - Removed top padding gap */}
+      {/* Main Content */}
       <main className="relative">
-        {/* Enhanced Hero Carousel - No gap from banner */}
+        {/* Enhanced Hero Carousel */}
         <EnhancedCarousel />
+
+        {/* Home Hero Banner - NEW */}
+        <HomeHeroBanner />
 
         {/* Category Navigation */}
         <section className="bg-white py-16 lg:py-20">

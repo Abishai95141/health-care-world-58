@@ -38,6 +38,7 @@ const StaffLayout = ({ children }: StaffLayoutProps) => {
     { name: 'Bulk Import (CSV)', href: '/staff/products/import', icon: Upload },
     { name: 'Manage Products', href: '/staff/products', icon: Package },
     { name: 'Inventory Alerts', href: '/staff/inventory', icon: AlertTriangle },
+    { name: 'Banner Management', href: '/staff/banners', icon: Building2 },
     { name: 'Order Management', href: '/staff/orders', icon: ShoppingCart },
   ];
 
