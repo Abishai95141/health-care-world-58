@@ -129,10 +129,90 @@ export type Database = {
             foreignKeyName: "cart_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "low_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "out_of_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
+      }
+      cart_sessions: {
+        Row: {
+          abandoned_at: string | null
+          converted_at: string | null
+          created_at: string | null
+          id: string
+          session_id: string
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          abandoned_at?: string | null
+          converted_at?: string | null
+          created_at?: string | null
+          id?: string
+          session_id: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          abandoned_at?: string | null
+          converted_at?: string | null
+          created_at?: string | null
+          id?: string
+          session_id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      contact_messages: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          message: string
+          name: string
+          status: string | null
+          subject: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          message: string
+          name: string
+          status?: string | null
+          subject?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          status?: string | null
+          subject?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       order_items: {
         Row: {
@@ -168,6 +248,20 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "low_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "out_of_stock"
             referencedColumns: ["id"]
           },
           {
@@ -300,6 +394,20 @@ export type Database = {
             foreignKeyName: "product_reviews_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "low_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "out_of_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -398,6 +506,95 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_order_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string | null
+          purchase_order_id: string | null
+          quantity: number
+          total_cost: number
+          unit_cost: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          purchase_order_id?: string | null
+          quantity: number
+          total_cost: number
+          unit_cost: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          purchase_order_id?: string | null
+          quantity?: number
+          total_cost?: number
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "low_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "out_of_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          created_at: string | null
+          id: string
+          po_number: string
+          status: string | null
+          supplier: string | null
+          total_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          po_number: string
+          status?: string | null
+          supplier?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          po_number?: string
+          status?: string | null
+          supplier?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       staff_users: {
         Row: {
           created_at: string
@@ -422,9 +619,158 @@ export type Database = {
         }
         Relationships: []
       }
+      wishlist_items: {
+        Row: {
+          added_at: string | null
+          id: string
+          product_id: string | null
+          wishlist_id: string | null
+        }
+        Insert: {
+          added_at?: string | null
+          id?: string
+          product_id?: string | null
+          wishlist_id?: string | null
+        }
+        Update: {
+          added_at?: string | null
+          id?: string
+          product_id?: string | null
+          wishlist_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "low_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wishlist_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "out_of_stock"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wishlist_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wishlist_items_wishlist_id_fkey"
+            columns: ["wishlist_id"]
+            isOneToOne: false
+            referencedRelation: "wishlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wishlists: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          name: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      daily_sales: {
+        Row: {
+          avg_order_value: number | null
+          sale_date: string | null
+          total_orders: number | null
+          total_revenue: number | null
+        }
+        Relationships: []
+      }
+      low_stock: {
+        Row: {
+          category: string | null
+          id: string | null
+          name: string | null
+          price: number | null
+          stock: number | null
+        }
+        Insert: {
+          category?: string | null
+          id?: string | null
+          name?: string | null
+          price?: number | null
+          stock?: number | null
+        }
+        Update: {
+          category?: string | null
+          id?: string | null
+          name?: string | null
+          price?: number | null
+          stock?: number | null
+        }
+        Relationships: []
+      }
+      out_of_stock: {
+        Row: {
+          category: string | null
+          id: string | null
+          name: string | null
+          price: number | null
+          stock: number | null
+        }
+        Insert: {
+          category?: string | null
+          id?: string | null
+          name?: string | null
+          price?: number | null
+          stock?: number | null
+        }
+        Update: {
+          category?: string | null
+          id?: string | null
+          name?: string | null
+          price?: number | null
+          stock?: number | null
+        }
+        Relationships: []
+      }
+      payment_breakdown: {
+        Row: {
+          order_count: number | null
+          payment_status: string | null
+          total_amount: number | null
+        }
+        Relationships: []
+      }
+      stock_values: {
+        Row: {
+          category: string | null
+          product_count: number | null
+          total_value: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       authenticate_staff: {
@@ -443,13 +789,93 @@ export type Database = {
         }
         Returns: string
       }
+      generate_purchase_order: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_slug: {
         Args: { name: string }
         Returns: string
       }
+      get_cart_abandonment: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          session_id: string
+          user_id: string
+          created_at: string
+          abandoned_at: string
+          items_count: number
+        }[]
+      }
+      get_customer_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_customers: number
+          new_customers_this_month: number
+          returning_customers: number
+          avg_orders_per_customer: number
+        }[]
+      }
+      get_expiring_soon: {
+        Args: { days_ahead?: number }
+        Returns: {
+          product_id: string
+          product_name: string
+          expiration_date: string
+          days_until_expiry: number
+          stock: number
+        }[]
+      }
+      get_lowest_rated: {
+        Args: { limit_count?: number }
+        Returns: {
+          product_id: string
+          product_name: string
+          avg_rating: number
+          review_count: number
+        }[]
+      }
+      get_top_brands: {
+        Args: { limit_count?: number }
+        Returns: {
+          brand: string
+          total_sales: number
+          total_revenue: number
+        }[]
+      }
+      get_top_categories: {
+        Args: { limit_count?: number }
+        Returns: {
+          category: string
+          total_sales: number
+          total_revenue: number
+        }[]
+      }
+      get_top_products: {
+        Args: { limit_count?: number }
+        Returns: {
+          product_id: string
+          product_name: string
+          total_quantity: number
+          total_revenue: number
+        }[]
+      }
+      get_top_rated: {
+        Args: { limit_count?: number }
+        Returns: {
+          product_id: string
+          product_name: string
+          avg_rating: number
+          review_count: number
+        }[]
+      }
       get_user_role: {
         Args: { user_email: string }
         Returns: string
+      }
+      mark_abandoned_carts: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       place_order: {
         Args: {
@@ -461,6 +887,17 @@ export type Database = {
           order_id: string
           success: boolean
           error_message: string
+        }[]
+      }
+      recent_reviews: {
+        Args: { limit_count?: number }
+        Returns: {
+          review_id: string
+          product_name: string
+          reviewer_name: string
+          rating: number
+          comment: string
+          created_at: string
         }[]
       }
     }

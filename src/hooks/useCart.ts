@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/contexts/AppContext';
+import { useCartSessions } from './useCartSessions';
 
 interface CartItem {
   id: string;
@@ -24,6 +25,7 @@ interface CartItem {
 export const useCart = () => {
   const { user } = useAuth();
   const { showToast } = useApp();
+  const { createOrUpdateSession } = useCartSessions();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -77,6 +79,9 @@ export const useCart = () => {
     console.log('Adding to cart:', { productId, quantity, userId: user.id });
 
     try {
+      // Create or update cart session
+      await createOrUpdateSession();
+
       // Check if item already exists in cart
       const { data: existingItem, error: checkError } = await supabase
         .from('cart_items')
