@@ -34,7 +34,6 @@ const OrderConfirmation = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (!user || !orderId) {
@@ -45,24 +44,29 @@ const OrderConfirmation = () => {
     }
 
     fetchOrder();
-  }, [user, orderId, retryCount]);
+  }, [user, orderId]);
 
   const fetchOrder = async () => {
     try {
-      console.log('Fetching order:', orderId, 'for user:', user!.id, 'attempt:', retryCount + 1);
+      console.log('Fetching order:', orderId, 'for user:', user!.id);
       
-      // Progressive delay for retries
-      const delay = retryCount * 1000 + 1000; // 1s, 2s, 3s, etc.
-      await new Promise(resolve => setTimeout(resolve, delay));
+      // Add a small delay to ensure the database operations are complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Try multiple approaches to fetch the order
+      // First, verify the user's authentication status
+      const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser();
       
-      // First, try to fetch the order directly
-      let orderData = null;
-      let orderError = null;
+      if (authError || !currentUser) {
+        console.error('Auth verification failed:', authError);
+        setError('Authentication required');
+        setLoading(false);
+        return;
+      }
 
-      // Approach 1: Direct order fetch with joins
-      const { data: directOrderData, error: directOrderError } = await supabase
+      console.log('Current authenticated user:', currentUser.id);
+
+      // Fetch the order with a more direct approach
+      const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select(`
           id,
@@ -72,118 +76,78 @@ const OrderConfirmation = () => {
           user_id
         `)
         .eq('id', orderId)
-        .maybeSingle();
+        .eq('user_id', currentUser.id)
+        .single();
 
-      if (directOrderError) {
-        console.error('Direct order fetch error:', directOrderError);
-      } else if (directOrderData) {
-        console.log('Direct order data found:', directOrderData);
+      if (orderError) {
+        console.error('Order fetch error:', orderError);
         
-        // Check if this order belongs to the current user
-        if (directOrderData.user_id !== user!.id) {
-          setError('You do not have permission to view this order');
-          setLoading(false);
-          return;
-        }
-
-        // Now fetch order items separately
-        const { data: itemsData, error: itemsError } = await supabase
-          .from('order_items')
-          .select(`
-            id,
-            product_id,
-            quantity,
-            unit_price,
-            total_price,
-            product:products (
-              name,
-              image_urls
-            )
-          `)
-          .eq('order_id', orderId);
-
-        if (itemsError) {
-          console.error('Error fetching order items:', itemsError);
-        } else {
-          orderData = {
-            ...directOrderData,
-            order_items: itemsData || []
-          };
-        }
-      }
-
-      // If direct approach failed, try alternative approach
-      if (!orderData) {
-        console.log('Trying alternative fetch approach...');
-        
-        // Approach 2: Fetch through user's orders
-        const { data: userOrdersData, error: userOrdersError } = await supabase
-          .from('orders')
-          .select(`
-            id,
-            total_amount,
-            shipping_amount,
-            created_at
-          `)
-          .eq('user_id', user!.id)
-          .eq('id', orderId)
-          .maybeSingle();
-
-        if (userOrdersError) {
-          console.error('User orders fetch error:', userOrdersError);
-        } else if (userOrdersData) {
-          console.log('User order data found:', userOrdersData);
+        // If it's a permission error, let's try a different approach
+        if (orderError.code === '42501' || orderError.message.includes('permission denied')) {
+          console.log('Permission denied, checking if order exists at all...');
           
-          // Fetch items for this order
-          const { data: itemsData, error: itemsError } = await supabase
-            .from('order_items')
-            .select(`
-              id,
-              product_id,
-              quantity,
-              unit_price,
-              total_price,
-              product:products (
-                name,
-                image_urls
-              )
-            `)
-            .eq('order_id', orderId);
-
-          if (!itemsError) {
-            orderData = {
-              ...userOrdersData,
-              order_items: itemsData || []
-            };
-          }
-        }
-      }
-
-      if (orderData) {
-        console.log('Order fetched successfully:', orderData);
-        setOrder(orderData);
-        setError(null);
-      } else {
-        console.log('Order not found, retry count:', retryCount);
-        
-        // Retry up to 3 times with increasing delays
-        if (retryCount < 3) {
-          setRetryCount(prev => prev + 1);
-          return; // This will trigger useEffect again
+          // Check if order exists without user filter (this will fail with RLS but give us info)
+          const { data: orderCheck, error: checkError } = await supabase
+            .from('orders')
+            .select('id, user_id')
+            .eq('id', orderId);
+            
+          console.log('Order check result:', { orderCheck, checkError });
+          
+          setError('You do not have permission to view this order, or it does not exist.');
         } else {
-          setError('Order not found or you do not have permission to view it');
+          setError(`Failed to load order: ${orderError.message}`);
         }
-      }
-    } catch (error) {
-      console.error('Error fetching order:', error);
-      
-      // Retry on error
-      if (retryCount < 3) {
-        setRetryCount(prev => prev + 1);
+        setLoading(false);
         return;
-      } else {
-        setError('Failed to load order details after multiple attempts');
       }
+
+      if (!orderData) {
+        console.log('No order data returned');
+        setError('Order not found');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Order data found:', orderData);
+
+      // Now fetch order items
+      const { data: itemsData, error: itemsError } = await supabase
+        .from('order_items')
+        .select(`
+          id,
+          product_id,
+          quantity,
+          unit_price,
+          total_price,
+          product:products (
+            name,
+            image_urls
+          )
+        `)
+        .eq('order_id', orderId);
+
+      if (itemsError) {
+        console.error('Error fetching order items:', itemsError);
+        setError(`Failed to load order items: ${itemsError.message}`);
+        setLoading(false);
+        return;
+      }
+
+      console.log('Order items found:', itemsData);
+
+      const completeOrder = {
+        ...orderData,
+        order_items: itemsData || []
+      };
+
+      console.log('Complete order data:', completeOrder);
+      setOrder(completeOrder);
+      setError(null);
+
+    } catch (error) {
+      console.error('Unexpected error fetching order:', error);
+      setError('An unexpected error occurred while loading the order');
     } finally {
       setLoading(false);
     }
@@ -192,7 +156,7 @@ const OrderConfirmation = () => {
   const handleRetry = () => {
     setLoading(true);
     setError(null);
-    setRetryCount(0);
+    fetchOrder();
   };
 
   const formatDate = (dateString: string) => {
@@ -213,9 +177,8 @@ const OrderConfirmation = () => {
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="h-16 w-16 animate-spin text-black mx-auto mb-6" />
-            <p className="text-gray-600 text-lg">
-              Loading order details... {retryCount > 0 && `(Attempt ${retryCount + 1})`}
-            </p>
+            <p className="text-gray-600 text-lg">Loading order details...</p>
+            <p className="text-gray-500 text-sm mt-2">Order ID: {orderId}</p>
           </div>
         </div>
       </Layout>
@@ -230,8 +193,12 @@ const OrderConfirmation = () => {
             <AlertCircle className="h-20 w-20 text-red-500 mx-auto mb-6" />
             <h1 className="text-3xl font-light text-black mb-4">Order Not Found</h1>
             <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-              {error || "We couldn't find the order you're looking for or you don't have permission to view it."}
+              {error || "We couldn't find the order you're looking for."}
             </p>
+            <div className="text-sm text-gray-500 mb-8">
+              <p>Order ID: {orderId}</p>
+              <p>User ID: {user?.id}</p>
+            </div>
             <div className="space-y-4">
               <Button 
                 onClick={handleRetry}
