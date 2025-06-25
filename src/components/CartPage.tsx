@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ChevronLeft, Minus, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,14 +31,8 @@ const CartPage = () => {
   };
 
   const handlePlaceOrder = async () => {
-    console.log('Placing order with cart items:', cartItems);
-    const shipping = 50;
-    const success = await createOrder(cartItems, shipping);
-    
-    if (success) {
-      // The createOrder function will redirect to order confirmation
-      // No need to manually navigate here
-    }
+    // Navigate to the new checkout page instead of placing order directly
+    navigate('/checkout');
   };
 
   const shipping = 50;

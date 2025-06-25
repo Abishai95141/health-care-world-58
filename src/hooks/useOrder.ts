@@ -16,13 +16,6 @@ interface CartItem {
   };
 }
 
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  stock: number;
-}
-
 export const useOrder = () => {
   const { user } = useAuth();
   const { showToast, navigateTo } = useApp();
@@ -39,9 +32,14 @@ export const useOrder = () => {
       return false;
     }
 
+    if (!addressId) {
+      showToast('Please select a delivery address', 'error');
+      return false;
+    }
+
     setLoading(true);
     try {
-      console.log('Creating order for user:', user.id);
+      console.log('Creating order for user:', user.id, 'with address:', addressId);
       
       // Use the Supabase function to place the order
       const { data, error } = await supabase.rpc('place_order', {
@@ -59,8 +57,9 @@ export const useOrder = () => {
 
       if (data && data.length > 0) {
         const result = data[0];
-        if (result.success) {
+        if (result.success && result.order_id) {
           showToast('Order placed successfully!', 'success');
+          // Navigate to order confirmation with the correct order ID
           navigateTo(`/order-confirmation/${result.order_id}`);
           return true;
         } else {
@@ -79,27 +78,27 @@ export const useOrder = () => {
     }
   };
 
-  const createSingleItemOrder = async (product: Product, quantity: number, shippingCost: number = 50, addressId?: string) => {
+  const createSingleItemOrder = async (productId: string, quantity: number, shippingCost: number = 50, addressId?: string) => {
     if (!user) {
       showToast('Please sign in to place an order', 'error');
       return false;
     }
 
-    if (product.stock < quantity) {
-      showToast('Insufficient stock available', 'error');
+    if (!addressId) {
+      showToast('Please select a delivery address', 'error');
       return false;
     }
 
     setLoading(true);
     try {
-      console.log('Creating single item order for product:', product.id);
+      console.log('Creating single item order for product:', productId);
       
       // First add item to cart temporarily
       const { error: cartError } = await supabase
         .from('cart_items')
         .insert({
           user_id: user.id,
-          product_id: product.id,
+          product_id: productId,
           quantity: quantity
         });
 
@@ -124,7 +123,7 @@ export const useOrder = () => {
 
       if (data && data.length > 0) {
         const result = data[0];
-        if (result.success) {
+        if (result.success && result.order_id) {
           showToast('Order placed successfully!', 'success');
           navigateTo(`/order-confirmation/${result.order_id}`);
           return true;
