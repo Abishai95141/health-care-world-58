@@ -19,12 +19,6 @@ export const useStaffOperations = () => {
       return await operation();
     } catch (error: any) {
       console.error('Staff operation error:', error);
-      
-      // If it's an RLS policy error, provide more context
-      if (error.message?.includes('row-level security policy')) {
-        throw new Error(`Access denied: Staff user ${staffUser?.email} lacks permission for this operation. Please verify your staff role and permissions.`);
-      }
-      
       throw error;
     }
   };

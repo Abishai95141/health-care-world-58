@@ -7,12 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useStaffAuth } from '@/contexts/StaffAuthContext';
 import { X } from 'lucide-react';
 import ImageUpload from '@/components/staff/ImageUpload';
 
 const AddProduct = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user: staffUser } = useStaffAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
@@ -119,6 +121,15 @@ const AddProduct = () => {
     
     if (!validateForm()) return;
 
+    if (!staffUser) {
+      toast({
+        title: "Error",
+        description: "Staff authentication required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -144,11 +155,14 @@ const AddProduct = () => {
         image_urls: formData.image_urls.length > 0 ? formData.image_urls : null
       };
 
+      console.log('Adding product:', productData);
+
       const { error } = await supabase
         .from('products')
         .insert([productData]);
 
       if (error) {
+        console.error('Product insert error:', error);
         throw error;
       }
 
@@ -178,6 +192,7 @@ const AddProduct = () => {
       });
 
     } catch (error: any) {
+      console.error('Add product failed:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to add product",
