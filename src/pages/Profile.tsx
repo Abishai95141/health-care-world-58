@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, MapPin, Calendar, Settings, Package, Heart, Camera, Edit2, Save, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
+import { RecentOrdersList } from '@/components/RecentOrdersList';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -221,7 +221,7 @@ const Profile = () => {
                 </CardContent>
               </Card>
 
-              {/* Recent Orders */}
+              {/* Recent Orders - Updated */}
               <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-3xl">
                 <CardHeader>
                   <CardTitle className="flex items-center text-xl">
@@ -230,22 +230,7 @@ const Profile = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-16">
-                    <div className="relative inline-block mb-8">
-                      <Package className="h-20 w-20 text-gray-300 mx-auto animate-pulse" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-gray-200/20 to-gray-300/20 
-                                    rounded-full animate-pulse"></div>
-                    </div>
-                    <p className="text-black text-xl font-light mb-3">No orders yet</p>
-                    <p className="text-gray-600 mb-8 text-lg">Start shopping to see your orders here</p>
-                    <Button 
-                      onClick={() => navigate('/shop')}
-                      className="bg-black text-white hover:bg-gray-800 px-8 py-3 text-lg 
-                               rounded-full hover:scale-105 transition-all duration-200"
-                    >
-                      Start Shopping
-                    </Button>
-                  </div>
+                  <RecentOrdersList />
                 </CardContent>
               </Card>
             </div>
