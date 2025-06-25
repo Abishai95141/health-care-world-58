@@ -28,7 +28,7 @@ const Wishlist = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gray-50 py-8">
+        <div className="min-h-screen bg-gray-50 pt-24 py-8">
           <div className="max-w-6xl mx-auto px-6">
             <div className="animate-pulse space-y-8">
               <div className="h-8 bg-gray-200 rounded w-1/4"></div>
@@ -52,7 +52,7 @@ const Wishlist = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-gray-50 pt-24 py-8">
         <div className="max-w-6xl mx-auto px-6">
           {/* Header */}
           <div className="mb-8">
