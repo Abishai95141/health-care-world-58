@@ -32,6 +32,9 @@ import EditProduct from "./pages/staff/EditProduct";
 import BulkImport from "./pages/staff/BulkImport";
 import InventoryAlerts from "./pages/staff/InventoryAlerts";
 import BannerManagement from "./pages/staff/BannerManagement";
+import ManageOrders from "./pages/staff/ManageOrders";
+import ManagePurchaseOrders from "./pages/staff/ManagePurchaseOrders";
+import NewPurchaseOrder from "./pages/staff/NewPurchaseOrder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -172,6 +175,36 @@ const App: React.FC = () => (
                       <StaffProtectedRoute>
                         <StaffLayout>
                           <BannerManagement />
+                        </StaffLayout>
+                      </StaffProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/staff/orders" 
+                    element={
+                      <StaffProtectedRoute>
+                        <StaffLayout>
+                          <ManageOrders />
+                        </StaffLayout>
+                      </StaffProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/staff/purchase-orders" 
+                    element={
+                      <StaffProtectedRoute>
+                        <StaffLayout>
+                          <ManagePurchaseOrders />
+                        </StaffLayout>
+                      </StaffProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/staff/purchase-orders/new" 
+                    element={
+                      <StaffProtectedRoute>
+                        <StaffLayout>
+                          <NewPurchaseOrder />
                         </StaffLayout>
                       </StaffProtectedRoute>
                     } 

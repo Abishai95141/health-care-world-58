@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useStaffAuth } from '@/contexts/StaffAuthContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
@@ -14,7 +13,9 @@ import {
   Menu,
   X,
   User,
-  Building2
+  Building2,
+  FileText,
+  Truck
 } from 'lucide-react';
 
 interface StaffLayoutProps {
@@ -40,6 +41,7 @@ const StaffLayout = ({ children }: StaffLayoutProps) => {
     { name: 'Inventory Alerts', href: '/staff/inventory', icon: AlertTriangle },
     { name: 'Banner Management', href: '/staff/banners', icon: Building2 },
     { name: 'Order Management', href: '/staff/orders', icon: ShoppingCart },
+    { name: 'Purchase Orders', href: '/staff/purchase-orders', icon: Truck },
   ];
 
   const currentPath = location.pathname;
