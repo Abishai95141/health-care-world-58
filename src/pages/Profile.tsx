@@ -9,10 +9,14 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWishlist } from '@/hooks/useWishlist';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 
 const Profile = () => {
   const { user } = useAuth();
+  const { totalItems } = useWishlist();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
     fullName: user?.user_metadata?.full_name || '',
@@ -46,7 +50,7 @@ const Profile = () => {
 
   const statCards = [
     { icon: Package, label: 'Orders Placed', value: '0', color: 'text-black' },
-    { icon: Heart, label: 'Wishlist Items', value: '0', color: 'text-black' },
+    { icon: Heart, label: 'Wishlist Items', value: totalItems.toString(), color: 'text-black' },
     { icon: MapPin, label: 'Saved Addresses', value: '0', color: 'text-black' }
   ];
 
@@ -234,8 +238,11 @@ const Profile = () => {
                     </div>
                     <p className="text-black text-xl font-light mb-3">No orders yet</p>
                     <p className="text-gray-600 mb-8 text-lg">Start shopping to see your orders here</p>
-                    <Button className="bg-black text-white hover:bg-gray-800 px-8 py-3 text-lg 
-                                     rounded-full hover:scale-105 transition-all duration-200">
+                    <Button 
+                      onClick={() => navigate('/shop')}
+                      className="bg-black text-white hover:bg-gray-800 px-8 py-3 text-lg 
+                               rounded-full hover:scale-105 transition-all duration-200"
+                    >
                       Start Shopping
                     </Button>
                   </div>
@@ -251,11 +258,20 @@ const Profile = () => {
                   <CardTitle className="text-xl">Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Button variant="outline" className="w-full justify-start h-14 border-gray-200 
-                                                     hover:bg-gray-50 hover:border-black hover:scale-105 
-                                                     transition-all duration-200 group rounded-2xl text-lg">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate('/profile/wishlist')}
+                    className="w-full justify-start h-14 border-gray-200 
+                             hover:bg-gray-50 hover:border-black hover:scale-105 
+                             transition-all duration-200 group rounded-2xl text-lg"
+                  >
                     <Heart className="h-5 w-5 mr-4 group-hover:text-black transition-colors duration-200" />
                     Wishlist
+                    {totalItems > 0 && (
+                      <span className="ml-auto bg-red-500 text-white px-2 py-1 rounded-full text-xs">
+                        {totalItems}
+                      </span>
+                    )}
                   </Button>
                   <Button variant="outline" className="w-full justify-start h-14 border-gray-200 
                                                      hover:bg-gray-50 hover:border-black hover:scale-105 

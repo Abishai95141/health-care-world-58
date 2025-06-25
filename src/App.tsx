@@ -20,6 +20,7 @@ import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import Wishlist from "./pages/Wishlist";
 import CartPage from "./components/CartPage";
 import CheckoutPage from "./components/CheckoutPage";
 import OrderConfirmation from "./pages/OrderConfirmation";
@@ -59,6 +60,14 @@ const App: React.FC = () => (
                     element={
                       <ProtectedRoute>
                         <Profile />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/profile/wishlist" 
+                    element={
+                      <ProtectedRoute>
+                        <Wishlist />
                       </ProtectedRoute>
                     } 
                   />

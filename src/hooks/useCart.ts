@@ -27,6 +27,48 @@ export const useCart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Get or create cart session
+  const getOrCreateCartSession = async () => {
+    if (!user) return null;
+
+    // Try to get existing session from localStorage
+    let sessionId = localStorage.getItem('cart_session_id');
+    
+    if (sessionId) {
+      // Check if session still exists and is active
+      const { data: existingSession, error } = await supabase
+        .from('cart_sessions')
+        .select('*')
+        .eq('session_id', sessionId)
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (!error && existingSession) {
+        return sessionId;
+      }
+    }
+
+    // Create new session
+    const newSessionId = `session_${user.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const { error: insertError } = await supabase
+      .from('cart_sessions')
+      .insert({
+        session_id: newSessionId,
+        user_id: user.id,
+        status: 'active'
+      });
+
+    if (insertError) {
+      console.error('Error creating cart session:', insertError);
+      return null;
+    }
+
+    localStorage.setItem('cart_session_id', newSessionId);
+    return newSessionId;
+  };
+
   // Fetch cart items from database
   const fetchCart = async () => {
     if (!user) {
@@ -77,6 +119,15 @@ export const useCart = () => {
     console.log('Adding to cart:', { productId, quantity, userId: user.id });
 
     try {
+      // Ensure we have a cart session before adding first item
+      if (cartItems.length === 0) {
+        const sessionId = await getOrCreateCartSession();
+        if (!sessionId) {
+          throw new Error('Failed to create cart session');
+        }
+        console.log('Created/retrieved cart session:', sessionId);
+      }
+
       // Check if item already exists in cart
       const { data: existingItem, error: checkError } = await supabase
         .from('cart_items')
@@ -232,6 +283,7 @@ export const useCart = () => {
   useEffect(() => {
     if (!user) {
       setCartItems([]);
+      localStorage.removeItem('cart_session_id');
       return;
     }
 

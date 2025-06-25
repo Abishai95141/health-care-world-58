@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Minus, Plus, Star, ShoppingCart, Share2, Facebook, Twitter } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Minus, Plus, Star, ShoppingCart, Share2, Facebook, Twitter, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -11,6 +11,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { useSingleProduct } from '@/hooks/useProducts';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/hooks/useCart';
+import { useWishlist } from '@/hooks/useWishlist';
 import { useOrder } from '@/hooks/useOrder';
 import ReviewsSection from '@/components/ReviewsSection';
 import EnhancedNavigation from '@/components/EnhancedNavigation';
@@ -25,6 +26,7 @@ const ProductDetail = () => {
   const [activeTab, setActiveTab] = useState('details');
   const { user } = useAuth();
   const { addToCart } = useCart();
+  const { addToWishlist, isInWishlist } = useWishlist();
   const { createSingleItemOrder, loading: orderLoading } = useOrder();
 
   useEffect(() => {
@@ -69,6 +71,7 @@ const ProductDetail = () => {
   const discountPercent = hasDiscount ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
   const isOutOfStock = product.stock === 0;
   const isLowStock = product.stock > 0 && product.stock <= 10;
+  const inWishlist = isInWishlist(product.id);
 
   const images = product.image_urls && product.image_urls.length > 0 
     ? product.image_urls 
@@ -90,6 +93,21 @@ const ProductDetail = () => {
     if (product.stock >= quantity) {
       await addToCart(product.id, quantity);
     }
+  };
+
+  const handleAddToWishlist = async () => {
+    if (!user) {
+      navigate('/auth', { 
+        state: { 
+          from: `/product/${slug}`,
+          action: 'addToWishlist',
+          productId: product.id
+        }
+      });
+      return;
+    }
+
+    await addToWishlist(product.id);
   };
 
   const handleBuyNow = async () => {
@@ -309,13 +327,26 @@ const ProductDetail = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <Button
-                      onClick={handleAddToCart}
-                      className="w-full bg-black text-white hover:bg-white hover:text-black hover:border-black border-2 border-transparent rounded-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-lg py-4 text-lg font-medium"
-                    >
-                      <ShoppingCart className="w-5 h-5 mr-2" />
-                      Add to Cart
-                    </Button>
+                    <div className="flex space-x-3">
+                      <Button
+                        onClick={handleAddToCart}
+                        className="flex-1 bg-black text-white hover:bg-white hover:text-black hover:border-black border-2 border-transparent rounded-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-lg py-4 text-lg font-medium"
+                      >
+                        <ShoppingCart className="w-5 h-5 mr-2" />
+                        Add to Cart
+                      </Button>
+                      <Button
+                        onClick={handleAddToWishlist}
+                        variant="outline"
+                        className={`p-4 border-2 rounded-lg transition-all duration-200 hover:scale-105 ${
+                          inWishlist 
+                            ? 'bg-red-500 text-white border-red-500 hover:bg-red-600 hover:border-red-600' 
+                            : 'border-gray-300 hover:border-red-500 hover:text-red-500'
+                        }`}
+                      >
+                        <Heart className={`w-5 h-5 ${inWishlist ? 'fill-current' : ''}`} />
+                      </Button>
+                    </div>
                     <Button
                       onClick={handleBuyNow}
                       disabled={orderLoading}

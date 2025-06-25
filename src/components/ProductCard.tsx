@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { ShoppingCart, Star } from 'lucide-react';
+import { ShoppingCart, Star, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/hooks/useCart';
+import { useWishlist } from '@/hooks/useWishlist';
 
 interface Product {
   id: string;
@@ -27,11 +28,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addToCart } = useCart();
+  const { addToWishlist, isInWishlist } = useWishlist();
 
   const hasDiscount = product.mrp && product.mrp > product.price;
   const discountPercent = hasDiscount ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
   const isOutOfStock = product.stock === 0;
   const isLowStock = product.stock > 0 && product.stock <= 10;
+  const inWishlist = isInWishlist(product.id);
 
   const imageUrl = product.image_urls && product.image_urls.length > 0 
     ? product.image_urls[0] 
@@ -54,6 +57,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     if (product.stock >= 1) {
       await addToCart(product.id, 1);
     }
+  };
+
+  const handleAddToWishlist = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      navigate('/auth', { 
+        state: { 
+          from: `/product/${product.slug}`,
+          action: 'addToWishlist',
+          productId: product.id
+        }
+      });
+      return;
+    }
+
+    await addToWishlist(product.id);
   };
 
   const handleProductClick = () => {
@@ -81,6 +100,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             Rx
           </Badge>
         )}
+        <button
+          onClick={handleAddToWishlist}
+          className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-200 hover:scale-110 ${
+            product.requires_prescription ? 'top-14' : ''
+          } ${
+            inWishlist 
+              ? 'bg-red-500 text-white hover:bg-red-600' 
+              : 'bg-white/80 text-gray-600 hover:bg-white hover:text-red-500'
+          }`}
+        >
+          <Heart className={`h-4 w-4 ${inWishlist ? 'fill-current' : ''}`} />
+        </button>
       </div>
 
       <div className="p-4 space-y-3">
