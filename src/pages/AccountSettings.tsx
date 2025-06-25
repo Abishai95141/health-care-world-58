@@ -1,521 +1,508 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  User, 
-  Lock, 
-  CreditCard, 
-  MapPin, 
-  Bell, 
-  Shield, 
-  Download,
-  Trash2,
-  Link,
-  Camera,
-  Mail,
-  Phone,
-  Eye,
-  EyeOff
-} from 'lucide-react';
-import Layout from '@/components/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useApp } from '@/contexts/AppContext';
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  CreditCard, 
+  Shield, 
+  Bell,
+  Eye,
+  EyeOff,
+  Check,
+  X,
+  Plus,
+  Edit,
+  Trash2
+} from 'lucide-react';
+import Layout from '@/components/Layout';
+
+interface Profile {
+  id: string;
+  full_name?: string;
+  email?: string;
+  phone?: string;
+  created_at: string;
+}
+
+interface Address {
+  id: string;
+  name: string;
+  street_address: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  phone?: string;
+  is_default: boolean;
+}
 
 const AccountSettings = () => {
+  const { user, signOut } = useAuth();
+  const { showToast, navigateTo } = useApp();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: 'John Doe',
-    email: 'john.doe@email.com',
-    phone: '+1 (555) 123-4567',
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-    twoFactorEnabled: false,
-    emailNotifications: true,
-    smsAlerts: true,
-    newsletter: true,
-    newsletterFrequency: 'weekly'
+  const [editingAddress, setEditingAddress] = useState<string | null>(null);
+  const [newAddress, setNewAddress] = useState({
+    name: '',
+    street_address: '',
+    city: '',
+    state: '',
+    postal_code: '',
+    phone: ''
   });
+  const [showAddressForm, setShowAddressForm] = useState(false);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
+  // Simple card animation without problematic transition properties
   const cardVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 30 
-    },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        duration: 0.5,
-        ease: [0.4, 0.0, 0.2, 1]
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+    hover: { scale: 1.02, boxShadow: "0 8px 25px rgba(0,0,0,0.1)" }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+      fetchAddresses();
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user!.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
       }
-    },
-    hover: {
-      scale: 1.02,
-      boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-      transition: {
-        duration: 0.2
-      }
+
+      setProfile(data || {
+        id: user!.id,
+        email: user!.email,
+        full_name: '',
+        phone: '',
+        created_at: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      showToast('Failed to load profile', 'error');
     }
   };
 
-  const inputVariants = {
-    focus: {
-      scale: 1.02,
-      transition: { duration: 0.2 }
+  const fetchAddresses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('addresses')
+        .select('*')
+        .eq('user_id', user!.id)
+        .order('is_default', { ascending: false });
+
+      if (error) throw error;
+      setAddresses(data || []);
+    } catch (error) {
+      console.error('Error fetching addresses:', error);
+      showToast('Failed to load addresses', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    setHasUnsavedChanges(true);
+  const updateProfile = async (updates: Partial<Profile>) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user!.id,
+          ...updates,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+      
+      setProfile(prev => prev ? { ...prev, ...updates } : null);
+      showToast('Profile updated successfully', 'success');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      showToast('Failed to update profile', 'error');
+    }
   };
 
-  const handleSave = () => {
-    // Save logic here
-    setHasUnsavedChanges(false);
+  const addAddress = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('addresses')
+        .insert([{
+          user_id: user!.id,
+          ...newAddress,
+          is_default: addresses.length === 0
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setAddresses([...addresses, data]);
+      setNewAddress({
+        name: '',
+        street_address: '',
+        city: '',
+        state: '',
+        postal_code: '',
+        phone: ''
+      });
+      setShowAddressForm(false);
+      showToast('Address added successfully', 'success');
+    } catch (error) {
+      console.error('Error adding address:', error);
+      showToast('Failed to add address', 'error');
+    }
   };
+
+  const deleteAddress = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('addresses')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setAddresses(addresses.filter(addr => addr.id !== id));
+      showToast('Address deleted', 'info');
+    } catch (error) {
+      console.error('Error deleting address:', error);
+      showToast('Failed to delete address', 'error');
+    }
+  };
+
+  if (!user) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardContent className="p-8 text-center">
+              <h2 className="text-2xl font-bold mb-4">Please Sign In</h2>
+              <p className="text-gray-600 mb-6">You need to be signed in to access account settings</p>
+              <Button onClick={() => navigateTo('/auth')}>Sign In</Button>
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600"></div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="text-4xl font-light text-black mb-2">Account Settings</h1>
-            <p className="text-gray-600">Manage your account preferences and security settings</p>
+            <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
+            <p className="text-gray-600 mt-2">Manage your personal information and preferences</p>
           </div>
 
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-20"
-          >
-            {/* Personal Information */}
-            <motion.div variants={cardVariants} whileHover="hover">
-              <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-lg rounded-2xl">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-3 text-xl text-black">
-                    <User className="w-6 h-6" />
-                    Personal Information
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Profile Information */}
+            <motion.div
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              whileHover="hover"
+              className="lg:col-span-2"
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <User className="w-5 h-5 mr-2" />
+                    Profile Information
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="w-20 h-20">
-                      <AvatarImage src="/placeholder.svg" />
-                      <AvatarFallback>JD</AvatarFallback>
-                    </Avatar>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Camera className="w-4 h-4" />
-                      Change Photo
-                    </Button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="fullName">Full Name</Label>
+                      <Input
+                        id="fullName"
+                        value={profile?.full_name || ''}
+                        onChange={(e) => setProfile(prev => prev ? { ...prev, full_name: e.target.value } : null)}
+                        onBlur={(e) => updateProfile({ full_name: e.target.value })}
+                        placeholder="Enter your full name"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={user.email || ''}
+                        disabled
+                        className="bg-gray-100"
+                      />
+                      <p className="text-sm text-gray-500 mt-1">Email cannot be changed</p>
+                    </div>
                   </div>
                   
-                  <motion.div variants={inputVariants} whileFocus="focus">
-                    <Label htmlFor="fullName" className="text-base font-medium text-black">Full Name</Label>
+                  <div>
+                    <Label htmlFor="phone">Phone Number</Label>
                     <Input
-                      id="fullName"
-                      value={formData.fullName}
-                      onChange={(e) => handleInputChange('fullName', e.target.value)}
-                      className="mt-2 h-12"
+                      id="phone"
+                      value={profile?.phone || ''}
+                      onChange={(e) => setProfile(prev => prev ? { ...prev, phone: e.target.value } : null)}
+                      onBlur={(e) => updateProfile({ phone: e.target.value })}
+                      placeholder="Enter your phone number"
                     />
-                  </motion.div>
-
-                  <div>
-                    <Label className="text-base font-medium text-black">Email</Label>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Input
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="h-12"
-                      />
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">
-                        Verified
-                      </Badge>
-                    </div>
-                    <Button variant="link" className="p-0 h-auto text-sm mt-1">
-                      Change Email
-                    </Button>
-                  </div>
-
-                  <div>
-                    <Label className="text-base font-medium text-black">Phone</Label>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Input
-                        value={formData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                        className="h-12"
-                      />
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">
-                        Verified
-                      </Badge>
-                    </div>
-                    <Button variant="link" className="p-0 h-auto text-sm mt-1">
-                      Change Phone
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
 
-            {/* Security */}
-            <motion.div variants={cardVariants} whileHover="hover">
-              <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-lg rounded-2xl">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-3 text-xl text-black">
-                    <Lock className="w-6 h-6" />
-                    Security
+            {/* Account Overview */}
+            <motion.div
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              whileHover="hover"
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Shield className="w-5 h-5 mr-2" />
+                    Account Overview
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div>
-                    <Label htmlFor="currentPassword" className="text-base font-medium text-black">Current Password</Label>
-                    <div className="relative mt-2">
-                      <Input
-                        id="currentPassword"
-                        type={showPassword ? "text" : "password"}
-                        value={formData.currentPassword}
-                        onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-                        className="h-12 pr-10"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Account Status</span>
+                    <Badge variant="default" className="bg-green-100 text-green-800">Active</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Member Since</span>
+                    <span className="text-sm font-medium">
+                      {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
+                    </span>
+                  </div>
+                  <Separator />
+                  <Button 
+                    variant="outline" 
+                    onClick={signOut}
+                    className="w-full"
+                  >
+                    Sign Out
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Delivery Addresses */}
+            <motion.div
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              whileHover="hover"
+              className="lg:col-span-3"
+            >
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center">
+                      <MapPin className="w-5 h-5 mr-2" />
+                      Delivery Addresses
+                    </CardTitle>
+                    <Button
+                      onClick={() => setShowAddressForm(true)}
+                      size="sm"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Address
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {addresses.length === 0 ? (
+                    <div className="text-center py-8">
+                      <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No addresses yet</h3>
+                      <p className="text-gray-600">Add your first delivery address to get started</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {addresses.map((address) => (
+                        <motion.div
+                          key={address.id}
+                          variants={cardVariants}
+                          initial="hidden"
+                          animate="visible"
+                          whileHover="hover"
+                          className="border rounded-lg p-4 relative"
+                        >
+                          {address.is_default && (
+                            <Badge className="absolute top-2 right-2 bg-green-100 text-green-800">
+                              Default
+                            </Badge>
+                          )}
+                          <div className="space-y-2">
+                            <h4 className="font-medium">{address.name}</h4>
+                            <p className="text-sm text-gray-600">
+                              {address.street_address}<br />
+                              {address.city}, {address.state} {address.postal_code}
+                            </p>
+                            {address.phone && (
+                              <p className="text-sm text-gray-600">{address.phone}</p>
+                            )}
+                          </div>
+                          <div className="flex space-x-2 mt-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingAddress(address.id)}
+                            >
+                              <Edit className="w-3 h-3 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteAddress(address.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add Address Form */}
+                  {showAddressForm && (
+                    <motion.div
+                      variants={cardVariants}
+                      initial="hidden"
+                      animate="visible"
+                      className="mt-6 p-4 border rounded-lg bg-gray-50"
+                    >
+                      <h4 className="font-medium mb-4">Add New Address</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input
+                          placeholder="Full Name"
+                          value={newAddress.name}
+                          onChange={(e) => setNewAddress({...newAddress, name: e.target.value})}
+                        />
+                        <Input
+                          placeholder="Phone (optional)"
+                          value={newAddress.phone}
+                          onChange={(e) => setNewAddress({...newAddress, phone: e.target.value})}
+                        />
+                        <Input
+                          placeholder="Street Address"
+                          value={newAddress.street_address}
+                          onChange={(e) => setNewAddress({...newAddress, street_address: e.target.value})}
+                          className="md:col-span-2"
+                        />
+                        <Input
+                          placeholder="City"
+                          value={newAddress.city}
+                          onChange={(e) => setNewAddress({...newAddress, city: e.target.value})}
+                        />
+                        <Input
+                          placeholder="State"
+                          value={newAddress.state}
+                          onChange={(e) => setNewAddress({...newAddress, state: e.target.value})}
+                        />
+                        <Input
+                          placeholder="Postal Code"
+                          value={newAddress.postal_code}
+                          onChange={(e) => setNewAddress({...newAddress, postal_code: e.target.value})}
+                        />
+                      </div>
+                      <div className="flex space-x-3 mt-4">
+                        <Button
+                          onClick={addAddress}
+                          disabled={!newAddress.name || !newAddress.street_address || !newAddress.city || !newAddress.state || !newAddress.postal_code}
+                        >
+                          <Check className="w-4 h-4 mr-2" />
+                          Add Address
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowAddressForm(false)}
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          Cancel
+                        </Button>
+                      </div>
+                    </motion.div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Notification Preferences */}
+            <motion.div
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              whileHover="hover"
+              className="lg:col-span-3"
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Bell className="w-5 h-5 mr-2" />
+                    Notification Preferences
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">Order Updates</h4>
+                        <p className="text-sm text-gray-600">Get notified about your order status</p>
+                      </div>
+                      <Button variant="outline" size="sm">
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">Promotional Emails</h4>
+                        <p className="text-sm text-gray-600">Receive offers and updates about new products</p>
+                      </div>
+                      <Button variant="outline" size="sm">
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </Button>
                     </div>
                   </div>
-
-                  <div>
-                    <Label htmlFor="newPassword" className="text-base font-medium text-black">New Password</Label>
-                    <div className="relative mt-2">
-                      <Input
-                        id="newPassword"
-                        type={showNewPassword ? "text" : "password"}
-                        value={formData.newPassword}
-                        onChange={(e) => handleInputChange('newPassword', e.target.value)}
-                        className="h-12 pr-10"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                      >
-                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="confirmPassword" className="text-base font-medium text-black">Confirm New Password</Label>
-                    <div className="relative mt-2">
-                      <Input
-                        id="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        value={formData.confirmPassword}
-                        onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                        className="h-12 pr-10"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      >
-                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-base font-medium text-black">Two-Factor Authentication</Label>
-                      <p className="text-sm text-gray-600">Add an extra layer of security</p>
-                    </div>
-                    <Switch
-                      checked={formData.twoFactorEnabled}
-                      onCheckedChange={(checked) => handleInputChange('twoFactorEnabled', checked)}
-                    />
-                  </div>
-
-                  <div className="pt-2">
-                    <Button variant="outline" className="w-full">
-                      View Login Activity
-                    </Button>
-                  </div>
                 </CardContent>
               </Card>
             </motion.div>
-
-            {/* Payment Methods */}
-            <motion.div variants={cardVariants} whileHover="hover">
-              <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-lg rounded-2xl">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-3 text-xl text-black">
-                    <CreditCard className="w-6 h-6" />
-                    Payment Methods
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-3">
-                    <RadioGroup defaultValue="card1">
-                      <div className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <RadioGroupItem value="card1" id="card1" />
-                          <div>
-                            <Label htmlFor="card1" className="font-medium">•••• •••• •••• 4242</Label>
-                            <p className="text-sm text-gray-600">Expires 12/25</p>
-                          </div>
-                        </div>
-                        <Badge>Default</Badge>
-                      </div>
-                      <div className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <RadioGroupItem value="card2" id="card2" />
-                          <div>
-                            <Label htmlFor="card2" className="font-medium">•••• •••• •••• 8888</Label>
-                            <p className="text-sm text-gray-600">Expires 08/26</p>
-                          </div>
-                        </div>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                  <Button variant="outline" className="w-full">
-                    Add New Card
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Addresses */}
-            <motion.div variants={cardVariants} whileHover="hover">
-              <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-lg rounded-2xl">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-3 text-xl text-black">
-                    <MapPin className="w-6 h-6" />
-                    Addresses
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <Label className="font-medium">Default Shipping Address</Label>
-                      <Button variant="link" size="sm">Edit</Button>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      <p>123 Main Street</p>
-                      <p>New York, NY 10001</p>
-                      <p>United States</p>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="w-full">
-                    Add New Address
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Notifications & Preferences */}
-            <motion.div variants={cardVariants} whileHover="hover">
-              <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-lg rounded-2xl">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-3 text-xl text-black">
-                    <Bell className="w-6 h-6" />
-                    Notifications & Preferences
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-base font-medium text-black">Email Notifications</Label>
-                      <p className="text-sm text-gray-600">Order updates and promotions</p>
-                    </div>
-                    <Switch
-                      checked={formData.emailNotifications}
-                      onCheckedChange={(checked) => handleInputChange('emailNotifications', checked)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-base font-medium text-black">SMS Alerts</Label>
-                      <p className="text-sm text-gray-600">Delivery and prescription reminders</p>
-                    </div>
-                    <Switch
-                      checked={formData.smsAlerts}
-                      onCheckedChange={(checked) => handleInputChange('smsAlerts', checked)}
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-base font-medium text-black">Newsletter</Label>
-                        <p className="text-sm text-gray-600">Health tips and product updates</p>
-                      </div>
-                      <Switch
-                        checked={formData.newsletter}
-                        onCheckedChange={(checked) => handleInputChange('newsletter', checked)}
-                      />
-                    </div>
-                    {formData.newsletter && (
-                      <Select
-                        value={formData.newsletterFrequency}
-                        onValueChange={(value) => handleInputChange('newsletterFrequency', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="daily">Daily</SelectItem>
-                          <SelectItem value="weekly">Weekly</SelectItem>
-                          <SelectItem value="monthly">Monthly</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Privacy & Data */}
-            <motion.div variants={cardVariants} whileHover="hover">
-              <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-lg rounded-2xl">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-3 text-xl text-black">
-                    <Shield className="w-6 h-6" />
-                    Privacy & Data
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <Button variant="outline" className="w-full flex items-center gap-2">
-                    <Download className="w-4 h-4" />
-                    Download My Data
-                  </Button>
-                  
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" className="w-full flex items-center gap-2">
-                        <Trash2 className="w-4 h-4" />
-                        Delete My Account
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete your account and remove your data from our servers.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction className="bg-red-600 hover:bg-red-700">
-                          Delete Account
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Connected Accounts */}
-            <motion.div variants={cardVariants} whileHover="hover">
-              <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-lg rounded-2xl">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-3 text-xl text-black">
-                    <Link className="w-6 h-6" />
-                    Connected Accounts
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                        <Mail className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <Label className="font-medium">Google</Label>
-                        <p className="text-sm text-gray-600">Connected</p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      Disconnect
-                    </Button>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                        <Phone className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <Label className="font-medium">Facebook</Label>
-                        <p className="text-sm text-gray-600">Not connected</p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      Connect
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </motion.div>
-
-          {/* Sticky Save Button */}
-          <motion.div
-            className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t p-4 z-50"
-            initial={{ y: 100 }}
-            animate={{ y: hasUnsavedChanges ? 0 : 100 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="max-w-6xl mx-auto flex items-center justify-between">
-              <p className="text-sm text-gray-600">You have unsaved changes</p>
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setHasUnsavedChanges(false)}>
-                  Cancel
-                </Button>
-                <motion.div
-                  animate={hasUnsavedChanges ? { scale: [1, 1.05, 1] } : {}}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <Button onClick={handleSave} className="bg-black hover:bg-gray-800">
-                    Save Changes
-                  </Button>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </Layout>
