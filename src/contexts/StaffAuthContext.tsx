@@ -36,10 +36,28 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const storedUser = localStorage.getItem('staff_user');
         if (storedUser) {
           const staffUser = JSON.parse(storedUser);
-          setUser(staffUser);
+          
+          // Verify the stored session is still valid by checking if the staff user exists
+          const { data, error } = await supabase
+            .from('staff_users')
+            .select('id, email, role')
+            .eq('email', staffUser.email)
+            .maybeSingle();
+          
+          if (!error && data) {
+            setUser({
+              id: data.id,
+              email: data.email,
+              role: data.role
+            });
+          } else {
+            // Clear invalid session
+            localStorage.removeItem('staff_user');
+          }
         }
       } catch (error) {
         console.error('Session check error:', error);
+        localStorage.removeItem('staff_user');
       } finally {
         setLoading(false);
       }
@@ -50,6 +68,7 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const signIn = async (email: string, password: string) => {
     try {
+      // First, authenticate the staff user using the custom function
       const { data, error } = await supabase.rpc('authenticate_staff', {
         email_input: email,
         password_input: password
@@ -58,10 +77,29 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (error) throw error;
 
       if (data && data.length > 0) {
+        const staffData = data[0];
+        
+        // Now check if this staff user has a corresponding Supabase Auth user
+        // If not, we'll need to create one or handle it differently
+        try {
+          // Try to sign in the staff user with Supabase Auth as well
+          // This is necessary for RLS policies to work properly
+          const { error: authError } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password // This will only work if staff users are also in auth.users
+          });
+
+          // If auth sign-in fails, it's expected since staff might not be in auth.users
+          // The RLS policies are designed to handle this case
+          console.log('Staff auth status:', authError ? 'Custom only' : 'Both systems');
+        } catch (authErr) {
+          console.log('Staff user not in Supabase Auth, using custom auth only');
+        }
+
         const staffUser = {
-          id: data[0].user_id,
-          email: data[0].email,
-          role: data[0].role
+          id: staffData.user_id,
+          email: staffData.email,
+          role: staffData.role
         };
 
         setUser(staffUser);
@@ -71,11 +109,19 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return { error: { message: 'Invalid email or password' } };
       }
     } catch (error: any) {
+      console.error('Staff sign in error:', error);
       return { error };
     }
   };
 
   const signOut = async () => {
+    try {
+      // Sign out from Supabase Auth if signed in
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.log('No Supabase Auth session to sign out from');
+    }
+    
     setUser(null);
     localStorage.removeItem('staff_user');
   };
