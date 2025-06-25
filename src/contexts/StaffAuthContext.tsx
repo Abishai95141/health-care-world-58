@@ -30,14 +30,14 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing staff session in localStorage
+    // Check for existing staff session
     const checkSession = async () => {
       try {
         const storedUser = localStorage.getItem('staff_user');
         if (storedUser) {
           const staffUser = JSON.parse(storedUser);
           
-          // Verify the stored session is still valid by checking if the staff user exists
+          // Verify the stored session is still valid
           const { data, error } = await supabase
             .from('staff_users')
             .select('id, email, role')
@@ -45,8 +45,8 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             .maybeSingle();
           
           if (!error && data) {
-            // Create a temporary auth session for RLS to work
-            await createTempAuthSession(data.email);
+            // Create a simple auth session for the authenticated user
+            await supabase.auth.signInAnonymously();
             
             setUser({
               id: data.id,
@@ -69,30 +69,9 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     checkSession();
   }, []);
 
-  // Helper function to create a temporary auth session with email in JWT claims
-  const createTempAuthSession = async (email: string) => {
-    try {
-      // Create a temporary token with the staff email for RLS policies
-      const tempPayload = {
-        email: email,
-        role: 'authenticated',
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
-      };
-      
-      // Set the session manually for RLS to work
-      await supabase.auth.setSession({
-        access_token: 'staff-session-' + email,
-        refresh_token: 'staff-refresh-' + email
-      });
-    } catch (error) {
-      console.log('Could not create temp session:', error);
-    }
-  };
-
   const signIn = async (email: string, password: string) => {
     try {
-      // First, authenticate the staff user using the custom function
+      // Authenticate the staff user using the custom function
       const { data, error } = await supabase.rpc('authenticate_staff', {
         email_input: email,
         password_input: password
@@ -103,8 +82,8 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (data && data.length > 0) {
         const staffData = data[0];
         
-        // Create a temporary auth session with the staff email
-        await createTempAuthSession(email);
+        // Create a simple anonymous auth session for RLS
+        await supabase.auth.signInAnonymously();
 
         const staffUser = {
           id: staffData.user_id,
@@ -126,10 +105,9 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const signOut = async () => {
     try {
-      // Sign out from Supabase Auth if signed in
       await supabase.auth.signOut();
     } catch (error) {
-      console.log('No Supabase Auth session to sign out from');
+      console.log('Sign out error:', error);
     }
     
     setUser(null);
