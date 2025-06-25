@@ -60,11 +60,8 @@ export const useOrder = () => {
         if (result.success && result.order_id) {
           showToast('Order placed successfully!', 'success');
           
-          // Add a small delay to ensure the order is fully written to the database
-          setTimeout(() => {
-            navigateTo(`/order-confirmation/${result.order_id}`);
-          }, 500);
-          
+          // Navigate to order confirmation immediately
+          navigateTo(`/order-confirmation/${result.order_id}`);
           return true;
         } else {
           showToast(result.error_message || 'Failed to place order', 'error');
@@ -130,11 +127,8 @@ export const useOrder = () => {
         if (result.success && result.order_id) {
           showToast('Order placed successfully!', 'success');
           
-          // Add a small delay to ensure the order is fully written to the database
-          setTimeout(() => {
-            navigateTo(`/order-confirmation/${result.order_id}`);
-          }, 500);
-          
+          // Navigate to order confirmation immediately
+          navigateTo(`/order-confirmation/${result.order_id}`);
           return true;
         } else {
           showToast(result.error_message || 'Failed to place order', 'error');

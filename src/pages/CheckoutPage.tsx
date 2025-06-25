@@ -139,6 +139,12 @@ const CheckoutPage = () => {
       return;
     }
 
+    console.log('Placing order with:', {
+      cartItems: cartItems.length,
+      shippingCost: selectedShipping.price,
+      addressId: selectedAddressId
+    });
+
     const success = await createOrder(cartItems, selectedShipping.price, selectedAddressId);
     // The useOrder hook will handle navigation to order confirmation
   };
