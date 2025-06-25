@@ -9,15 +9,20 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWishlist } from '@/hooks/useWishlist';
+import { useOrderCount } from '@/hooks/useOrderCount';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { RecentOrdersList } from '@/components/RecentOrdersList';
+import { AddressDrawer } from '@/components/AddressDrawer';
+import { motion } from 'framer-motion';
 
 const Profile = () => {
   const { user } = useAuth();
   const { totalItems } = useWishlist();
+  const { orderCount, loading: orderCountLoading } = useOrderCount();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  const [isAddressDrawerOpen, setIsAddressDrawerOpen] = useState(false);
   const [profileData, setProfileData] = useState({
     fullName: user?.user_metadata?.full_name || '',
     email: user?.email || '',
@@ -49,7 +54,13 @@ const Profile = () => {
   };
 
   const statCards = [
-    { icon: Package, label: 'Orders Placed', value: '0', color: 'text-black' },
+    { 
+      icon: Package, 
+      label: 'Orders Placed', 
+      value: orderCountLoading ? '...' : orderCount.toString(), 
+      color: 'text-black',
+      loading: orderCountLoading
+    },
     { icon: Heart, label: 'Wishlist Items', value: totalItems.toString(), color: 'text-black' },
     { icon: MapPin, label: 'Saved Addresses', value: '0', color: 'text-black' }
   ];
@@ -116,7 +127,22 @@ const Profile = () => {
                     <stat.icon className={`h-8 w-8 lg:h-10 lg:w-10 ${stat.color} group-hover:text-white 
                                          transition-colors duration-300`} />
                   </div>
-                  <div className="text-3xl lg:text-4xl font-light text-black mb-2">{stat.value}</div>
+                  <div className="text-3xl lg:text-4xl font-light text-black mb-2">
+                    {stat.loading ? (
+                      <div className="animate-pulse bg-gray-200 h-8 w-16 mx-auto rounded"></div>
+                    ) : stat.label === 'Orders Placed' ? (
+                      <motion.span
+                        initial={{ rotateX: -90 }}
+                        animate={{ rotateX: 0 }}
+                        transition={{ duration: 0.6, type: 'spring', bounce: 0.3 }}
+                        key={stat.value}
+                      >
+                        {stat.value}
+                      </motion.span>
+                    ) : (
+                      stat.value
+                    )}
+                  </div>
                   <div className="text-gray-600 text-lg">{stat.label}</div>
                 </CardContent>
               </Card>
@@ -258,9 +284,13 @@ const Profile = () => {
                       </span>
                     )}
                   </Button>
-                  <Button variant="outline" className="w-full justify-start h-14 border-gray-200 
-                                                     hover:bg-gray-50 hover:border-black hover:scale-105 
-                                                     transition-all duration-200 group rounded-2xl text-lg">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsAddressDrawerOpen(true)}
+                    className="w-full justify-start h-14 border-gray-200 
+                             hover:bg-gray-50 hover:border-black hover:scale-105 
+                             transition-all duration-200 group rounded-2xl text-lg"
+                  >
                     <MapPin className="h-5 w-5 mr-4 group-hover:text-black transition-colors duration-200" />
                     Addresses
                   </Button>
@@ -303,6 +333,12 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Address Drawer */}
+      <AddressDrawer 
+        isOpen={isAddressDrawerOpen} 
+        onClose={() => setIsAddressDrawerOpen(false)} 
+      />
     </Layout>
   );
 };
