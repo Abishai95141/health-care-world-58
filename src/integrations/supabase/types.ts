@@ -323,7 +323,7 @@ export type Database = {
           failed_rows: number | null
           id: string
           imported_at: string
-          staff_id: string
+          staff_id: string | null
           status: string
           successful_rows: number | null
           total_rows: number | null
@@ -333,7 +333,7 @@ export type Database = {
           failed_rows?: number | null
           id?: string
           imported_at?: string
-          staff_id: string
+          staff_id?: string | null
           status?: string
           successful_rows?: number | null
           total_rows?: number | null
@@ -343,7 +343,7 @@ export type Database = {
           failed_rows?: number | null
           id?: string
           imported_at?: string
-          staff_id?: string
+          staff_id?: string | null
           status?: string
           successful_rows?: number | null
           total_rows?: number | null

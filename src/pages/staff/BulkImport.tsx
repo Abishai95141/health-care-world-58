@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -360,12 +361,13 @@ const BulkImport = () => {
     const errors: string[] = [];
 
     try {
-      // Log import start - simplified without staff_id since RLS is disabled
+      // Log import start - without staff_id since it's now nullable with default
       const { data: importLog } = await supabase
         .from('product_import_logs')
         .insert([{
           total_rows: csvData.length,
-          status: 'processing'
+          status: 'processing',
+          staff_id: null
         }])
         .select()
         .single();
