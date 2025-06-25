@@ -19,6 +19,7 @@ const ManageOrders = () => {
   const { data: orders, isLoading } = useQuery({
     queryKey: ['staff-orders'],
     queryFn: async () => {
+      console.log('Fetching orders for staff portal...');
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -31,11 +32,22 @@ const ManageOrders = () => {
             products (
               name
             )
+          ),
+          addresses (
+            name,
+            street_address,
+            city,
+            state,
+            postal_code
           )
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching orders:', error);
+        throw error;
+      }
+      console.log('Fetched orders:', data);
       return data;
     }
   });

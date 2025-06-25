@@ -48,7 +48,7 @@ export const useSimpleOrder = () => {
       
       const totalAmount = subtotal + shippingCost;
 
-      // Create order directly
+      // Create order directly with proper error handling
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -64,7 +64,7 @@ export const useSimpleOrder = () => {
 
       if (orderError) {
         console.error('Error creating order:', orderError);
-        throw orderError;
+        throw new Error(`Failed to create order: ${orderError.message}`);
       }
 
       console.log('Order created:', order);
@@ -84,13 +84,13 @@ export const useSimpleOrder = () => {
 
       if (itemsError) {
         console.error('Error creating order items:', itemsError);
-        throw itemsError;
+        throw new Error(`Failed to create order items: ${itemsError.message}`);
       }
 
       // Update product stock - fixed the TypeScript error
       for (const item of cartItems) {
         if (item.product) {
-          const newStock = item.product.stock - item.quantity;
+          const newStock = Math.max(0, item.product.stock - item.quantity);
           const { error: stockError } = await supabase
             .from('products')
             .update({ stock: newStock })
@@ -108,9 +108,9 @@ export const useSimpleOrder = () => {
       // Navigate to order confirmation
       navigateTo(`/order-confirmation/${order.id}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating simple order:', error);
-      showToast('Failed to place order. Please try again.', 'error');
+      showToast(error.message || 'Failed to place order. Please try again.', 'error');
       return false;
     } finally {
       setLoading(false);
