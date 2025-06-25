@@ -23,10 +23,6 @@ const ManageOrders = () => {
         .from('orders')
         .select(`
           *,
-          profiles:user_id (
-            email,
-            full_name
-          ),
           order_items (
             id,
             quantity,
@@ -38,6 +34,18 @@ const ManageOrders = () => {
           )
         `)
         .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: profiles } = useQuery({
+    queryKey: ['profiles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, email, full_name');
 
       if (error) throw error;
       return data;
@@ -70,11 +78,18 @@ const ManageOrders = () => {
     }
   });
 
+  // Create a map of user profiles for easy lookup
+  const profilesMap = profiles ? profiles.reduce((acc, profile) => {
+    acc[profile.id] = profile;
+    return acc;
+  }, {} as Record<string, { email: string; full_name: string }>) : {};
+
   const filteredOrders = orders?.filter(order => {
+    const userProfile = profilesMap[order.user_id];
     const matchesSearch = 
       order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.profiles?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      userProfile?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      userProfile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     
@@ -171,87 +186,90 @@ const ManageOrders = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredOrders?.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-mono text-sm">
-                    {order.id.slice(0, 8)}...
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{order.profiles?.full_name || 'N/A'}</div>
-                      <div className="text-sm text-gray-500">{order.profiles?.email}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <Package className="w-4 h-4 text-gray-400" />
-                      <span>{order.order_items?.length || 0} items</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <DollarSign className="w-4 h-4 text-gray-400" />
-                      <span>₹{order.total_amount}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={order.status}
-                      onValueChange={(value) => 
-                        updateOrderMutation.mutate({ 
-                          orderId: order.id, 
-                          field: 'status', 
-                          value 
-                        })
-                      }
-                    >
-                      <SelectTrigger className="w-32">
-                        <Badge className={getStatusColor(order.status)}>
-                          {order.status}
-                        </Badge>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                        <SelectItem value="shipped">Shipped</SelectItem>
-                        <SelectItem value="delivered">Delivered</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={order.payment_status}
-                      onValueChange={(value) => 
-                        updateOrderMutation.mutate({ 
-                          orderId: order.id, 
-                          field: 'payment_status', 
-                          value 
-                        })
-                      }
-                    >
-                      <SelectTrigger className="w-28">
-                        <Badge className={getPaymentStatusColor(order.payment_status)}>
-                          {order.payment_status}
-                        </Badge>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="failed">Failed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-500">
-                    {new Date(order.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm">
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {filteredOrders?.map((order) => {
+                const userProfile = profilesMap[order.user_id];
+                return (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-mono text-sm">
+                      {order.id.slice(0, 8)}...
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{userProfile?.full_name || 'N/A'}</div>
+                        <div className="text-sm text-gray-500">{userProfile?.email || 'N/A'}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-1">
+                        <Package className="w-4 h-4 text-gray-400" />
+                        <span>{order.order_items?.length || 0} items</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-1">
+                        <DollarSign className="w-4 h-4 text-gray-400" />
+                        <span>₹{order.total_amount}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={order.status}
+                        onValueChange={(value) => 
+                          updateOrderMutation.mutate({ 
+                            orderId: order.id, 
+                            field: 'status', 
+                            value 
+                          })
+                        }
+                      >
+                        <SelectTrigger className="w-32">
+                          <Badge className={getStatusColor(order.status)}>
+                            {order.status}
+                          </Badge>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="confirmed">Confirmed</SelectItem>
+                          <SelectItem value="shipped">Shipped</SelectItem>
+                          <SelectItem value="delivered">Delivered</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={order.payment_status}
+                        onValueChange={(value) => 
+                          updateOrderMutation.mutate({ 
+                            orderId: order.id, 
+                            field: 'payment_status', 
+                            value 
+                          })
+                        }
+                      >
+                        <SelectTrigger className="w-28">
+                          <Badge className={getPaymentStatusColor(order.payment_status)}>
+                            {order.payment_status}
+                          </Badge>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="paid">Paid</SelectItem>
+                          <SelectItem value="failed">Failed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-500">
+                      {new Date(order.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
