@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import Layout from '@/components/Layout';
@@ -34,6 +34,7 @@ const OrderConfirmation = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (!user || !orderId) {
@@ -44,24 +45,51 @@ const OrderConfirmation = () => {
     }
 
     fetchOrder();
-  }, [user, orderId]);
+  }, [user, orderId, retryCount]);
 
   const fetchOrder = async () => {
     try {
-      console.log('Fetching order:', orderId, 'for user:', user!.id);
+      console.log('Fetching order:', orderId, 'for user:', user!.id, 'attempt:', retryCount + 1);
       
-      // Add a small delay to ensure the order is fully created
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Progressive delay for retries
+      const delay = retryCount * 1000 + 1000; // 1s, 2s, 3s, etc.
+      await new Promise(resolve => setTimeout(resolve, delay));
       
-      // Fetch the order and order items in a single query
-      const { data: orderData, error: orderError } = await supabase
+      // Try multiple approaches to fetch the order
+      
+      // First, try to fetch the order directly
+      let orderData = null;
+      let orderError = null;
+
+      // Approach 1: Direct order fetch with joins
+      const { data: directOrderData, error: directOrderError } = await supabase
         .from('orders')
         .select(`
           id,
           total_amount,
           shipping_amount,
           created_at,
-          order_items (
+          user_id
+        `)
+        .eq('id', orderId)
+        .maybeSingle();
+
+      if (directOrderError) {
+        console.error('Direct order fetch error:', directOrderError);
+      } else if (directOrderData) {
+        console.log('Direct order data found:', directOrderData);
+        
+        // Check if this order belongs to the current user
+        if (directOrderData.user_id !== user!.id) {
+          setError('You do not have permission to view this order');
+          setLoading(false);
+          return;
+        }
+
+        // Now fetch order items separately
+        const { data: itemsData, error: itemsError } = await supabase
+          .from('order_items')
+          .select(`
             id,
             product_id,
             quantity,
@@ -71,30 +99,100 @@ const OrderConfirmation = () => {
               name,
               image_urls
             )
-          )
-        `)
-        .eq('id', orderId)
-        .eq('user_id', user!.id)
-        .single();
+          `)
+          .eq('order_id', orderId);
 
-      if (orderError) {
-        console.error('Error fetching order:', orderError);
-        if (orderError.code === '42501') {
-          setError('Unable to access order details. Please try refreshing the page.');
+        if (itemsError) {
+          console.error('Error fetching order items:', itemsError);
+        } else {
+          orderData = {
+            ...directOrderData,
+            order_items: itemsData || []
+          };
+        }
+      }
+
+      // If direct approach failed, try alternative approach
+      if (!orderData) {
+        console.log('Trying alternative fetch approach...');
+        
+        // Approach 2: Fetch through user's orders
+        const { data: userOrdersData, error: userOrdersError } = await supabase
+          .from('orders')
+          .select(`
+            id,
+            total_amount,
+            shipping_amount,
+            created_at
+          `)
+          .eq('user_id', user!.id)
+          .eq('id', orderId)
+          .maybeSingle();
+
+        if (userOrdersError) {
+          console.error('User orders fetch error:', userOrdersError);
+        } else if (userOrdersData) {
+          console.log('User order data found:', userOrdersData);
+          
+          // Fetch items for this order
+          const { data: itemsData, error: itemsError } = await supabase
+            .from('order_items')
+            .select(`
+              id,
+              product_id,
+              quantity,
+              unit_price,
+              total_price,
+              product:products (
+                name,
+                image_urls
+              )
+            `)
+            .eq('order_id', orderId);
+
+          if (!itemsError) {
+            orderData = {
+              ...userOrdersData,
+              order_items: itemsData || []
+            };
+          }
+        }
+      }
+
+      if (orderData) {
+        console.log('Order fetched successfully:', orderData);
+        setOrder(orderData);
+        setError(null);
+      } else {
+        console.log('Order not found, retry count:', retryCount);
+        
+        // Retry up to 3 times with increasing delays
+        if (retryCount < 3) {
+          setRetryCount(prev => prev + 1);
+          return; // This will trigger useEffect again
         } else {
           setError('Order not found or you do not have permission to view it');
         }
-        return;
       }
-
-      console.log('Order fetched successfully:', orderData);
-      setOrder(orderData);
     } catch (error) {
       console.error('Error fetching order:', error);
-      setError('Failed to load order details');
+      
+      // Retry on error
+      if (retryCount < 3) {
+        setRetryCount(prev => prev + 1);
+        return;
+      } else {
+        setError('Failed to load order details after multiple attempts');
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    setRetryCount(0);
   };
 
   const formatDate = (dateString: string) => {
@@ -114,8 +212,10 @@ const OrderConfirmation = () => {
       <Layout>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-black mx-auto mb-6"></div>
-            <p className="text-gray-600 text-lg">Loading order details...</p>
+            <Loader2 className="h-16 w-16 animate-spin text-black mx-auto mb-6" />
+            <p className="text-gray-600 text-lg">
+              Loading order details... {retryCount > 0 && `(Attempt ${retryCount + 1})`}
+            </p>
           </div>
         </div>
       </Layout>
@@ -134,11 +234,12 @@ const OrderConfirmation = () => {
             </p>
             <div className="space-y-4">
               <Button 
-                onClick={() => window.location.reload()}
+                onClick={handleRetry}
                 variant="outline"
                 className="w-full border-gray-200 hover:border-black hover:bg-black hover:text-white 
                          h-12 text-lg rounded-full hover:scale-105 transition-all duration-200"
               >
+                <Loader2 className="w-4 h-4 mr-2" />
                 Try Again
               </Button>
               <Button 
@@ -182,7 +283,7 @@ const OrderConfirmation = () => {
 
             {/* Order Items */}
             <div className="space-y-6 mb-10">
-              {order.order_items && order.order_items.map((item) => (
+              {order.order_items && order.order_items.length > 0 ? order.order_items.map((item) => (
                 <div key={item.id} className="flex items-center space-x-6 py-6 border-b border-gray-50 last:border-b-0">
                   <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center">
                     {item.product?.image_urls && item.product.image_urls.length > 0 ? (
@@ -211,7 +312,11 @@ const OrderConfirmation = () => {
                     <p className="text-gray-600">Total</p>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">No items found for this order</p>
+                </div>
+              )}
             </div>
 
             {/* Order Totals */}
