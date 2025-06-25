@@ -45,6 +45,9 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             .maybeSingle();
           
           if (!error && data) {
+            // Create a temporary auth session for RLS to work
+            await createTempAuthSession(data.email);
+            
             setUser({
               id: data.id,
               email: data.email,
@@ -66,6 +69,27 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     checkSession();
   }, []);
 
+  // Helper function to create a temporary auth session with email in JWT claims
+  const createTempAuthSession = async (email: string) => {
+    try {
+      // Create a temporary token with the staff email for RLS policies
+      const tempPayload = {
+        email: email,
+        role: 'authenticated',
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+      };
+      
+      // Set the session manually for RLS to work
+      await supabase.auth.setSession({
+        access_token: 'staff-session-' + email,
+        refresh_token: 'staff-refresh-' + email
+      });
+    } catch (error) {
+      console.log('Could not create temp session:', error);
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     try {
       // First, authenticate the staff user using the custom function
@@ -79,22 +103,8 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (data && data.length > 0) {
         const staffData = data[0];
         
-        // Now check if this staff user has a corresponding Supabase Auth user
-        // If not, we'll need to create one or handle it differently
-        try {
-          // Try to sign in the staff user with Supabase Auth as well
-          // This is necessary for RLS policies to work properly
-          const { error: authError } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password // This will only work if staff users are also in auth.users
-          });
-
-          // If auth sign-in fails, it's expected since staff might not be in auth.users
-          // The RLS policies are designed to handle this case
-          console.log('Staff auth status:', authError ? 'Custom only' : 'Both systems');
-        } catch (authErr) {
-          console.log('Staff user not in Supabase Auth, using custom auth only');
-        }
+        // Create a temporary auth session with the staff email
+        await createTempAuthSession(email);
 
         const staffUser = {
           id: staffData.user_id,

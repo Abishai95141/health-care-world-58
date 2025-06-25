@@ -873,6 +873,10 @@ export type Database = {
         Args: { user_email: string }
         Returns: string
       }
+      is_current_user_staff: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_staff_user: {
         Args: Record<PropertyKey, never>
         Returns: boolean

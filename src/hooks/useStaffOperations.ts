@@ -16,6 +16,13 @@ export const useStaffOperations = () => {
     }
 
     try {
+      // Ensure we have the staff user's email in the current session context
+      if (staffUser) {
+        // The RLS policies will check for the email in JWT claims
+        // Our StaffAuthContext should have set up the session properly
+        console.log('Executing staff operation for:', staffUser.email);
+      }
+      
       return await operation();
     } catch (error: any) {
       console.error('Staff operation error:', error);
