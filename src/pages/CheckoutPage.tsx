@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/hooks/useCart';
-import { useSimpleOrder } from '@/hooks/useSimpleOrder';
+import { useOrder } from '@/hooks/useOrder';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/contexts/AppContext';
@@ -33,7 +34,7 @@ interface ShippingOption {
 const CheckoutPage = () => {
   const { user } = useAuth();
   const { cartItems, cartTotal } = useCart();
-  const { placeSimpleOrder, loading: orderLoading } = useSimpleOrder();
+  const { createOrder, loading: orderLoading } = useOrder();
   const { showToast } = useApp();
   const navigate = useNavigate();
   
@@ -138,14 +139,14 @@ const CheckoutPage = () => {
       return;
     }
 
-    console.log('Placing simple order with:', {
+    console.log('Placing order with:', {
       cartItems: cartItems.length,
       shippingCost: selectedShipping.price,
       addressId: selectedAddressId
     });
 
-    const success = await placeSimpleOrder(cartItems, selectedShipping.price, selectedAddressId);
-    // The useSimpleOrder hook will handle navigation to order confirmation
+    // Use the updated createOrder function
+    await createOrder(cartItems, selectedShipping.price, selectedAddressId);
   };
 
   if (!user) {

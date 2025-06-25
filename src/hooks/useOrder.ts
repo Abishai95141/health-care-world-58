@@ -41,7 +41,7 @@ export const useOrder = () => {
     try {
       console.log('Creating order for user:', user.id, 'with address:', addressId);
       
-      // Use the Supabase function to place the order
+      // Use the updated place_order function
       const { data, error } = await supabase.rpc('place_order', {
         cart_user_id: user.id,
         shipping_cost: shippingCost,
@@ -70,9 +70,9 @@ export const useOrder = () => {
       } else {
         throw new Error('No response from order function');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating order:', error);
-      showToast('Failed to place order. Please try again.', 'error');
+      showToast(error.message || 'Failed to place order. Please try again.', 'error');
       return false;
     } finally {
       setLoading(false);
@@ -137,9 +137,9 @@ export const useOrder = () => {
       } else {
         throw new Error('No response from order function');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating single item order:', error);
-      showToast('Failed to place order. Please try again.', 'error');
+      showToast(error.message || 'Failed to place order. Please try again.', 'error');
       return false;
     } finally {
       setLoading(false);
