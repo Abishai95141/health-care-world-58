@@ -26,6 +26,16 @@ export const useStaffOperations = () => {
     return data;
   };
 
+  const deleteProduct = async (id: string) => {
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    return true;
+  };
+
   const insertImportLog = async (logData: any) => {
     const { data, error } = await supabase
       .from('product_import_logs')
@@ -47,10 +57,33 @@ export const useStaffOperations = () => {
     return data;
   };
 
+  const getAllProducts = async () => {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  };
+
+  const getImportLogs = async () => {
+    const { data, error } = await supabase
+      .from('product_import_logs')
+      .select('*')
+      .order('imported_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  };
+
   return {
     insertProduct,
     updateProduct,
+    deleteProduct,
     insertImportLog,
-    bulkInsertProducts
+    bulkInsertProducts,
+    getAllProducts,
+    getImportLogs
   };
 };
