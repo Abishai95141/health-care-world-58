@@ -30,11 +30,37 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('staff_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    // Check for existing session in localStorage and Supabase
+    const checkSession = async () => {
+      try {
+        const storedUser = localStorage.getItem('staff_user');
+        if (storedUser) {
+          const staffUser = JSON.parse(storedUser);
+          
+          // Create a session in Supabase auth for this staff user
+          // We'll use a service role to create an anonymous session that links to this staff user
+          const { error } = await supabase.auth.signInAnonymously({
+            options: {
+              data: {
+                staff_id: staffUser.id,
+                is_staff: true,
+                staff_role: staffUser.role
+              }
+            }
+          });
+
+          if (!error) {
+            setUser(staffUser);
+          }
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkSession();
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -52,6 +78,23 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           email: data[0].email,
           role: data[0].role
         };
+
+        // Create an anonymous session in Supabase auth with staff metadata
+        const { error: authError } = await supabase.auth.signInAnonymously({
+          options: {
+            data: {
+              staff_id: staffUser.id,
+              is_staff: true,
+              staff_role: staffUser.role
+            }
+          }
+        });
+
+        if (authError) {
+          console.error('Auth session creation failed:', authError);
+          // Continue anyway, as we can still use localStorage for basic functionality
+        }
+
         setUser(staffUser);
         localStorage.setItem('staff_user', JSON.stringify(staffUser));
         return { error: null };
@@ -63,7 +106,8 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  const signOut = () => {
+  const signOut = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     localStorage.removeItem('staff_user');
   };
