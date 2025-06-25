@@ -1,280 +1,233 @@
+
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Search, Filter, Grid, List, ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { useProducts } from '@/hooks/useProducts';
 import ProductCard from '@/components/ProductCard';
-import EnhancedNavigation from '@/components/EnhancedNavigation';
-import ShopTopBanner from '@/components/banners/ShopTopBanner';
+import { useProducts } from '@/hooks/useProducts';
+import AdvertisementBanner from '@/components/AdvertisementBanner';
 
 const Shop = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [sortBy, setSortBy] = useState('created_at');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const { products, loading } = useProducts();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('name');
+  const [viewMode, setViewMode] = useState('grid');
   const [showFilters, setShowFilters] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [filteredProducts, setFilteredProducts] = useState(products);
 
-  const { products, loading, totalCount } = useProducts({
-    searchQuery,
-    category: selectedCategory,
-    sortBy,
-    sortOrder,
-    page: currentPage,
-    pageSize: 20
-  });
+  // Get unique categories
+  const categories = ['all', ...new Set(products.map(product => product.category))];
 
-  // Reset page when filters change
+  // Filter and sort products
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedCategory, sortBy, sortOrder]);
+    let result = products;
 
-  const categories = [
-    'All',
-    'Prescription',
-    'OTC & Wellness',
-    'Vitamins & Supplements',
-    'Medical Devices',
-    'Personal Care'
-  ];
+    // Filter by search term
+    if (searchTerm) {
+      result = result.filter(product => 
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      result = result.filter(product => product.category === selectedCategory);
+    }
 
-  const clearFilters = () => {
-    setSearchQuery('');
-    setSelectedCategory('All');
-    setSortBy('created_at');
-    setSortOrder('desc');
-    setCurrentPage(1);
-  };
+    // Sort products
+    switch (sortBy) {
+      case 'price-low':
+        result.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high':
+        result.sort((a, b) => b.price - a.price);
+        break;
+      case 'name':
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      default:
+        break;
+    }
 
-  const hasActiveFilters = searchQuery || selectedCategory !== 'All' || sortBy !== 'created_at' || sortOrder !== 'desc';
+    setFilteredProducts(result);
+  }, [products, searchTerm, selectedCategory, sortBy]);
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <EnhancedNavigation />
-      
-      <div className="pt-20">
-        {/* Shop Top Banner - NEW */}
-        <ShopTopBanner />
-
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Our Products</h1>
-                <p className="mt-2 text-gray-600">
-                  {totalCount > 0 ? `${totalCount} products available` : 'Discover our wide range of healthcare products'}
-                </p>
-              </div>
-
-              {/* Search Bar */}
-              <div className="flex-1 max-w-lg">
-                <form onSubmit={handleSearch} className="relative">
-                  <Input
-                    type="text"
-                    placeholder="Search for medicines, brands..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-3 bg-gray-50 border-gray-200 focus:border-green-500 focus:ring-green-500 rounded-lg"
-                  />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                </form>
-              </div>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 pt-24">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="h-80 bg-gray-200 rounded-2xl"></div>
+              ))}
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
 
-        {/* Filters and Controls */}
-        <div className="bg-white border-b border-gray-200 sticky top-16 z-30">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <div className="flex flex-wrap items-center gap-3">
+  return (
+    <div className="min-h-screen bg-gray-50 pt-24">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-4xl font-light text-black mb-4">Shop</h1>
+          <p className="text-black/70">Discover quality healthcare products</p>
+        </motion.div>
+
+        {/* Advertisement Banner - Shop Placement */}
+        <div className="mb-8">
+          <AdvertisementBanner placement="shop_top" />
+        </div>
+
+        {/* Search and Filters */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 mb-8 shadow-sm">
+          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+            {/* Search */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black/40 h-5 w-5" />
+              <Input
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-gray-50 border-0 rounded-full focus:ring-2 focus:ring-black/10"
+              />
+            </div>
+
+            {/* Filters */}
+            <div className="flex items-center gap-4">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-48 rounded-full border-0 bg-gray-50">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(category => (
+                    <SelectItem key={category} value={category}>
+                      {category === 'all' ? 'All Categories' : category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-48 rounded-full border-0 bg-gray-50">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Name (A-Z)</SelectItem>
+                  <SelectItem value="price-low">Price (Low to High)</SelectItem>
+                  <SelectItem value="price-high">Price (High to Low)</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="flex items-center bg-gray-50 rounded-full p-1">
                 <Button
-                  variant="outline"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="lg:hidden flex items-center space-x-2"
-                >
-                  <Filter className="h-4 w-4" />
-                  <span>Filters</span>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-                </Button>
-
-                {/* Desktop Filters */}
-                <div className={`flex flex-wrap items-center gap-3 ${showFilters ? 'block' : 'hidden lg:flex'}`}>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-[200px] border-gray-200">
-                      <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={`${sortBy}-${sortOrder}`} onValueChange={(value) => {
-                    const [field, order] = value.split('-');
-                    setSortBy(field);
-                    setSortOrder(order as 'asc' | 'desc');
-                  }}>
-                    <SelectTrigger className="w-[200px] border-gray-200">
-                      <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="created_at-desc">Newest First</SelectItem>
-                      <SelectItem value="created_at-asc">Oldest First</SelectItem>
-                      <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                      <SelectItem value="price-desc">Price: High to Low</SelectItem>
-                      <SelectItem value="name-asc">Name: A to Z</SelectItem>
-                      <SelectItem value="name-desc">Name: Z to A</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {hasActiveFilters && (
-                    <Button variant="outline" onClick={clearFilters} className="text-red-600 border-red-200 hover:bg-red-50">
-                      Clear Filters
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('grid')}
-                  className="p-2"
+                  className="rounded-full"
                 >
                   <Grid className="h-4 w-4" />
                 </Button>
                 <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('list')}
-                  className="p-2"
+                  className="rounded-full"
                 >
                   <List className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-
-            {/* Active Filters */}
-            {hasActiveFilters && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {searchQuery && (
-                  <Badge variant="secondary" className="px-3 py-1">
-                    Search: "{searchQuery}"
-                  </Badge>
-                )}
-                {selectedCategory !== 'All' && (
-                  <Badge variant="secondary" className="px-3 py-1">
-                    Category: {selectedCategory}
-                  </Badge>
-                )}
-                {(sortBy !== 'created_at' || sortOrder !== 'desc') && (
-                  <Badge variant="secondary" className="px-3 py-1">
-                    Sort: {sortBy === 'created_at' ? 'Date' : sortBy === 'price' ? 'Price' : 'Name'} ({sortOrder === 'asc' ? 'Ascending' : 'Descending'})
-                  </Badge>
-                )}
-              </div>
-            )}
           </div>
+
+          {/* Active Filters */}
+          {(searchTerm || selectedCategory !== 'all') && (
+            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
+              <span className="text-sm text-black/60">Active filters:</span>
+              {searchTerm && (
+                <Badge variant="secondary" className="rounded-full">
+                  Search: {searchTerm}
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="ml-2 text-black/60 hover:text-black"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              )}
+              {selectedCategory !== 'all' && (
+                <Badge variant="secondary" className="rounded-full">
+                  Category: {selectedCategory}
+                  <button
+                    onClick={() => setSelectedCategory('all')}
+                    className="ml-2 text-black/60 hover:text-black"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Results Count */}
+        <div className="mb-6">
+          <p className="text-black/60">
+            Showing {filteredProducts.length} of {products.length} products
+          </p>
         </div>
 
         {/* Products Grid */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {[...Array(8)].map((_, index) => (
-                <div key={index} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
-                  <div className="h-48 bg-gray-200"></div>
-                  <div className="p-4 space-y-3">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-6 bg-gray-200 rounded w-full"></div>
-                    <div className="h-5 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-10 bg-gray-200 rounded w-full"></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : products.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="mx-auto w-64 h-64 bg-gray-100 rounded-lg mb-6 flex items-center justify-center">
-                <Search className="h-16 w-16 text-gray-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
-              <p className="text-gray-600 mb-6">
-                {hasActiveFilters 
-                  ? "Try adjusting your filters or search terms to find what you're looking for."
-                  : "We're working on adding more products to our inventory."}
-              </p>
-              {hasActiveFilters && (
-                <Button onClick={clearFilters} className="bg-green-600 hover:bg-green-700">
-                  Clear All Filters
-                </Button>
-              )}
-            </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className={`grid gap-6 mb-12 ${
+            viewMode === 'grid'
+              ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+              : 'grid-cols-1'
+          }`}
+        >
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map((product) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <ProductCard product={product} viewMode={viewMode} />
+              </motion.div>
+            ))
           ) : (
-            <div className={
-              viewMode === 'grid' 
-                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                : "space-y-4"
-            }>
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+            <div className="col-span-full text-center py-12">
+              <p className="text-black/60 text-lg">No products found matching your criteria.</p>
+              <Button
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedCategory('all');
+                }}
+                className="mt-4 bg-black text-white hover:bg-black/80 rounded-full"
+              >
+                Clear Filters
+              </Button>
             </div>
           )}
-
-          {/* Pagination */}
-          {!loading && products.length > 0 && totalCount > 20 && (
-            <div className="mt-12 flex justify-center">
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                
-                <div className="flex items-center space-x-1">
-                  {Array.from({ length: Math.min(5, Math.ceil(totalCount / 20)) }, (_, i) => {
-                    const page = i + 1;
-                    return (
-                      <Button
-                        key={page}
-                        variant={page === currentPage ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setCurrentPage(page)}
-                        className="w-10"
-                      >
-                        {page}
-                      </Button>
-                    );
-                  })}
-                </div>
-
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage(Math.min(Math.ceil(totalCount / 20), currentPage + 1))}
-                  disabled={currentPage >= Math.ceil(totalCount / 20)}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

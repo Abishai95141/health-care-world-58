@@ -1,235 +1,212 @@
 
-import React from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AppProvider } from "./contexts/AppContext";
-import { AuthProvider } from "./contexts/AuthContext";
-import { StaffAuthProvider } from "./contexts/StaffAuthContext";
-import { BannerProvider } from "./contexts/BannerContext";
-import ChatWidget from "./components/ChatWidget";
-import ProtectedRoute from "./components/ProtectedRoute";
-import StaffProtectedRoute from "./components/staff/StaffProtectedRoute";
-import StaffLayout from "./components/staff/StaffLayout";
-import Index from "./pages/Index";
-import Shop from "./pages/Shop";
-import ProductDetail from "./pages/ProductDetail";
-import AboutUs from "./pages/AboutUs";
-import ContactUs from "./pages/ContactUs";
-import Auth from "./pages/Auth";
-import Profile from "./pages/Profile";
-import AccountSettings from "./pages/AccountSettings";
-import Wishlist from "./pages/Wishlist";
-import CartPage from "./components/CartPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import OrderConfirmation from "./pages/OrderConfirmation";
-import StaffLogin from "./pages/staff/StaffLogin";
-import StaffDashboard from "./pages/staff/StaffDashboard";
-import AddProduct from "./pages/staff/AddProduct";
-import ManageProducts from "./pages/staff/ManageProducts";
-import EditProduct from "./pages/staff/EditProduct";
-import BulkImport from "./pages/staff/BulkImport";
-import InventoryAlerts from "./pages/staff/InventoryAlerts";
-import BannerManagement from "./pages/staff/BannerManagement";
-import ManageOrders from "./pages/staff/ManageOrders";
-import ManagePurchaseOrders from "./pages/staff/ManagePurchaseOrders";
-import NewPurchaseOrder from "./pages/staff/NewPurchaseOrder";
-import NotFound from "./pages/NotFound";
+import { Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/sonner';
+import { AppProvider } from '@/contexts/AppContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { StaffAuthProvider } from '@/contexts/StaffAuthContext';
+import { BannerProvider } from '@/contexts/BannerContext';
+import Layout from '@/components/Layout';
+import Index from '@/pages/Index';
+import Auth from '@/pages/Auth';
+import Profile from '@/pages/Profile';
+import Shop from '@/pages/Shop';
+import ProductDetail from '@/pages/ProductDetail';
+import CartPage from '@/components/CartPage';
+import CheckoutPage from '@/pages/CheckoutPage';
+import OrderConfirmation from '@/pages/OrderConfirmation';
+import AboutUs from '@/pages/AboutUs';
+import ContactUs from '@/pages/ContactUs';
+import Wishlist from '@/pages/Wishlist';
+import NotFound from '@/pages/NotFound';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import StaffProtectedRoute from '@/components/staff/StaffProtectedRoute';
+import StaffLayout from '@/components/staff/StaffLayout';
+import StaffLogin from '@/pages/staff/StaffLogin';
+import StaffDashboard from '@/pages/staff/StaffDashboard';
+import AddProduct from '@/pages/staff/AddProduct';
+import EditProduct from '@/pages/staff/EditProduct';
+import ManageProducts from '@/pages/staff/ManageProducts';
+import BulkImport from '@/pages/staff/BulkImport';
+import InventoryAlerts from '@/pages/staff/InventoryAlerts';
+import BannerManagement from '@/pages/staff/BannerManagement';
+import AdvertisementManagement from '@/pages/staff/AdvertisementManagement';
+import ManageOrders from '@/pages/staff/ManageOrders';
+import ManagePurchaseOrders from '@/pages/staff/ManagePurchaseOrders';
+import NewPurchaseOrder from '@/pages/staff/NewPurchaseOrder';
+import AccountSettings from '@/pages/AccountSettings';
+import { ChatWidget } from '@/components/ChatWidget';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
-const App: React.FC = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <BrowserRouter>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppProvider>
         <AuthProvider>
           <StaffAuthProvider>
             <BannerProvider>
-              <AppProvider>
-                <Toaster />
-                <Sonner />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/shop" element={<Shop />} />
-                  <Route path="/products" element={<Shop />} />
-                  <Route path="/product/:slug" element={<ProductDetail />} />
-                  <Route path="/about-us" element={<AboutUs />} />
-                  <Route path="/contact-us" element={<ContactUs />} />
-                  <Route path="/login" element={<Auth />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route 
-                    path="/profile" 
-                    element={
-                      <ProtectedRoute>
-                        <Profile />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/account-settings" 
-                    element={
-                      <ProtectedRoute>
-                        <AccountSettings />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/profile/wishlist" 
-                    element={
-                      <ProtectedRoute>
-                        <Wishlist />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/cart" 
-                    element={
-                      <ProtectedRoute>
-                        <CartPage />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/checkout" 
-                    element={
-                      <ProtectedRoute>
-                        <CheckoutPage />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/order-confirmation" 
-                    element={
-                      <ProtectedRoute>
-                        <OrderConfirmation />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/order-confirmation/:orderId" 
-                    element={
-                      <ProtectedRoute>
-                        <OrderConfirmation />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Staff Routes */}
-                  <Route path="/staff/login" element={<StaffLogin />} />
-                  <Route 
-                    path="/staff/dashboard" 
-                    element={
-                      <StaffProtectedRoute>
-                        <StaffLayout>
-                          <StaffDashboard />
-                        </StaffLayout>
-                      </StaffProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/staff/products/new" 
-                    element={
-                      <StaffProtectedRoute>
-                        <StaffLayout>
-                          <AddProduct />
-                        </StaffLayout>
-                      </StaffProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/staff/products" 
-                    element={
-                      <StaffProtectedRoute>
-                        <StaffLayout>
-                          <ManageProducts />
-                        </StaffLayout>
-                      </StaffProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/staff/products/edit/:id" 
-                    element={
-                      <StaffProtectedRoute>
-                        <StaffLayout>
-                          <EditProduct />
-                        </StaffLayout>
-                      </StaffProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/staff/products/import" 
-                    element={
-                      <StaffProtectedRoute>
-                        <StaffLayout>
-                          <BulkImport />
-                        </StaffLayout>
-                      </StaffProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/staff/inventory" 
-                    element={
-                      <StaffProtectedRoute>
-                        <StaffLayout>
-                          <InventoryAlerts />
-                        </StaffLayout>
-                      </StaffProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/staff/banners" 
-                    element={
-                      <StaffProtectedRoute>
-                        <StaffLayout>
-                          <BannerManagement />
-                        </StaffLayout>
-                      </StaffProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/staff/orders" 
-                    element={
-                      <StaffProtectedRoute>
-                        <StaffLayout>
-                          <ManageOrders />
-                        </StaffLayout>
-                      </StaffProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/staff/purchase-orders" 
-                    element={
-                      <StaffProtectedRoute>
-                        <StaffLayout>
-                          <ManagePurchaseOrders />
-                        </StaffLayout>
-                      </StaffProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/staff/purchase-orders/new" 
-                    element={
-                      <StaffProtectedRoute>
-                        <StaffLayout>
-                          <NewPurchaseOrder />
-                        </StaffLayout>
-                      </StaffProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <ChatWidget />
-              </AppProvider>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Layout><Index /></Layout>} />
+                <Route path="/auth" element={<Layout><Auth /></Layout>} />
+                <Route path="/shop" element={<Layout><Shop /></Layout>} />
+                <Route path="/product/:slug" element={<Layout><ProductDetail /></Layout>} />
+                <Route path="/about-us" element={<Layout><AboutUs /></Layout>} />
+                <Route path="/contact-us" element={<Layout><ContactUs /></Layout>} />
+                <Route path="/cart" element={<Layout><CartPage /></Layout>} />
+                
+                {/* Protected routes */}
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <Layout><Profile /></Layout>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/checkout" 
+                  element={
+                    <ProtectedRoute>
+                      <Layout><CheckoutPage /></Layout>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/order-confirmation" 
+                  element={
+                    <ProtectedRoute>
+                      <Layout><OrderConfirmation /></Layout>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/wishlist" 
+                  element={
+                    <ProtectedRoute>
+                      <Layout><Wishlist /></Layout>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/account-settings" 
+                  element={
+                    <ProtectedRoute>
+                      <Layout><AccountSettings /></Layout>
+                    </ProtectedRoute>
+                  } 
+                />
+
+                {/* Staff routes */}
+                <Route path="/staff/login" element={<StaffLogin />} />
+                <Route 
+                  path="/staff/dashboard" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout><StaffDashboard /></StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/products/new" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout><AddProduct /></StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/products/edit/:id" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout><EditProduct /></StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/products" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout><ManageProducts /></StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/products/import" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout><BulkImport /></StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/inventory" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout><InventoryAlerts /></StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/banners" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout><BannerManagement /></StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/advertisements" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout><AdvertisementManagement /></StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/orders" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout><ManageOrders /></StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/purchase-orders" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout><ManagePurchaseOrders /></StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/staff/purchase-orders/new" 
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout><NewPurchaseOrder /></StaffLayout>
+                    </StaffProtectedRoute>
+                  } 
+                />
+
+                {/* 404 */}
+                <Route path="*" element={<Layout><NotFound /></Layout>} />
+              </Routes>
+              <ChatWidget />
+              <Toaster />
             </BannerProvider>
           </StaffAuthProvider>
         </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      </AppProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

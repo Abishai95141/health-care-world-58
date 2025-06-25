@@ -15,7 +15,8 @@ import {
   User,
   Building2,
   FileText,
-  Truck
+  Truck,
+  Megaphone
 } from 'lucide-react';
 
 interface StaffLayoutProps {
@@ -40,6 +41,7 @@ const StaffLayout = ({ children }: StaffLayoutProps) => {
     { name: 'Manage Products', href: '/staff/products', icon: Package },
     { name: 'Inventory Alerts', href: '/staff/inventory', icon: AlertTriangle },
     { name: 'Banner Management', href: '/staff/banners', icon: Building2 },
+    { name: 'Advertisements', href: '/staff/advertisements', icon: Megaphone },
     { name: 'Order Management', href: '/staff/orders', icon: ShoppingCart },
     { name: 'Purchase Orders', href: '/staff/purchase-orders', icon: Truck },
   ];
