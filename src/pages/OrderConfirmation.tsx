@@ -51,54 +51,44 @@ const OrderConfirmation = () => {
       console.log('Fetching order:', orderId, 'for user:', user!.id);
       
       // Add a small delay to ensure the order is fully created
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // First, check if the order exists and belongs to the user
+      // Fetch the order and order items in a single query
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          id,
+          total_amount,
+          shipping_amount,
+          created_at,
+          order_items (
+            id,
+            product_id,
+            quantity,
+            unit_price,
+            total_price,
+            product:products (
+              name,
+              image_urls
+            )
+          )
+        `)
         .eq('id', orderId)
         .eq('user_id', user!.id)
         .single();
 
       if (orderError) {
         console.error('Error fetching order:', orderError);
-        setError('Order not found or you do not have permission to view it');
-        return;
-      }
-
-      // Then fetch the order items with product details
-      const { data: orderItemsData, error: itemsError } = await supabase
-        .from('order_items')
-        .select(`
-          id,
-          product_id,
-          quantity,
-          unit_price,
-          total_price,
-          product:products (
-            name,
-            image_urls
-          )
-        `)
-        .eq('order_id', orderId);
-
-      if (itemsError) {
-        console.error('Error fetching order items:', itemsError);
-        setError('Failed to load order details');
+        if (orderError.code === '42501') {
+          setError('Unable to access order details. Please try refreshing the page.');
+        } else {
+          setError('Order not found or you do not have permission to view it');
+        }
         return;
       }
 
       console.log('Order fetched successfully:', orderData);
-      console.log('Order items fetched successfully:', orderItemsData);
-      
-      // Combine the order data with items
-      const completeOrder: Order = {
-        ...orderData,
-        order_items: orderItemsData || []
-      };
-
-      setOrder(completeOrder);
+      setOrder(orderData);
     } catch (error) {
       console.error('Error fetching order:', error);
       setError('Failed to load order details');
@@ -142,13 +132,23 @@ const OrderConfirmation = () => {
             <p className="text-gray-600 mb-8 text-lg leading-relaxed">
               {error || "We couldn't find the order you're looking for or you don't have permission to view it."}
             </p>
-            <Button 
-              onClick={() => navigate('/shop')}
-              className="bg-black hover:bg-gray-800 text-white px-8 py-4 text-lg rounded-full 
-                       hover:scale-105 transition-all duration-200"
-            >
-              Continue Shopping
-            </Button>
+            <div className="space-y-4">
+              <Button 
+                onClick={() => window.location.reload()}
+                variant="outline"
+                className="w-full border-gray-200 hover:border-black hover:bg-black hover:text-white 
+                         h-12 text-lg rounded-full hover:scale-105 transition-all duration-200"
+              >
+                Try Again
+              </Button>
+              <Button 
+                onClick={() => navigate('/shop')}
+                className="w-full bg-black hover:bg-gray-800 text-white h-12 text-lg rounded-full 
+                         hover:scale-105 transition-all duration-200"
+              >
+                Continue Shopping
+              </Button>
+            </div>
           </div>
         </div>
       </Layout>
@@ -182,7 +182,7 @@ const OrderConfirmation = () => {
 
             {/* Order Items */}
             <div className="space-y-6 mb-10">
-              {order.order_items.map((item) => (
+              {order.order_items && order.order_items.map((item) => (
                 <div key={item.id} className="flex items-center space-x-6 py-6 border-b border-gray-50 last:border-b-0">
                   <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center">
                     {item.product?.image_urls && item.product.image_urls.length > 0 ? (
