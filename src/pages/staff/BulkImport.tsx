@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,7 +21,7 @@ interface ValidationError {
 
 const BulkImport = () => {
   const { toast } = useToast();
-  const { user: staffUser } = useStaffAuth();
+  const { user } = useStaffAuth();
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
@@ -39,6 +40,33 @@ const BulkImport = () => {
 
   const categories = ['Prescription', 'OTC & Wellness', 'Vitamins & Supplements', 'Medical Devices'];
   const units = ['Tablet', 'Capsule', 'Bottle', 'Syrup', 'Pack'];
+
+  const downloadTemplate = () => {
+    const headers = [
+      'name', 'description', 'category', 'brand', 'unit', 'price', 'mrp',
+      'weight_volume', 'manufacturer', 'requires_prescription', 'stock',
+      'expiration_date', 'tags', 'is_active'
+    ];
+
+    const sampleData = [
+      'Paracetamol 500mg', 'Pain relief tablet', 'OTC & Wellness', 'Generic',
+      'Tablet', '5.00', '6.00', '500mg', 'Pharma Corp', 'false', '100',
+      '2025-12-31', 'pain relief,fever', 'true'
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      sampleData.join(',')
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'product_import_template.csv';
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
 
   // Proper CSV parser that handles quoted fields
   const parseCSVLine = (line: string): string[] => {
@@ -328,15 +356,6 @@ const BulkImport = () => {
       return;
     }
 
-    if (!staffUser) {
-      toast({
-        title: "Error",
-        description: "Staff authentication required",
-        variant: "destructive",
-      });
-      return;
-    }
-
     console.log('Starting import process for', csvData.length, 'rows');
     setIsImporting(true);
     let successful = 0;
@@ -348,7 +367,7 @@ const BulkImport = () => {
       const { data: importLog } = await supabase
         .from('product_import_logs')
         .insert([{
-          staff_id: staffUser.id,
+          staff_id: user?.id,
           total_rows: csvData.length,
           status: 'processing'
         }])
@@ -367,7 +386,6 @@ const BulkImport = () => {
             .insert([productData]);
 
           if (error) {
-            console.error(`Error importing row ${i + 1}:`, error);
             throw error;
           }
 
