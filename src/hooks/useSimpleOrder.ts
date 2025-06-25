@@ -87,18 +87,19 @@ export const useSimpleOrder = () => {
         throw itemsError;
       }
 
-      // Update product stock
+      // Update product stock - fixed the TypeScript error
       for (const item of cartItems) {
-        const { error: stockError } = await supabase
-          .from('products')
-          .update({
-            stock: (item.product?.stock || 0) - item.quantity
-          })
-          .eq('id', item.product_id);
+        if (item.product) {
+          const newStock = item.product.stock - item.quantity;
+          const { error: stockError } = await supabase
+            .from('products')
+            .update({ stock: newStock })
+            .eq('id', item.product_id);
 
-        if (stockError) {
-          console.error('Error updating stock:', stockError);
-          // Don't fail the order for stock update issues
+          if (stockError) {
+            console.error('Error updating stock:', stockError);
+            // Don't fail the order for stock update issues
+          }
         }
       }
 
