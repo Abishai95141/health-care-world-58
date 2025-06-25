@@ -78,7 +78,7 @@ const ProductDetail = () => {
     if (!product) return;
 
     if (!user) {
-      showToast('Please sign in to add to cart', 'warning');
+      showToast('Please sign in to add to cart', 'info');
       navigate('/auth');
       return;
     }
@@ -95,7 +95,7 @@ const ProductDetail = () => {
     if (!product) return;
 
     if (!user) {
-      showToast('Please sign in to add to wishlist', 'warning');
+      showToast('Please sign in to add to wishlist', 'info');
       navigate('/auth');
       return;
     }
