@@ -1,11 +1,9 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useStaffAuth } from '@/contexts/StaffAuthContext';
 import { Upload, Download, CheckCircle, XCircle, X } from 'lucide-react';
 
 interface CSVRow {
@@ -21,7 +19,6 @@ interface ValidationError {
 
 const BulkImport = () => {
   const { toast } = useToast();
-  const { user } = useStaffAuth();
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
@@ -363,11 +360,10 @@ const BulkImport = () => {
     const errors: string[] = [];
 
     try {
-      // Log import start
+      // Log import start - simplified without staff_id since RLS is disabled
       const { data: importLog } = await supabase
         .from('product_import_logs')
         .insert([{
-          staff_id: user?.id,
           total_rows: csvData.length,
           status: 'processing'
         }])

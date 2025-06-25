@@ -45,9 +45,6 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             .maybeSingle();
           
           if (!error && data) {
-            // Create a simple auth session for the authenticated user
-            await supabase.auth.signInAnonymously();
-            
             setUser({
               id: data.id,
               email: data.email,
@@ -82,9 +79,6 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (data && data.length > 0) {
         const staffData = data[0];
         
-        // Create a simple anonymous auth session for RLS
-        await supabase.auth.signInAnonymously();
-
         const staffUser = {
           id: staffData.user_id,
           email: staffData.email,
@@ -104,12 +98,6 @@ export const StaffAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.log('Sign out error:', error);
-    }
-    
     setUser(null);
     localStorage.removeItem('staff_user');
   };
