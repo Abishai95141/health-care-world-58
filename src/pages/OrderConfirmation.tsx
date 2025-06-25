@@ -30,71 +30,48 @@ interface Order {
 const OrderConfirmation = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || !orderId) {
-      console.log('Missing user or orderId:', { user: !!user, orderId });
-      setError('Invalid order access');
+    if (!user || !orderId || !session) {
+      console.log('Missing user, session or orderId:', { user: !!user, session: !!session, orderId });
+      setError('Authentication required to view order');
       setLoading(false);
       return;
     }
 
     fetchOrder();
-  }, [user, orderId]);
+  }, [user, session, orderId]);
 
   const fetchOrder = async () => {
     try {
       console.log('Fetching order:', orderId, 'for user:', user!.id);
+      console.log('Session token exists:', !!session?.access_token);
       
       // Add a small delay to ensure the database operations are complete
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // First, verify the user's authentication status
-      const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !currentUser) {
-        console.error('Auth verification failed:', authError);
-        setError('Authentication required');
-        setLoading(false);
-        return;
-      }
-
-      console.log('Current authenticated user:', currentUser.id);
-
-      // Fetch the order with a more direct approach
+      // Fetch the order using the current session
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select(`
           id,
           total_amount,
           shipping_amount,
-          created_at,
-          user_id
+          created_at
         `)
         .eq('id', orderId)
-        .eq('user_id', currentUser.id)
+        .eq('user_id', user!.id)
         .single();
 
       if (orderError) {
         console.error('Order fetch error:', orderError);
         
-        // If it's a permission error, let's try a different approach
-        if (orderError.code === '42501' || orderError.message.includes('permission denied')) {
-          console.log('Permission denied, checking if order exists at all...');
-          
-          // Check if order exists without user filter (this will fail with RLS but give us info)
-          const { data: orderCheck, error: checkError } = await supabase
-            .from('orders')
-            .select('id, user_id')
-            .eq('id', orderId);
-            
-          console.log('Order check result:', { orderCheck, checkError });
-          
-          setError('You do not have permission to view this order, or it does not exist.');
+        if (orderError.code === 'PGRST116') {
+          setError('Order not found or you do not have permission to view it.');
         } else {
           setError(`Failed to load order: ${orderError.message}`);
         }
@@ -170,6 +147,40 @@ const OrderConfirmation = () => {
   };
 
   const subtotal = order ? order.total_amount - (order.shipping_amount || 0) : 0;
+
+  // Redirect to login if not authenticated
+  if (!user || !session) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-12 text-center">
+            <AlertCircle className="h-20 w-20 text-red-500 mx-auto mb-6" />
+            <h1 className="text-3xl font-light text-black mb-4">Authentication Required</h1>
+            <p className="text-gray-600 mb-8 text-lg leading-relaxed">
+              Please sign in to view your order details.
+            </p>
+            <div className="space-y-4">
+              <Button 
+                onClick={() => navigate('/login', { state: { from: `/order-confirmation/${orderId}` } })}
+                className="w-full bg-black hover:bg-gray-800 text-white h-12 text-lg rounded-full 
+                         hover:scale-105 transition-all duration-200"
+              >
+                Sign In
+              </Button>
+              <Button 
+                onClick={() => navigate('/shop')}
+                variant="outline"
+                className="w-full border-gray-200 hover:border-black hover:bg-black hover:text-white 
+                         h-12 text-lg rounded-full hover:scale-105 transition-all duration-200"
+              >
+                Continue Shopping
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (loading) {
     return (
