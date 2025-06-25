@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/hooks/useCart';
-import { useOrder } from '@/hooks/useOrder';
+import { useSimpleOrder } from '@/hooks/useSimpleOrder';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useApp } from '@/contexts/AppContext';
@@ -34,7 +33,7 @@ interface ShippingOption {
 const CheckoutPage = () => {
   const { user } = useAuth();
   const { cartItems, cartTotal } = useCart();
-  const { createOrder, loading: orderLoading } = useOrder();
+  const { placeSimpleOrder, loading: orderLoading } = useSimpleOrder();
   const { showToast } = useApp();
   const navigate = useNavigate();
   
@@ -103,7 +102,7 @@ const CheckoutPage = () => {
         .insert([{
           user_id: user.id,
           ...newAddress,
-          is_default: addresses.length === 0 // Make first address default
+          is_default: addresses.length === 0
         }])
         .select()
         .single();
@@ -139,14 +138,14 @@ const CheckoutPage = () => {
       return;
     }
 
-    console.log('Placing order with:', {
+    console.log('Placing simple order with:', {
       cartItems: cartItems.length,
       shippingCost: selectedShipping.price,
       addressId: selectedAddressId
     });
 
-    const success = await createOrder(cartItems, selectedShipping.price, selectedAddressId);
-    // The useOrder hook will handle navigation to order confirmation
+    const success = await placeSimpleOrder(cartItems, selectedShipping.price, selectedAddressId);
+    // The useSimpleOrder hook will handle navigation to order confirmation
   };
 
   if (!user) {
