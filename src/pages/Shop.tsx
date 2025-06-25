@@ -210,7 +210,7 @@ const Shop = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <ProductCard product={product} viewMode={viewMode} />
+                <ProductCard product={product} />
               </motion.div>
             ))
           ) : (

@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 import EnhancedCarousel from '@/components/EnhancedCarousel';
 import FeaturedProducts from '@/components/FeaturedProducts';
 import ServiceHighlights from '@/components/ServiceHighlights';
@@ -8,6 +10,20 @@ import StickyOfferBanner from '@/components/StickyOfferBanner';
 import AdvertisementBanner from '@/components/AdvertisementBanner';
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleServiceClick = (message: string) => {
+    toast({
+      title: "Service Information",
+      description: message,
+    });
+  };
+
+  const handleShopNow = () => {
+    navigate('/shop');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Carousel */}
@@ -49,10 +65,10 @@ const Index = () => {
       <FeaturedProducts />
 
       {/* Service Highlights */}
-      <ServiceHighlights />
+      <ServiceHighlights onServiceClick={handleServiceClick} />
 
       {/* Sticky Offer Banner */}
-      <StickyOfferBanner />
+      <StickyOfferBanner onShopNow={handleShopNow} />
     </div>
   );
 };
