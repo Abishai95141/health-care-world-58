@@ -1,3 +1,4 @@
+
 import { Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
@@ -48,10 +49,10 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppProvider>
-        <AuthProvider>
-          <StaffAuthProvider>
-            <BannerProvider>
+      <AuthProvider>
+        <StaffAuthProvider>
+          <BannerProvider>
+            <AppProvider>
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<Layout><Index /></Layout>} />
@@ -200,10 +201,10 @@ function App() {
               </Routes>
               <ChatWidget />
               <Toaster />
-            </BannerProvider>
-          </StaffAuthProvider>
-        </AuthProvider>
-      </AppProvider>
+            </AppProvider>
+          </BannerProvider>
+        </StaffAuthProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
