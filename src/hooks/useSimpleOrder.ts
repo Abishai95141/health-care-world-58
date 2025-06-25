@@ -92,7 +92,7 @@ export const useSimpleOrder = () => {
         const { error: stockError } = await supabase
           .from('products')
           .update({
-            stock: supabase.rpc('stock - ?', [item.quantity])
+            stock: (item.product?.stock || 0) - item.quantity
           })
           .eq('id', item.product_id);
 

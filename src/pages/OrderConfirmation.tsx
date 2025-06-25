@@ -30,31 +30,29 @@ interface Order {
 const OrderConfirmation = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
-  const { user, session } = useAuth();
+  const { user } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || !orderId || !session) {
-      console.log('Missing user, session or orderId:', { user: !!user, session: !!session, orderId });
+    if (!user || !orderId) {
       setError('Authentication required to view order');
       setLoading(false);
       return;
     }
 
     fetchOrder();
-  }, [user, session, orderId]);
+  }, [user, orderId]);
 
   const fetchOrder = async () => {
     try {
       console.log('Fetching order:', orderId, 'for user:', user!.id);
-      console.log('Session token exists:', !!session?.access_token);
       
       // Add a small delay to ensure the database operations are complete
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Fetch the order using the current session
+      // Fetch the order
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select(`
@@ -69,18 +67,12 @@ const OrderConfirmation = () => {
 
       if (orderError) {
         console.error('Order fetch error:', orderError);
-        
-        if (orderError.code === 'PGRST116') {
-          setError('Order not found or you do not have permission to view it.');
-        } else {
-          setError(`Failed to load order: ${orderError.message}`);
-        }
+        setError(`Failed to load order: ${orderError.message}`);
         setLoading(false);
         return;
       }
 
       if (!orderData) {
-        console.log('No order data returned');
         setError('Order not found');
         setLoading(false);
         return;
@@ -88,7 +80,7 @@ const OrderConfirmation = () => {
 
       console.log('Order data found:', orderData);
 
-      // Now fetch order items
+      // Fetch order items
       const { data: itemsData, error: itemsError } = await supabase
         .from('order_items')
         .select(`
@@ -118,7 +110,6 @@ const OrderConfirmation = () => {
         order_items: itemsData || []
       };
 
-      console.log('Complete order data:', completeOrder);
       setOrder(completeOrder);
       setError(null);
 
@@ -149,7 +140,7 @@ const OrderConfirmation = () => {
   const subtotal = order ? order.total_amount - (order.shipping_amount || 0) : 0;
 
   // Redirect to login if not authenticated
-  if (!user || !session) {
+  if (!user) {
     return (
       <Layout>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -161,17 +152,15 @@ const OrderConfirmation = () => {
             </p>
             <div className="space-y-4">
               <Button 
-                onClick={() => navigate('/login', { state: { from: `/order-confirmation/${orderId}` } })}
-                className="w-full bg-black hover:bg-gray-800 text-white h-12 text-lg rounded-full 
-                         hover:scale-105 transition-all duration-200"
+                onClick={() => navigate('/auth', { state: { from: `/order-confirmation/${orderId}` } })}
+                className="w-full bg-black hover:bg-gray-800 text-white h-12 text-lg rounded-full"
               >
                 Sign In
               </Button>
               <Button 
                 onClick={() => navigate('/shop')}
                 variant="outline"
-                className="w-full border-gray-200 hover:border-black hover:bg-black hover:text-white 
-                         h-12 text-lg rounded-full hover:scale-105 transition-all duration-200"
+                className="w-full border-gray-200 hover:border-black hover:bg-black hover:text-white h-12 text-lg rounded-full"
               >
                 Continue Shopping
               </Button>
@@ -206,24 +195,17 @@ const OrderConfirmation = () => {
             <p className="text-gray-600 mb-8 text-lg leading-relaxed">
               {error || "We couldn't find the order you're looking for."}
             </p>
-            <div className="text-sm text-gray-500 mb-8">
-              <p>Order ID: {orderId}</p>
-              <p>User ID: {user?.id}</p>
-            </div>
             <div className="space-y-4">
               <Button 
                 onClick={handleRetry}
                 variant="outline"
-                className="w-full border-gray-200 hover:border-black hover:bg-black hover:text-white 
-                         h-12 text-lg rounded-full hover:scale-105 transition-all duration-200"
+                className="w-full border-gray-200 hover:border-black hover:bg-black hover:text-white h-12 text-lg rounded-full"
               >
-                <Loader2 className="w-4 h-4 mr-2" />
                 Try Again
               </Button>
               <Button 
                 onClick={() => navigate('/shop')}
-                className="w-full bg-black hover:bg-gray-800 text-white h-12 text-lg rounded-full 
-                         hover:scale-105 transition-all duration-200"
+                className="w-full bg-black hover:bg-gray-800 text-white h-12 text-lg rounded-full"
               >
                 Continue Shopping
               </Button>
@@ -322,16 +304,14 @@ const OrderConfirmation = () => {
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
             <Button 
               onClick={() => navigate('/shop')}
-              className="flex-1 bg-black hover:bg-gray-800 text-white h-14 text-lg rounded-full 
-                       hover:scale-105 transition-all duration-200"
+              className="flex-1 bg-black hover:bg-gray-800 text-white h-14 text-lg rounded-full"
             >
               Continue Shopping
             </Button>
             <Button 
               onClick={() => navigate('/profile')}
               variant="outline"
-              className="flex-1 border-gray-200 hover:border-black hover:bg-black hover:text-white 
-                       h-14 text-lg rounded-full hover:scale-105 transition-all duration-200"
+              className="flex-1 border-gray-200 hover:border-black hover:bg-black hover:text-white h-14 text-lg rounded-full"
             >
               View My Orders
             </Button>
