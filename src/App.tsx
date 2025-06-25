@@ -20,6 +20,7 @@ import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import AccountSettings from "./pages/AccountSettings";
 import Wishlist from "./pages/Wishlist";
 import CartPage from "./components/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -63,6 +64,14 @@ const App: React.FC = () => (
                     element={
                       <ProtectedRoute>
                         <Profile />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/account-settings" 
+                    element={
+                      <ProtectedRoute>
+                        <AccountSettings />
                       </ProtectedRoute>
                     } 
                   />
