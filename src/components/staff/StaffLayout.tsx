@@ -19,7 +19,7 @@ import { useStaffAuth } from '@/contexts/StaffAuthContext';
 
 const StaffLayout = () => {
   const location = useLocation();
-  const { logout } = useStaffAuth();
+  const { signOut } = useStaffAuth();
 
   const navItems = [
     { path: '/staff', icon: LayoutDashboard, label: 'Dashboard' },
@@ -34,7 +34,7 @@ const StaffLayout = () => {
   ];
 
   const handleLogout = () => {
-    logout();
+    signOut();
   };
 
   return (

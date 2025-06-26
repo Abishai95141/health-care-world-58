@@ -1,20 +1,21 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { StaffAuthProvider, StaffProtectedRoute } from '@/contexts/StaffAuthContext';
+import { StaffAuthProvider } from '@/contexts/StaffAuthContext';
+import StaffProtectedRoute from '@/components/staff/StaffProtectedRoute';
 import { AppProvider } from '@/contexts/AppContext';
 import { BannerProvider } from '@/contexts/BannerContext';
-import { QueryProvider } from '@/contexts/QueryContext';
-import HomePage from '@/pages/HomePage';
-import ShopPage from '@/pages/ShopPage';
-import ProductPage from '@/pages/ProductPage';
+import HomePage from '@/pages/Index';
+import ShopPage from '@/pages/Shop';
+import ProductPage from '@/pages/ProductDetail';
 import CartPage from '@/components/CartPage';
 import CheckoutPage from '@/pages/CheckoutPage';
-import OrderConfirmationPage from '@/pages/OrderConfirmationPage';
-import ContactPage from '@/pages/ContactPage';
-import AuthPage from '@/pages/AuthPage';
-import ProfilePage from '@/pages/ProfilePage';
+import OrderConfirmationPage from '@/pages/OrderConfirmation';
+import ContactPage from '@/pages/ContactUs';
+import AuthPage from '@/pages/Auth';
+import ProfilePage from '@/pages/Profile';
 import StaffLayout from '@/components/staff/StaffLayout';
 import StaffDashboard from '@/pages/staff/StaffDashboard';
 import ManageProducts from '@/pages/staff/ManageProducts';
@@ -36,43 +37,41 @@ function App() {
         <StaffAuthProvider>
           <AppProvider>
             <BannerProvider>
-              <QueryProvider>
-                <Toaster />
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/shop" element={<ShopPage />} />
-                  <Route path="/product/:slug" element={<ProductPage />} />
-                  <Route path="/cart" element={<CartPage />} />
-                  <Route path="/checkout" element={<CheckoutPage />} />
-                  <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                  
-                  {/* Staff Routes */}
-                  <Route
-                    path="/staff"
-                    element={
-                      <StaffProtectedRoute>
-                        <StaffLayout />
-                      </StaffProtectedRoute>
-                    }
-                  >
-                    <Route index element={<StaffDashboard />} />
-                    <Route path="analytics" element={<AnalyticsDashboard />} />
-                    <Route path="products" element={<ManageProducts />} />
-                    <Route path="add-product" element={<AddProduct />} />
-                    <Route path="edit-product/:id" element={<EditProduct />} />
-                    <Route path="orders" element={<ManageOrders />} />
-                    <Route path="inventory-alerts" element={<InventoryAlerts />} />
-                    <Route path="bulk-import" element={<BulkImport />} />
-                    <Route path="advertisements" element={<AdvertisementManagement />} />
-                    <Route path="banners" element={<BannerManagement />} />
-                    <Route path="purchase-orders" element={<ManagePurchaseOrders />} />
-                    <Route path="purchase-orders/new" element={<NewPurchaseOrder />} />
-                  </Route>
-                </Routes>
-              </QueryProvider>
+              <Toaster />
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/shop" element={<ShopPage />} />
+                <Route path="/product/:slug" element={<ProductPage />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                
+                {/* Staff Routes */}
+                <Route
+                  path="/staff"
+                  element={
+                    <StaffProtectedRoute>
+                      <StaffLayout />
+                    </StaffProtectedRoute>
+                  }
+                >
+                  <Route index element={<StaffDashboard />} />
+                  <Route path="analytics" element={<AnalyticsDashboard />} />
+                  <Route path="products" element={<ManageProducts />} />
+                  <Route path="add-product" element={<AddProduct />} />
+                  <Route path="edit-product/:id" element={<EditProduct />} />
+                  <Route path="orders" element={<ManageOrders />} />
+                  <Route path="inventory-alerts" element={<InventoryAlerts />} />
+                  <Route path="bulk-import" element={<BulkImport />} />
+                  <Route path="advertisements" element={<AdvertisementManagement />} />
+                  <Route path="banners" element={<BannerManagement />} />
+                  <Route path="purchase-orders" element={<ManagePurchaseOrders />} />
+                  <Route path="purchase-orders/new" element={<NewPurchaseOrder />} />
+                </Route>
+              </Routes>
             </BannerProvider>
           </AppProvider>
         </StaffAuthProvider>

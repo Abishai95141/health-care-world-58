@@ -56,13 +56,28 @@ export const useAnalytics = () => {
       const totalOrders = orders?.length || 0;
       const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-      // Get customer stats using the existing function
-      const { data: customerStats, error: customerError } = await supabase
-        .rpc('get_customer_stats');
+      // Get customer stats - handle potential null/undefined response
+      let customerStats = {
+        total_customers: 0,
+        new_customers_this_month: 0,
+        returning_customers: 0
+      };
 
-      if (customerError) throw customerError;
+      try {
+        const { data: statsData, error: customerError } = await supabase
+          .rpc('get_customer_stats');
 
-      const stats = customerStats?.[0] || {};
+        if (!customerError && statsData && statsData.length > 0) {
+          const stats = statsData[0];
+          customerStats = {
+            total_customers: stats.total_customers || 0,
+            new_customers_this_month: stats.new_customers_this_month || 0,
+            returning_customers: stats.returning_customers || 0
+          };
+        }
+      } catch (error) {
+        console.warn('Customer stats not available:', error);
+      }
 
       // Get stock alerts
       const { data: lowStock, error: lowStockError } = await supabase
@@ -81,9 +96,9 @@ export const useAnalytics = () => {
         totalRevenue,
         totalOrders,
         averageOrderValue,
-        totalCustomers: stats.total_customers || 0,
-        newCustomersThisMonth: stats.new_customers_this_month || 0,
-        returningCustomers: stats.returning_customers || 0,
+        totalCustomers: customerStats.total_customers,
+        newCustomersThisMonth: customerStats.new_customers_this_month,
+        returningCustomers: customerStats.returning_customers,
         lowStockCount: lowStock?.length || 0,
         outOfStockCount: outOfStock?.length || 0,
       });
