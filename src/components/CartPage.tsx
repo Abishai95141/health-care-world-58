@@ -1,237 +1,189 @@
+
 import React from 'react';
-import { ChevronLeft, Minus, Plus, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ShoppingCart, Plus, Minus, Trash2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCart } from '@/hooks/useCart';
-import { useAuth } from '@/contexts/AuthContext';
-import { useOrder } from '@/hooks/useOrder';
 import { useNavigate } from 'react-router-dom';
-import Layout from './Layout';
+import { useAuth } from '@/contexts/AuthContext';
+import AdvertisementBanner from '@/components/AdvertisementBanner';
 
 const CartPage = () => {
-  const { user } = useAuth();
+  const { cartItems, updateQuantity, removeFromCart, cartTotal } = useCart();
   const navigate = useNavigate();
-  const { 
-    cartItems, 
-    loading, 
-    removeFromCart, 
-    updateQuantity, 
-    clearCart, 
-    cartTotal 
-  } = useCart();
-  const { createOrder, loading: orderLoading } = useOrder();
+  const { user } = useAuth();
 
-  const handleContinueShopping = () => {
-    navigate('/shop');
-  };
-
-  const handleEmptyCart = () => {
-    if (window.confirm("Are you sure you want to remove all items?")) {
-      clearCart();
+  const handleCheckout = () => {
+    if (!user) {
+      navigate('/auth');
+      return;
     }
-  };
-
-  const handlePlaceOrder = async () => {
-    // Navigate to the new checkout page instead of placing order directly
     navigate('/checkout');
   };
 
-  const shipping = 50;
-  const total = cartTotal + shipping;
-
-  if (!user) {
-    return (
-      <Layout>
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Please sign in</h3>
-            <p className="text-gray-600 mb-6">You need to be signed in to view your cart</p>
-            <Button 
-              onClick={() => navigate('/auth')}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              Sign In
-            </Button>
-          </div>
-        </main>
-      </Layout>
-    );
-  }
-
-  if (loading) {
-    return (
-      <Layout>
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded mb-4 w-48 mx-auto"></div>
-              <div className="h-4 bg-gray-200 rounded mb-2 w-32 mx-auto"></div>
-            </div>
-          </div>
-        </main>
-      </Layout>
-    );
-  }
-
   if (cartItems.length === 0) {
     return (
-      <Layout>
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4 flex items-center justify-center">
-              <span className="text-gray-500">Empty Cart</span>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Your cart is empty</h3>
-            <p className="text-gray-600 mb-6">Looks like you haven't added any items to your cart yet</p>
-            <Button 
+      <div className="min-h-screen bg-gray-50 pt-24">
+        <div className="max-w-4xl mx-auto px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-16"
+          >
+            <ShoppingCart className="mx-auto h-24 w-24 text-gray-300 mb-8" />
+            <h1 className="text-3xl font-light text-black mb-4">Your cart is empty</h1>
+            <p className="text-black/60 mb-8">Looks like you haven't added any items yet.</p>
+            <Button
               onClick={() => navigate('/shop')}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-black text-white hover:bg-black/80 rounded-full px-8 py-3"
             >
-              Shop Now
+              Continue Shopping
             </Button>
-          </div>
-        </main>
-      </Layout>
+          </motion.div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Cart Items */}
-          <div className="lg:col-span-2">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">
-              Your Shopping Cart ({cartItems.length} item{cartItems.length !== 1 ? 's' : ''})
-            </h1>
-            
-            {/* Cart Items */}
-            <div className="bg-white rounded-lg shadow-sm">
-              {cartItems.map((item) => (
-                <div key={item.id} className="flex items-center p-6 border-b border-gray-200 last:border-b-0">
-                  <div className="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center mr-4">
-                    {item.product?.image_urls && item.product.image_urls.length > 0 ? (
-                      <img
-                        src={item.product.image_urls[0]}
-                        alt={item.product.name}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    ) : (
-                      <span className="text-xs text-gray-500">No Image</span>
-                    )}
-                  </div>
-                  
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{item.product?.name || 'Unknown Product'}</h3>
-                    <p className="text-gray-600 text-sm">SKU: {item.product_id}</p>
-                    {item.product?.brand && (
-                      <p className="text-gray-600 text-sm">Brand: {item.product.brand}</p>
-                    )}
-                  </div>
-                  
-                  <div className="text-right mr-6">
-                    <p className="font-semibold text-gray-900">₹{item.product?.price || 0}</p>
-                    <p className="text-sm text-gray-600">Unit Price</p>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 mr-6">
-                    <button 
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      disabled={item.quantity <= 1}
-                      className="p-1 border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <span className="w-12 text-center py-1 border border-gray-300 rounded">{item.quantity}</span>
-                    <button 
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      disabled={item.product ? item.quantity >= item.product.stock : true}
-                      className="p-1 border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
-                  
-                  <div className="text-right mr-6">
-                    <p className="font-semibold text-gray-900">₹{(item.product?.price || 0) * item.quantity}</p>
-                    <p className="text-sm text-gray-600">Subtotal</p>
-                  </div>
-                  
-                  <button 
-                    onClick={() => removeFromCart(item.id)}
-                    className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 rounded p-1"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-              ))}
-            </div>
+    <div className="min-h-screen bg-gray-50 pt-24">
+      <div className="max-w-6xl mx-auto px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-4xl font-light text-black mb-4">Shopping Cart</h1>
+          <p className="text-black/70">Review your items before checkout</p>
+        </motion.div>
 
-            <div className="flex items-center justify-between mt-6">
-              <button 
-                onClick={handleContinueShopping}
-                className="flex items-center text-green-600 hover:text-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 rounded px-2 py-1"
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Continue Shopping
-              </button>
-              <button 
-                onClick={handleEmptyCart}
-                className="text-red-600 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 rounded px-2 py-1"
-              >
-                Empty Cart
-              </button>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Cart Items */}
+          <div className="lg:col-span-2">
+            <Card className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border-0">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold">Cart Items ({cartItems.length})</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {cartItems.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl"
+                  >
+                    <div className="w-20 h-20 bg-white rounded-xl overflow-hidden flex-shrink-0">
+                      {item.product?.image_urls && item.product.image_urls.length > 0 ? (
+                        <img
+                          src={item.product.image_urls[0]}
+                          alt={item.product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                          <ShoppingCart className="w-8 h-8 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-black truncate">
+                        {item.product?.name || 'Unknown Product'}
+                      </h3>
+                      <p className="text-sm text-black/60">
+                        {item.product?.category}
+                      </p>
+                      <p className="text-lg font-bold text-black">
+                        ₹{item.product?.price || 0}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center space-x-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateQuantity(item.id, Math.max(0, item.quantity - 1))}
+                        className="rounded-full w-8 h-8 p-0"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </Button>
+                      <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        className="rounded-full w-8 h-8 p-0"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="font-bold text-lg text-black">
+                        ₹{item.product ? item.product.price * item.quantity : 0}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFromCart(item.id)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full mt-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Cart Footer Advertisement */}
+            <div className="mt-8">
+              <AdvertisementBanner placement="cart_footer" />
             </div>
           </div>
 
-          {/* Right Column - Order Summary */}
+          {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">Order Summary</h2>
-              
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-semibold">₹{cartTotal}</span>
+            <Card className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border-0 sticky top-8">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold">Order Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between text-black/70">
+                  <span>Subtotal</span>
+                  <span>₹{cartTotal}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Shipping</span>
-                  <div className="text-right">
-                    <span className="font-semibold">₹{shipping}</span>
-                    <span className="text-sm text-gray-500 block">(Standard)</span>
-                  </div>
+                <div className="flex justify-between text-black/70">
+                  <span>Shipping</span>
+                  <span>₹50</span>
                 </div>
                 <div className="border-t pt-4">
-                  <div className="flex justify-between text-lg font-semibold">
+                  <div className="flex justify-between text-xl font-bold text-black">
                     <span>Total</span>
-                    <span>₹{total}</span>
+                    <span>₹{cartTotal + 50}</span>
                   </div>
                 </div>
-              </div>
-
-              <Button 
-                onClick={handlePlaceOrder}
-                disabled={orderLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 mb-6"
-              >
-                {orderLoading ? 'Placing Order...' : 'Place Order'}
-              </Button>
-
-              {/* Trust Badges */}
-              <div className="border-t pt-4">
-                <p className="text-sm text-gray-600 mb-3">We accept:</p>
-                <div className="flex space-x-2">
-                  {['Visa', 'MC', 'UPI'].map((payment) => (
-                    <div key={payment} className="w-12 h-8 bg-gray-200 rounded flex items-center justify-center">
-                      <span className="text-xs text-gray-500">{payment}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+                <Button
+                  onClick={handleCheckout}
+                  className="w-full bg-black text-white hover:bg-black/80 rounded-full py-3 mt-6"
+                >
+                  Proceed to Checkout
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/shop')}
+                  className="w-full rounded-full py-3"
+                >
+                  Continue Shopping
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
-      </main>
-    </Layout>
+      </div>
+    </div>
   );
 };
 
