@@ -271,7 +271,7 @@ const Profile = () => {
                 <CardContent className="space-y-4">
                   <Button 
                     variant="outline" 
-                    onClick={() => navigate('/wishlist')}
+                    onClick={() => navigate('/profile/wishlist')}
                     className="w-full justify-start h-14 border-gray-200 
                              hover:bg-gray-50 hover:border-black hover:scale-105 
                              transition-all duration-200 group rounded-2xl text-lg"
